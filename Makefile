@@ -18,7 +18,8 @@ SOURCES = \
 		ch000_front/front.tex \
 		ch010_intro/ch_intro.tex \
 		ch020_ISA/ch_ISA.tex \
-		ch030_Magritte/ch_Magritte.tex \
+		ch030_RISCV_Design_Space/ch_RISCV_Design_Space.tex \
+		ch040_Combo_Circuits/ch_Combo_Circuits.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_BSV/apx_BSV.tex \
 		ch900_back/back.tex
@@ -62,4 +63,4 @@ clean:
 .PHONY: full_clean
 full_clean: clean
 	rm -f  *.aux  *.bbl  *.blg  *.idx  *.ilg  *.ind  *.log  *.toc  *.out  *.dvi  */*.aux
-	rm  $(TOPFILE).pdf
+	rm -f  $(TOPFILE).pdf

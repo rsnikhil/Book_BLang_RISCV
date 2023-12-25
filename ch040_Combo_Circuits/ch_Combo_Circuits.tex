@@ -10,7 +10,7 @@
 % \renewcommand{\thepage}{\arabic{page}}
 \renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
 
-\label{ch_Magritte}
+\label{ch_Combo_Circuits}
 
 % ****************************************************************
 
@@ -29,83 +29,17 @@ also be synthesized into an ASIC).
 
 % ****************************************************************
 
-\section{Simple Instruction Execution}
-
-From our previous study of the RISC-V ISA, we know that the basic
-integer ``architectural state'' of a RISC-V CPU is very simple:
-
-\begin{itemize}
-
-\item A ``program counter'' (PC) indicating the address in memory of
-the next instruction to be executed.
-
-\item A ``register file'' consisting of 32 general purpose registers
-(GPRs), each containing data.
-
-\end{itemize}
-
-The PC and each register are either 32-bits wide (in the RV32 option
-of RISC-V) or 64-bits wide (in the RV64 option).  For simplicity,
-we'll focus on RV32 here, but everything we discuss also applies to
-RV64.
-
-Executing an instruction involves a few simple steps, illustrated in
-Figure~\ref{Fig_Magritte_Simple_Instr_Exec}:
-\begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_Simple_Instr_Exec}}
-  \caption{\label{Fig_Magritte_Simple_Instr_Exec}Simple execution of RISC-V instructions}
-\end{figure}
-\begin{itemize}
-
-\item The ``Fetch'' step reads the current value of the PC and uses
-  that value as an address in memory from which to read an
-  instruction.  From here, we proceed to the ``Decode'' step.
-
-\item The ``Decode'' step examines the fetched instruction to check if
-  it is legal, to classify its major category (such as Branch, Inteter
-  Arithmetic/Logic, or Memory), and to extract some properties such as
-  which GPRs it reads (if any) and which GPR it writes (if any).  From
-  here, we proceed to the ``Register-Read and Dispatch'' step.
-
-\item The ``Register-Read and Dispatch'' step reads the GPRs for the
-instruction's inputs.  From here, we proceed to one of the ``Execute''
-steps, based on the category of the opcode in the instruction (Branch,
-Inteter Arithmetic/Logic, or Memory).
-
-\item The ``Execute Branch'' step is used for conditional-branch
-instructions.  It evaluates the branch condition and, if true, updates
-the PC to the branch-target PC, and goes back to the Fetch step to
-execute the next instruction.
-
-\item The ``Execute Integer Arithmetic and Logic'' step is used for
-integer arithmetic and logic operations (addition, subtraction,
-boolean ops, shifts, {\etc}).  From here, we proceed to the
-``Register-Write and Dispatch'' step.
-
-\item The ``Execute Memory Ops'' step calculates a memory address
-based on an input value (that was read from a GPR) and reads or writes
-memory at that address.  From here, we proceed to the ``Register-Write
-and Increment PC'' step.
-
-\item The ``Register-Write and Increment PC'' step writes the result
-from the previous Execute step back into a GPR, increments the PC, and
-goes back to the Fetch step to execute the next instruction.
-
-\end{itemize}
-
-% ****************************************************************
-
 \section{Coding Simple Instruction Execution in BSV, starting with the Decode step}
 
 In the rest of this chapter we will develop BSV code to implement all
-the steps shown in Figure~\ref{Fig_Magritte_Simple_Instr_Exec}.  Rather than
+the steps shown in Figure~\ref{Fig_Simple_Instr_Exec}.  Rather than
 follow the logical flow in the figure (Fetch, Decode, Register-Read
 ...), we will instead tackle components in an order that helps in
 learning BSV.
 
 Specifically, we start with the Decode step because, in a certain
 hardware sense, it is conceptually the simplest.  The inputs to the
-Decode step as depicted in Figure~\ref{Fig_Magritte_Simple_Instr_Exec} are:
+Decode step as depicted in Figure~\ref{Fig_Simple_Instr_Exec} are:
 
 \begin{tightlist}
 
@@ -321,10 +255,10 @@ The RISC-V ISA has a family of six conditional-branch instructions.
 Figure~\ref{Fig_Magritte_BRANCH_instrs} is an excerpt from the Unprivileged ISA
 specification document~\cite{RISCV_Unpriv_2019_12_13}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_BRANCH_instrs_1}}
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_BRANCH_instrs_2}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_1}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_2}}
   \vspace{2mm}
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_BRANCH_instrs_3}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_3}}
   \caption{\label{Fig_Magritte_BRANCH_instrs}RISC-V conditional BRANCH instructions}
 \end{figure}
 The first line just gives us the names of the various slices of a
@@ -355,7 +289,7 @@ and finally lines 5-7 define the desired legality condition.
 
 Figure~\ref{Fig_Magritte_Is_Legal_BRANCH} shows the hardware circuit described by the code.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_Is_Legal_BRANCH}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Is_Legal_BRANCH}}
   \caption{\label{Fig_Magritte_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
 \end{figure}
 Some observations:
@@ -659,7 +593,7 @@ treat them as illegal instructions.
 
 \index{BSV!enum types}
 
-In Figure~\ref{Fig_Magritte_Simple_Instr_Exec}, in the Register-Read
+In Figure~\ref{Fig_Simple_Instr_Exec}, in the Register-Read
 and Dispatch step, we need to know whether the incoming instruction is
 illegal, a control instruction (branch or jump), an integer
 arithmetic/logic instruction, or a memory-accessing instruction.  We
@@ -831,7 +765,7 @@ endfunction
 Both these code fragments represent the same hardware, shown in
 Figure~\ref{Fig_Magritte_Multiplexer}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_Multiplexer}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Multiplexer}}
   \caption{\label{Fig_Magritte_Multiplexer}If-then-else is a multiplexer}
 \end{figure}
 The 32-bit \verb|instr| argument is fed into the circuits for
@@ -866,7 +800,7 @@ endfunction
 This represents a cascade of multiplexers in hardware, as shown in
 Figure~\ref{Fig_Magritte_Multiplexer_Cascade}
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_Magritte/Figures/Fig_Magritte_Multiplexer_Cascade}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Multiplexer_Cascade}}
   \caption{\label{Fig_Magritte_Multiplexer_Cascade}Nested if-then-elses become cascaded multiplexers}
 \end{figure}
 
@@ -1156,7 +1090,7 @@ statically and reduce the if-then-else to just the relevant arm.
 
 \index{BSV!struct!type declaration}
 
-In the Decode step of Figure~\ref{Fig_Magritte_Simple_Instr_Exec} we
+In the Decode step of Figure~\ref{Fig_Simple_Instr_Exec} we
 want to produce several results that will be passed on to subsequent
 steps.  These include:
 
@@ -1289,7 +1223,7 @@ x.instr = ... new value ...
 
 \index{Magritte!Decode function}
 
-We are now in a position to write Figure~\ref{Fig_Magritte_Simple_Instr_Exec}'s Decode function:
+We are now in a position to write Figure~\ref{Fig_Simple_Instr_Exec}'s Decode function:
 
 \begin{Verbatim}[frame=single, numbers=left]
 function D_to_RR fn_D (Bit #(64) inum, Bit #(XLEN) instr, Bit #(32) instr);
