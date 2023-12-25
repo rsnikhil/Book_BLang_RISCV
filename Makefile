@@ -21,7 +21,7 @@ SOURCES = \
 		ch030_RISCV_Design_Space/ch_RISCV_Design_Space.tex \
 		ch040_Combo_Circuits/ch_Combo_Circuits.tex \
 		ch800_apx_resources/apx_resources.tex \
-		ch850_apx_BSV/apx_BSV.tex \
+		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch900_back/back.tex
 
 .PHONY: pdf
@@ -37,7 +37,8 @@ pip: $(SOURCES)
 .PHONY: figs
 figs:
 	make -C ch010_intro/Figures
-	make -C ch030_Magritte/Figures
+	make -C ch030_RISCV_Design_Space/Figures
+	make -C ch040_Combo_Circuits/Figures
 
 .PHONY: full
 full: $(SOURCES)

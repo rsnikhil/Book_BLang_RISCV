@@ -20,7 +20,7 @@
   in silicon and has been fabricated for that purpose (not
   customizable and general-purpose like an FPGA).
 
-\item[\bf BSV, BH] An open-source, modern, high-level HDL.  Two
+\item[\bf BSV, BH] An open-source, modern, High-Level HDL.  Two
   optional syntaxes (choose to one's taste): BSV has traditional
   Verilog-like syntax, BH has traditional Haskell-like syntax.
 
@@ -60,10 +60,31 @@
   \emph{sensor}---switches, photocells, motor speed, temperature,
   {\etc.}
 
+\item[\bf GPR] General Purpose Register.  For RISC-V, just a synonym
+  for the basic register set holding integers.  They are ``general
+  purpose'' in the sense that software is free to use them in any way
+  (in contrast with some earlier ISAs that restricted certain
+  registers to certain roles, such as holding addresses).
+
 \item[\bf HDL] Hardware Design Language.  A language in which one can
   represent circuits, and for which there are tools that can render a
   program into actual circuits for FPGAs and ASICs.  Examples include:
   BSV, BH, Chisel, Verilog, SystemVerilog, VHDL.
+
+\item[\bf HLHDL] High-Level Hardware Design Language.  An HDL with
+  higher-levels of abstraction and more powerful constructs and
+  semantics compared to the traditional HDLs Verilog, SystemVerilog
+  and VHDL, in the same sense that modern software programming
+  languages (Java, Python, Javascript, Haskell, OCaml, ...) have
+  higher-levels of abstraction than C/C++ which, in turn, have higher
+  levels of abstraction than Assembly Language.  Examples include BSV,
+  BH (the Haskell-syntax variant of BSV), Chisel, and HLS.
+
+\item[\bf HLS] High Level Synthesis.  The term typically used for
+  tools and methodology that compile C/C++/SystemC programs into
+  hardware.  HLS can be fragile in that it works best only on certain
+  subsets of C/C++ (``simple rectangular loop and array'' algorithms),
+  and require certain coding styles and directives.
 
 \item[\bf ISA] Instruction Set Architecture.  A specification of
   instructions: how an instruction is coded in bits; ``architectural
@@ -88,6 +109,11 @@
   Examples: pipelines, branch prediction, scoreboards, register
   renaming, out-of-order execution, superscalarity, instruction
   fission and fusion, replicated execution units, store-buffers, ...
+
+\item[\bf OS] Operating System.  Can vary from small, embedded,
+  real-time OSs such as FreeRTOS, to more capable embedded OSs like
+  Zephyr, to secure micro-kernels like seL4, to full-featured OSs like
+  Linux, Windows, MacOS, Solaris, AIX, {\etc}
 
 \item[\bf RISC-V] A particular standard ISA.  Originated circa
   2008-2010 in research at University of California, Berkeley, and

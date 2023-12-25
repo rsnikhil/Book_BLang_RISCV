@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{The RISC-V implementation Magritte;\\BSV Combinational Circuits and Finite State Machines}
+\chapter{BSV Combinational circuits for the RISC-V Decode step}
 
-\markboth{Ch \arabic{chapter}: Introduction (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Combinational (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -14,32 +14,16 @@
 
 % ****************************************************************
 
-In this chapter we design Magritte, a hardware CPU implementation that
-executes the RISC-V ISA.  Magritte is a simple implementation of
-RISC-V---it simply executes one complete RISC-V instruction before
-starting on the next one.  In particular, it has no pipelining or
-architectural sophistication (we will discuss Fife, a pipelined
-implementation, later in this book).
+\section{Introduction}
 
-Our design is coded in BSV, a modern, high-level HDL.  The BSV code
-for Magritte has strong similarities to code written in C (say) for a
-simple functional simulator for RISC-V.  Unlike C code, however, our
-BSV code will be compiled to Verilog, and will run on an FPGA (it can
-also be synthesized into an ASIC).
+In this chapter we focus on learning enough BSV to code the Decode
+step of the RISC-V interpretation steps shown
+Figure~\ref{Fig_Simple_Instr_Exec}.  As mentioned earlier, we choose
+to start with the Decode step (instead of the Fetch step) to
+facilitate the BSV-learning process.
 
-% ****************************************************************
-
-\section{Coding Simple Instruction Execution in BSV, starting with the Decode step}
-
-In the rest of this chapter we will develop BSV code to implement all
-the steps shown in Figure~\ref{Fig_Simple_Instr_Exec}.  Rather than
-follow the logical flow in the figure (Fetch, Decode, Register-Read
-...), we will instead tackle components in an order that helps in
-learning BSV.
-
-Specifically, we start with the Decode step because, in a certain
-hardware sense, it is conceptually the simplest.  The inputs to the
-Decode step as depicted in Figure~\ref{Fig_Simple_Instr_Exec} are:
+The inputs to the Decode step as depicted in
+Figure~\ref{Fig_Simple_Instr_Exec} are:
 
 \begin{tightlist}
 
@@ -89,8 +73,8 @@ input(s) and output(s).
 In the next several sections---\ref{Sec_BSV_Bit_Vectors},
 \ref{Sec_BSV_Boolean_values}, \ref{BSV_if_then_else},
 \ref{BSV_functions}---we will learn the BSV concepts needed to code
-the Decode step.  Then, in Section~\ref{Sec_Magritte_Decode} we use
-these concepts to show the BSV code for Magritte's Decode function.
+the Decode step.  Then, in Section~\ref{Sec_Combo_Decode} we use these
+concepts to show the BSV code for the Decode function.
 
 % ****************************************************************
 
@@ -252,14 +236,14 @@ above, take \verb|Bit#(n)| arguments and produce \verb|Bool| results.
 \subsection{BSV: Example: recognizing legal RISC-V BRANCH instructions}
 
 The RISC-V ISA has a family of six conditional-branch instructions.
-Figure~\ref{Fig_Magritte_BRANCH_instrs} is an excerpt from the Unprivileged ISA
+Figure~\ref{Fig_Combo_BRANCH_instrs} is an excerpt from the Unprivileged ISA
 specification document~\cite{RISCV_Unpriv_2019_12_13}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_1}}
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_2}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_BRANCH_instrs_1}}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_BRANCH_instrs_2}}
   \vspace{2mm}
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_BRANCH_instrs_3}}
-  \caption{\label{Fig_Magritte_BRANCH_instrs}RISC-V conditional BRANCH instructions}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_BRANCH_instrs_3}}
+  \caption{\label{Fig_Combo_BRANCH_instrs}RISC-V conditional BRANCH instructions}
 \end{figure}
 The first line just gives us the names of the various slices of a
 32-bit BRANCH-type instruction, and the subsequent lines describe the
@@ -287,10 +271,10 @@ underscore characters are present merely for our (human) readability,
 and have no semantic significance.  Lines 3-4 extract relevant slices,
 and finally lines 5-7 define the desired legality condition.
 
-Figure~\ref{Fig_Magritte_Is_Legal_BRANCH} shows the hardware circuit described by the code.
+Figure~\ref{Fig_Combo_Is_Legal_BRANCH} shows the hardware circuit described by the code.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Is_Legal_BRANCH}}
-  \caption{\label{Fig_Magritte_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_Is_Legal_BRANCH}}
+  \caption{\label{Fig_Combo_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
 \end{figure}
 Some observations:
 \index{BSV!bus (hardware, bundle of wires)}
@@ -315,7 +299,7 @@ Some observations:
 \index{BSV!Combinational circuits}
 \index{BSV!Combinational primitives}
 
-Figure~\ref{Fig_Magritte_Is_Legal_BRANCH} is an example of a so-called
+Figure~\ref{Fig_Combo_Is_Legal_BRANCH} is an example of a so-called
 \emph{combinational} circuit.  In general, a combinational circuit is
 any interconnection of combinational primitive ``operators'' that
 \emph{does not contain cycles} ({\ie} a bus connecting back to an
@@ -343,7 +327,7 @@ automatically by excellent so-called ``synthesis'' tools.
 There is no ``storage'' in a combinational circuit, nor any concept of
 ``updating'' any storage (no ``side-effects'').  When a 32-bit value
 is presented at the input (top) of the circuit in
-Figure~\ref{Fig_Magritte_Is_Legal_BRANCH}, conceptually we
+Figure~\ref{Fig_Combo_Is_Legal_BRANCH}, conceptually we
 ``instantly'' see the 1-bit result at the output (bottom) of the
 circuit, {\ie} a combinational circuit is conceptually a pure,
 instantaneous, mathematical function from intputs to outputs.  If we
@@ -763,14 +747,14 @@ endfunction
 \end{Verbatim}
 
 Both these code fragments represent the same hardware, shown in
-Figure~\ref{Fig_Magritte_Multiplexer}.
+Figure~\ref{Fig_Combo_Multiplexer}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Multiplexer}}
-  \caption{\label{Fig_Magritte_Multiplexer}If-then-else is a multiplexer}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_Multiplexer}}
+  \caption{\label{Fig_Combo_Multiplexer}If-then-else is a multiplexer}
 \end{figure}
 The 32-bit \verb|instr| argument is fed into the circuits for
 \verb|is_legal_BRANCH()| (hardware schematic in
-Figure~\ref{Fig_Magritte_Is_Legal_BRANCH}), \verb|is_legal_JAL()| and
+Figure~\ref{Fig_Combo_Is_Legal_BRANCH}), \verb|is_legal_JAL()| and
 \verb|is_legal_JALR()| which are OR'd to produce a \verb|Bool| output
 which, in turn, is used to select one of two 2-bit constant values,
 producing a final 2-bit result.  The multiplexer, also called a
@@ -798,10 +782,10 @@ endfunction
 \end{Verbatim}
 
 This represents a cascade of multiplexers in hardware, as shown in
-Figure~\ref{Fig_Magritte_Multiplexer_Cascade}
+Figure~\ref{Fig_Combo_Multiplexer_Cascade}
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Magritte_Multiplexer_Cascade}}
-  \caption{\label{Fig_Magritte_Multiplexer_Cascade}Nested if-then-elses become cascaded multiplexers}
+  \centerline{\includegraphics[width=6in,angle=0]{ch040_Combo_Circuits/Figures/Fig_Combo_Multiplexer_Cascade}}
+  \caption{\label{Fig_Combo_Multiplexer_Cascade}Nested if-then-elses become cascaded multiplexers}
 \end{figure}
 
 % ================================================================
@@ -810,7 +794,7 @@ Figure~\ref{Fig_Magritte_Multiplexer_Cascade}
 
 \index{BSV!multiplexers!parallel}
 
-The circuit in Figure~\ref{Fig_Magritte_Multiplexer_Cascade} has a
+The circuit in Figure~\ref{Fig_Combo_Multiplexer_Cascade} has a
 serial structure---the \verb|OPCLASS_CONTROL| branch has priority, and
 only if its condition is False can one of the other results flow
 through.  Also observe that the longest path length increases
@@ -877,7 +861,7 @@ automatically.
 
   The schematic will clearly reveal the parallel nature of the MUX
   compared to the serial nature of the priority MUX shown earlier in
-  the schematic in Figure~\ref{Fig_Magritte_Multiplexer_Cascade}.
+  the schematic in Figure~\ref{Fig_Combo_Multiplexer_Cascade}.
 
   How many multiplexers does each \verb|OPCLASS_XXX| value flow
   through?  How many bitwise-OR operators are needed?  Note that we
@@ -1219,7 +1203,7 @@ x.instr = ... new value ...
 
 \section{The Decode function}
 
-\label{Sec_Magritte_Decode}
+\label{Sec_Combo_Decode}
 
 \index{Magritte!Decode function}
 
