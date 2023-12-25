@@ -1,0 +1,433 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Resources: Documents and Tools}
+
+\markboth{Ch \arabic{chapter}: Resources (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+\renewcommand{\thepage}{\Alph{chapter}-\arabic{page}}
+
+\label{apx_resources}
+
+% ****************************************************************
+
+This appendix describes all the resources relevant to this course.
+
+% ****************************************************************
+
+\section{GitHub}
+
+We will be using GitHub extensively.  Course materials will be
+provided in a public GitHub repository, and GitHub's ``discussion''
+facilities can be used to for questions and answers, visible to all.
+
+For students who do not already know how to use GitHub, we will teach
+the basics.
+
+More detailed documentation can be found starting at:
+\url{https://docs.github.com/en/get-started/quickstart}
+
+% ****************************************************************
+
+\section{RISC-V ISA (Instruction Set Architecture) Specifications}
+
+\label{apx_resources_ISA_specs}
+
+We will refer to the Unpriviledged ISA very frequently, so you may
+wish to download a copy of the PDF for your laptop, and/or print a
+copy.  The Privileged ISA document is not needed until later.
+
+\begin{itemize}
+
+\item ``The RISC-V Instruction Set Manual Volume I: Unprivileged ISA''.  
+
+  Bibliography entry~\cite{RISCV_Unpriv_2019_12_13} contains a link
+  to {\tt riscv.org} from which to download a PDF.
+
+\item ``The RISC-V Instruction Set Manual Volume II: Privileged Architecture''
+
+  Bibliography entry~\cite{RISCV_Priv_2021_12_03} contains a link
+  to {\tt riscv.org} from which to download a PDF.
+
+\end{itemize}
+
+% ****************************************************************
+
+\section{RISC-V Assembly Language Manuals}
+
+\label{apx_resources_asm_manuals}
+
+We will not do very much assembly language programming, and we will
+teach whatever notation we need during the course.
+
+There are several RISC-V Assembly Language manuals available online,
+and some in bookstores; download them only if you prefer a local copy:
+
+\begin{itemize}
+
+\item ``RISC-V Assembly Programmer's Manual'', 
+    Palmer Dabbelt, Michael Clark and Alex Bradbury.
+
+    Bibliography entry~\cite{Dabbelt2023} contains a link to online manual.
+
+\item ``RISC-V ASSEMBLY LANGUAGE Programmer Manual Part I'', Shakti
+    RISC-V Team, Indian Institute of Technology, Madras, India.
+    Please see bibliography entry~\cite{Shakti_RISCV_ASM_Manual} for link
+    from which to download a PDF.
+
+\item ``An Introduction to Assembly Programming with RISC-V'', Edson Borin.
+
+    Bibliography entry~\cite{Borin2021} contains a link
+    from which to download a PDF.
+
+\item ``RISC-V Assembly Language'',
+    Anthony J. Dos Reis.
+
+    Bibliography entry~\cite{DosReis2019}.  Available in bookstores.
+
+\end{itemize}
+
+% ****************************************************************
+
+\section{RISC-V GNU tools, including {\tt riscv-gcc} compiler}
+
+\label{apx_resources_gnu_tools}
+
+We will be using the GNU tool chain, specifically the {\gcc} compiler
+and linker, and the {\objdump} tool for disassembling an ELF file.
+
+During the course we will show you how to install and use these tools.
+
+The use of these tools is mostly the same as when targeting any target
+architecture, including well-known architectures like x86 and ARM; the
+student can find voluminous tutorial materials available on the GNU
+tool chain on web and in books.
+
+{\gcc} has some specific options for RISC-V; these are documented here:
+
+\begin{tightlist}
+  \item
+  \url{https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html}
+
+  \item
+  \url{https://gcc.gnu.org/onlinedocs/gcc/gcc-command-options/machine-dependent-options/risc-v-options.html}
+\end{tightlist}
+
+It is also useful to know how to use the GNU debugger tool, {\gdb}.
+Again, the student can find voluminous tutorial materials available on
+on web and in books.
+
+% ****************************************************************
+
+\section{BSV}
+
+In this course, we design the hardware of our RISC-V pipelined CPU
+using the High Level Hardware Description Language {\BSV}.  The
+reasons for our choice (instead of using Verilog, SystemVerilog or
+VHDL) are discussed in more detail in Appendix~\ref{apx_BSV} of this
+document, as well as in the Introduction of the ``BSV by Example''
+book described below.
+
+No advance knowledge of {\BSV} is needed for this course; we will
+teach all necessary {\BSV} concepts during the course as we go along.
+
+However, for those who would like to study {\BSV} on their own, or
+wish to view additional {\BSV} materials, the following sections
+provide some resources.
+
+% ================================================================
+
+\subsection{``BSV By Example'' book (free downloadable PDF)}
+
+This book takes the student through a series of small, targeted {\BSV}:
+examples:
+
+\hm \emph{BSV by Example}, by Rishiyur S. Nikhil and Kathy R. Czeck, 2010.
+
+Quoting from the Introduction:
+\begin{quote}
+``This book is intended to be a gentle introduction to BSV.''
+
+`` This book tries to take you into the BSV language one small step at
+a time. Each section includes a complete, executable (and
+synthesizable) BSV program, and tries to focus on just one feature of
+the language''
+\end{quote}
+
+A bound copy of the book can be purchased on Amazon, but a PDF copy of
+the book and a tar file containing all the BSV program examples in the
+book can be downloaded for free from the GitHub BSVLang repository at:
+
+\url{https://github.com/BSVLang/Main/tree/master/Tutorials/BSV_Training}
+
+\begin{tightlist}
+  \item Book (PDF): \\
+  \emph{repository}/\verb|Tutorials/BSV_by_Example_Book/bsv_by_example.pdf|
+
+  \item Machine-readable version of all examples in the book: \\
+  \emph{repository}/\verb|Tutorials/BSV_by_Example_Book/bsv_by_example_appendix.tar.gz|
+\end{tightlist}
+
+% ================================================================
+
+\subsection{{\BSV} Tutorial}
+
+A {\BSV} self-paced tutorial is available in the GitHub BSVLang repository:
+
+\url{https://github.com/BSVLang/Main/tree/master/Tutorials/BSV_Training}
+
+in the directory   \emph{repository}/\verb|Tutorials/BSV_Training/| which looks like this:
+
+\begin{Verbatim}[frame=single]
+BSV_Training/
+    Build/
+    Example_Programs/
+        Common
+        Eg02a_HelloWorld
+        ...
+        Eg03a_Bubblesort
+        ...
+        Eg04a_MicroArchs
+        ...
+        Eg05a_CRegs_Greater_Concurrency
+        ...
+        Eg06a_Mergesort
+        ...
+        Eg09a_AXI4_Stream
+    Reference
+\end{Verbatim}
+
+Each of the \verb|Eg*| directories cotains a complete example, along
+with documentation explaining the example, and instructions on how to
+compile and Verilog-simulate it.  The \verb|Reference| directory
+contains a collection of lecture slide decks explaining the {\BSV}
+language.
+
+% ================================================================
+
+\subsection{MIT Course Material}
+
+Massachusetts Institute of Technology (MIT) periodically teaches
+courses on using {\BSV} for digital hardware design.  The following link:
+
+\url{http://csg.csail.mit.edu/6.375/6_375_2013_www/handouts.html}
+
+contains downloadable material:
+
+\begin{tightlist}
+
+  \item PDFs of slide decks for 12 lectures
+
+  \item PDFs of slide decks for 4 tutorials classes
+
+  \item PDFs and codes for 6 laboratories
+
+\end{tightlist}
+
+% ================================================================
+
+\subsection{University of Cambridge Examples}
+
+Prof. Simon Moore of University of Cambridge, UK, uses {\BSV} in his
+teaching and research.  Several of his {\BSV} examples can be found here:
+
+\url{https://www.cl.cam.ac.uk/~swm11/examples/bluespec/}
+
+These examples are somewhat more advanced than the ones in the
+previous sections.
+
+% ================================================================
+
+\subsection{{\bsc} download and installation; {\bsc} and {\BSV} manuals}
+
+{\bsc} is free and open-source, and can be downloaded and installed as
+described in {\BSV}'s GitHub web site
+\url{https://github.com/B-Lang-org/bsc}.
+
+On the main page of that repository you will find links to the
+following documents (same links also given here):
+
+\begin{itemize}
+
+  \item The ``{\BSV} Language Reference Guide''.  This document
+  describes the syntax and semantics of {\BSV}.
+
+  PDF: \url{https://github.com/B-Lang-org/bsc/releases/latest/download/BSV_lang_ref_guide.pdf}
+
+  \item The ``BSC Libraries Reference Guide''.  This document
+  describes the extensive set of libraries and IP (Intellectual
+  Property blocks) available to the {\BSV} user.
+
+  PDF: \url{https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_libraries_ref_guide.pdf}
+
+  \item The ``BSC User Guide''.  This document describes how to use
+  the {\bsc} compiler, which compiles our hardware descriptions
+  written in {\BSV} into Verilog (which can then be simulated or
+  synthesizes using standard Verilog tools).
+
+  PDF: \url{https://github.com/B-Lang-org/bsc/releases/latest/download/bsc_user_guide.pdf}
+
+\end{itemize}
+
+We will be using the Language Reference Guide and Librares Reference
+Guide extensively, so you may wish to download a copy for your laptop.
+
+% ****************************************************************
+
+\section{Verilator (or other Verilog simulator)}
+
+We will be doing Verilog simulations extensively during this course.
+For low cost (free), and uniformity, we will be using Verilator.
+
+During the course, we will show you how to install Verilator and use it.
+
+The Verilator web site, \url{https://www.veripool.org/verilator/},
+contains instructions on how to install Verilator, and also links to
+PDF and HTML manuals for Verilator.  Version 5.004, or any more recent
+version, will be suitable.
+
+You can use other Verilog simulators if you prefer, but you should
+independently know how to use them because we cannot offer support
+during the course.  Some possibilities:
+
+\begin{itemize}
+
+  \item Icarus Verilog, also known as ``iverilog''.  This is a very
+    good, free and open-source, easy-to-use Verilog simulator, but is
+   quite slow compared to other Verilog simulators and so may be less
+    useful for large designs.
+
+    \url{https://steveicarus.github.io/iverilog/usage/getting_started.html}
+
+  \item Commercial simulators from Synopsys, Cadence or Siemens/Mentor
+    Graphics), Aldec, and others.  Each of these needs a paid license.
+
+\end{itemize}
+
+% ****************************************************************
+
+\section{Amazon AWS}
+
+\label{sec_AWS}
+
+All hands-on work in this course will be run on the Amazon AWS cloud.
+This way, everyone in the course has a common, stable, predictable
+environment and we do not have to waste any time dealing with the
+countless variations in environments found on different laptops and
+servers.
+
+During the course, we will explain all necessary concepts as we go
+along, including how to set them AWS instances and use them.
+
+The Amazon AWS cloud offers, on the ``AWS Marketplace'' a vast variety
+of choices for virtual machines or, to use AWS terminology,
+\emph{instances}.  We expect to use the following kinds of instances:
+
+\begin{tightlist}
+
+  \item[A:] An instance running the latest version of Ubuntu (Linux).
+
+  \item[B:] A so-called ``F1 instance'', also running Ubuntu.  F1
+    instances have attached FPGAs.
+
+  \item[C:] An instance running the so-called ``AWS FPGA Developer
+    AMI'' available in the AWS Marketplace.  This runs CentOS (Linux)
+    and comes pre-installed with Xilinx Vivado tools, which we will
+    use for creating FPGA bitfile images during the course.
+
+\end{tightlist}
+
+In Amazon's pricing, (B) is the most expensive, and so we will use
+that only when we actually run on FPGA.  For general development and
+simulation activities, we'll use (A) which is much cheaper.  We will
+use (C) whenever we're creating a new FPGA bitfile image.
+
+The standard Amazon documentation is can be found here:
+
+\begin{tightlist}
+
+  \item ``Set up to use Amazon EC2''
+
+    \url{https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/get-set-up-for-amazon-ec2.html}
+
+  \item ``Tutorial: Get started with Amazon EC2 Linux instances''
+
+    \url{https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html}
+
+\end{tightlist}
+
+% ****************************************************************
+
+\section{Xilinx Vivado}
+
+The FPGAs on Amazon AWS F1 instances are Xilinx Ultrascale FPGAs.
+Thus, when we build bitfiles on Amazon AWS, we will be using Xilinx
+Vivado tools (which are provided by AWS for zero incremental cost on
+AWS FPGA Developer AMI instances, see \ref{sec_AWS}).
+
+During this course, we will explain all necessary concepts as we go
+along.
+
+When building a bitfile, it is particularly useful to understand how
+to interpret the Vivado timing and resource reports.  The timing
+report indicates:
+
+\begin{tightlist}
+
+  \item whether or not our design has successfully met our desired
+    frequency target (MHz), and
+
+  \item if it did not, which part of our circuit is the likely
+  culprit, which needs to be fixed.
+
+\end{tightlist}
+
+The resource report indicates the ``size'' or our design (how may
+LUTs, flip-flops, BRAMs, DSPs, {\etc}).
+
+For more details, Xilinx has extensive documentation for which a good
+starting point is the ``Vivado Design Suite Overview'' at
+
+\url{https://docs.xilinx.com/r/en-US/ug910-vivado-getting-started/Vivado-Design-Suite-Overview}.
+
+% ****************************************************************
+
+\section{RISC-V textbooks}
+
+\label{apx_resources_RISCV_textbooks}
+
+This course is self-contained, and it is not necessary to acquire any
+textbooks.
+
+The following list is provide only as a courtesy and convenience.  All
+these books are written using the RISC-V instruction set as examples,
+and are available in bookstores.
+
+\begin{itemize}
+
+  \item ``The RISC-V Reader: An Open Architecture Atlas'',
+    David Patterson and Andrew Waterman,
+    Strawberry Canyon, 2017.  Available in bookstores.
+
+    Bibliography entry~\cite{PattersonWaterman2017}.
+
+  \item
+    ``Computer Organization and Design RISC-V Edition (2nd Edition): The Hardware Software Interface'',
+    David A. Patterson and John L. Hennessy
+    Morgan Kaufman, 2020. Available in bookstores.
+
+    Bibliography entry~\cite{PattersonHennessy2020}.
+
+  \item ``Computer Architecture: A Quantitative Approach, 6th Edition'',
+    John L. Hennessy and David A. Patterson,
+    Morgan Kaufmann, 2017.  Available in bookstores.
+
+    Bibliography entry~\cite{Hennessy2017}.
+    This is the ``classic'' textbook on computer architecture, a more
+    advanced textbook.
+
+\end{itemize}
+
+% ****************************************************************

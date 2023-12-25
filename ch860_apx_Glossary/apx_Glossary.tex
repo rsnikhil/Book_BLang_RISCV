@@ -1,0 +1,158 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Glossary}
+
+\markboth{Ch \arabic{chapter}: BSV (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+\renewcommand{\thepage}{\Alph{chapter}-\arabic{page}}
+
+\label{apx_Glossary}
+
+% ****************************************************************
+
+\begin{itemize}
+
+\item[\bf ASIC] Application-Specific Integrated Circuit. A kind of
+  electronic device that represents a desired digital circuit directly
+  in silicon and has been fabricated for that purpose (not
+  customizable and general-purpose like an FPGA).
+
+\item[\bf BSV, BH] An open-source, modern, high-level HDL.  Two
+  optional syntaxes (choose to one's taste): BSV has traditional
+  Verilog-like syntax, BH has traditional Haskell-like syntax.
+
+\item[\bf CPU] Central Processing Unit.  The computational element of
+  a computer.
+
+\item[\bf CSRs] Control and Status Registers.  These are special
+  registers in the ISA, most of which are accessibly only while
+  executing at higher privilege levels (Machine and Supervisor).
+  Certain key CSRs play a central role in disciplined transition
+  between privilege levels, in virtual memory, and in memory
+  protection.
+
+\item[\bf DRAM] Dynamic Random Access Memory.  A kind of silicon chip
+  that implements memory.  Compared to SRAM, is larger (number of
+  bits), denser (bits per silicon area), cheaper (\$ per bit), uses
+  less power (watts per bit) and is more complex to operate (needing
+  regular refreshing {\etc}). Usually off-chip (not part of an ASIC or
+  an FPGA).
+
+\item[\bf FPGA] Field Programmable Gate Array.  A kind of electronic
+  device that has configurable circuits that can be customized to
+  represent any desired digital design.  These are catalog parts
+  available from several vendors.
+
+\item[\bf FPGA Board] A circuit board containing one or more FPGAs, a
+  power supply, and DRAM memories.  Often contains other facilities
+  such as GPIO, UARTs, JTAG, PCIe bus connections, Ethernet
+  connection, USB connection, Flash memory, and so on.
+
+\item[\bf GPIO] General Purpose Input Output.  An electronic device
+  attached to a computer system. When the CPU stores a byte/word to a
+  GPIO address, the bits of the word appear as electronic signals from
+  the device, and can be used as an \emph{actuator}---switch on/off a
+  back of LED lamps, a relay, a motor, {\etc.}.  When the CPU loads a
+  byte/word from a GPIO address, it can read the state of a
+  \emph{sensor}---switches, photocells, motor speed, temperature,
+  {\etc.}
+
+\item[\bf HDL] Hardware Design Language.  A language in which one can
+  represent circuits, and for which there are tools that can render a
+  program into actual circuits for FPGAs and ASICs.  Examples include:
+  BSV, BH, Chisel, Verilog, SystemVerilog, VHDL.
+
+\item[\bf ISA] Instruction Set Architecture.  A specification of
+  instructions: how an instruction is coded in bits; ``architectural
+  state'' (PC, registers {\etc}); what it means to execute an
+  instruction; assembly language syntax.  The specification is
+  described independently of any particular implementation,
+  traditionally in a manual with text and diagrams, occasionally and
+  recently also in a formal-specification language.
+
+  An ISA can (and typically does) have many possible implementations,
+  varying widely in speed, size, power, cost, technology (ASIC, FPGA),
+  {\etc} Examples of famous ISAs and vendors who supply
+  implementations include RISC-V (diverse vendors), x86 (Intel and
+  AMD), ARM (Arm, Apple, Samsung, others), Sparc (Sun, Oracle,
+  Fujitsu, others), MIPS (MIPS, Inc.), Power and PowerPC (IBM,
+  others), ...
+
+\item[\bf Microarchitecture] The structural and behavioral details of
+  an ISA implementation that are \emph{below} the level of abstraction
+  of the ISA, {\ie} not demanded by the ISA but chosen by the
+  implementor for practical reasons (speed, power, area, cost, ...).
+  Examples: pipelines, branch prediction, scoreboards, register
+  renaming, out-of-order execution, superscalarity, instruction
+  fission and fusion, replicated execution units, store-buffers, ...
+
+\item[\bf RISC-V] A particular standard ISA.  Originated circa
+  2008-2010 in research at University of California, Berkeley, and
+  subsequently spun out (2010s) into an international non-profit
+  consortium ``RISC-V International'' (RVI) headquartered in
+  Switzerland (\url{https://riscv.org}).
+
+  Unlike other well-known ISAs, the RISC-V ISA is an \emph{open}
+  standard, {\ie} implementors do not need to pay any license fee in
+  order to use the ISA, which is one of the factors behind its wide
+  adoption by hundreds of vendors.
+
+\item[\bf RTL] Register-Transfer Level/Language.  This is a level of
+  abstraction of describing hardware that assumes that the available
+  primitive components are clocked registers and combinational
+  circuits for multiplexers, and basic arithmetic and logic functions
+  (adders, subtractors, boolean operations, shifters, {\etc}).
+
+  This is a higher level of abstraction than AND/OR/XOR/NOT gates
+  which, in turn, are a higher level of abstraction than transistors
+  which, in turn, are a higher level of abstraction than silicon
+  regions.  Each layer of abstraction is automatically compiled to a
+  lower layer using various tools.
+
+\item[\bf RVI] RISC-V International.  See entry for RISC-V.
+
+\item[\bf SoC] System-on-a-chip.  Refers to a complete computing
+  system on a chip, including one or more CPUs (with MMUs and caches),
+  shared caches, interconnects, DRAM interface, JTAG, accelerators and
+  devices, {\etc}
+
+\item[\bf SRAM] Static Random Access Memory.  A kind of silicon chip
+  that implements memory.  See DRAM above for comparison.  Usually
+  on-chip in an ASIC or an FPGA.
+
+\item[\bf SystemVerilog] One of the major HDLs.  Originally created in
+  the 2000s as a proper superset of Verilog (and thereby subsuming
+  Verilog), and incorporating many features from VHDL; incorporated
+  some modern features from object-oriented software programming
+  languages (principally used in verification testbenches in
+  simulation only); then an IEEE standard that has gone through
+  several versions.  Can be used for both analog and digital circuits.
+  Some features can only be used in simulation (a ``synthesizable
+  subset'' can be rendered into hardware).
+
+\item[\bf UART] Universal Asynchronous Receiver/Transmitter.  An
+  electronic device attached to a computer system through which the
+  CPU can read ASCII characters from a keyboard and send ASCII
+  characters to a display screen.  Typically used for the main console
+  of a computer system.
+
+\item[\bf Verilog] One of the two grand old HDLs (the other is VHDL).
+  Originally created in the 1980s; then an IEEE standard that has gone
+  through several versions; then subsumed by SystemVerilog.  Can be
+  used for both analog and digital circuits.  Some features can only
+  be used in simulation (a ``synthesizable subset'' can be rendered
+  into hardware).
+
+\item[\bf VHDL] One of the two grand old HDLs (the other is Verilog).
+  Originally created in the 1980s; then an IEEE standard that has gone
+  through several versions. Many features were adopted by
+  SystemVerilog.  Can be used for both analog and digital circuits.
+  Some features can only be used in simulation (a ``synthesizable
+  subset'' can be rendered into hardware).
+
+\end{itemize}
+
+% ****************************************************************

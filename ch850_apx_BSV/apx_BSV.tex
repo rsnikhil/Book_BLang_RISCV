@@ -1,0 +1,381 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Why BSV?}
+
+\markboth{Ch \arabic{chapter}: BSV (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+\renewcommand{\thepage}{\Alph{chapter}-\arabic{page}}
+
+\label{apx_BSV}
+
+% ****************************************************************
+
+The BSV language is a modern, high-level, hardware description
+language with a strong formal semantic basis.  It is \emph{fully
+synthesizable}, {\ie} the \emph{bsc} compiler can also compile your
+source code into Verilog \cite{IEEEVerilog2005a}, which we regard as
+the ``assembly language'' of hardware design.  That Verilog code can
+then be further compiled by ASIC synthesis tools such as Synopsys'
+Design Compiler or FPGA synthesis tools such as Xilinx Vivado or
+Altera Quartus, for implementation in ASICs and FPGAs, respectively.
+
+BSV is very suitable for describing architectures precisely and
+succinctly, and has all the conveniences of modern advanced
+programming languages such as expressive user-defined types, strong
+type checking, polymorphism, object orientation and even higher order
+functions during static elaboration.
+
+All computation in BSV is expressed using ``Rules''.  For many people,
+this takes a little acclimatization because it is \emph{very}
+different from traditional programming models (such as in C++ or Java)
+which are based on sequential processes.  But over time, it becomes
+\emph{the} natural way to think about hardware computation, which is
+based on massive, fine-grained, heterogeneous parallelism.  Complex
+and high-speed hardware designs are full of very subtle issues of
+concurrency and ordering, and BSV's computational model is one of the
+best vehicles with which to study and understand this.
+
+Modern hardware systems-on-a-chip (SoCs) have so much hardware on a
+single chip that it is useful to conceptualize them, analyze them and
+design them as \emph{distributed systems} rather than as globally
+synchronous systems (the traditional view), {\ie} where architectural
+components are loosely coupled and communicate with messages, instead
+of attempting instantaneous access to global state.  This is because
+the delay in communicating a signal across a chip is now comparable to
+the clock periods of individual modules.  Again, BSV's computational
+model is well suited to this style of design.
+
+A key to architecting complex systems and reusable modules, whether in
+software or in hardware, is powerful \emph{interfaces}.  Module
+interfaces in BSV are object-oriented (based on methods),
+polymorphic/generic, and capture certain computational protocols.
+This facilitates creating highly reusable modules, enables quick
+experimentation with alternatives structures, and allows designs to be
+changed gracefully over time as the requirements and specifications
+evolve.
+
+Architectural models written in BSV are fully executable.  They can be
+simulated in the Bluesim$^{\rm TM}$ simulator; they can be synthesized
+to Verilog and simulated on a Verilog simulator; and they can be
+further synthesized to run on FPGAs or be etched into ASIC silicon, as
+illustrated in Fig.~\ref{fig_Topics}.  Even when the final target
+is an ASIC, the ability to run on FPGAs enables early architectural
+exploration, early development of the software that will later run on
+the ASIC, and much more extensive and early verification of the
+correctness of the design.  Students are also very excited to see
+their designs actually running on real FPGA hardware.
+
+In this book, we teach the use of BSV for the design of complex
+hardware modules and systems by going in detail through a series of
+examples, and exploring basic concepts as needed along the way, such
+as combinational circuits, pipelines, data types, modularity and
+complex concurrency.  At every stage the student is encouraged to run
+the designs at least in simulation, but preferably also on FPGAs.
+
+By the end of the course we will have seen all the source code for a
+complete simple, pipelined RISC-V CPU along with a small ``SoC''
+(System-on-a-Chip) including an interconnect, a connection to memory,
+and a few devices such as a UART.
+
+\hspace{1cm}
+
+{\large\bf Who uses BSV?}
+
+BSV has been used in teaching and research at major universities,
+including MIT (Massachusetts Institute of Technology, USA),
+Universisty of Cambridge (UK), Indian Institute of Technology, Madras
+(India), Indian Institute of Technology, Mumbai (India), Seoul
+National University (South Korea), University of Texas at Austin
+(USA), Carnegie Mellon Univerity (USA), Georgia Institute of
+Technology (USA), Cornell University (USA) and Technical University of
+Darmstadt (Germany).
+
+BSV has been used to design major IP components in commercial ASICs
+from Texas Instruments, ST Microelectronics and Google.  It has been
+used for FPGA-based modeling at IBM, Intel, Qualcomm, Microsoft
+Research, several DARPA projects, and others.  It is being used for
+commercial RISC-V processors from InCore Semiconductors (Shakti line
+of RISC-V processors, India) and The C-DAC (Center for Development of
+Advance Computing) (Vega line of RISC-V processors, India).
+
+% ****************************************************************
+
+\section{Why BSV instead of some other Hardware Design Language?}
+
+\begin{center}\fbox{
+\begin{minipage}{\hlessmm}
+\emph{The rest of this chapter is intended for those interested in comparing
+BSV's approach to other approaches (Verilog, SystemVerilog, VHDL, and
+SystemC), and can be safely skipped by others who just want to get on
+with learning BSV.}
+\end{minipage}}
+\end{center}
+
+\noindent
+One may be curious why the material in this book could not have been
+covered using one of the more widely known languages for hardware
+design: Verilog~\cite{IEEEVerilog2005a}, VHDL~\cite{IEEEVHDL2002},
+SystemVerilog~\cite{IEEESystemVerilog2012a},
+SystemC~\cite{IEEESystemC2011a}.  There are several reasons, outlined
+below.
+
+In the following paragraphs, we will refer to all the above languages,
+or at least their synthesizable subsets, as ``RTL'' (Register Transfer
+Level languages).
+
+% ================================================================
+
+\subsection{A better computational model}
+
+Paradoxically, the formal definitions of the semantics of traditional
+hardware design languages (HDLs)--- Verilog, SystemVerilog, VHDL and
+SystemC--- are not in terms of hardware concepts, but in terms of
+\emph{software simulation} on conventional computers.  Like
+traditional software programming languages, they are defined in terms
+of sequential statement execution, with traditional conditionals,
+loops, and procedure calls and returns, reading and writing
+conventional variables.  Programs can have multiple concurrent
+\emph{processes} (e.g., ``always blocks'' in Verilog), but each of
+them is defined with traditional sequential programming semantics.
+
+Digital hardware, on the other hand, has a quite different computation
+model.  It consists of hundreds, if not thousands of concurrent
+``state machines'' that transform the current state of the hardware,
+implemented using registers, memories and FIFOs.  By and large, there
+is no sequencing of these state machines based on program counters or
+statement sequences.  Rather, these state machines are independent and
+``reactive'', {\ie} each one performs an action whenever certain
+conditions hold, e.g., when a register holds a particular value, or a
+value is available in a FIFO, etc.
+
+To bridge this rather large gap from conventional sequential processes
+to concurrent reactive state machines requires a major mental shift.
+One must severely restrict code to only a much smaller so-called
+\emph{synthesizable subset} of a conventional HDL.  Processes are
+restricted to simple clocked loops: ``\verb|always @posedge CLK ...|'',
+also known as an ``always-block''.  Even more draconian is a
+transposition away from the natural concurrent state machine view to a
+\emph{state element-centric} view: even though a state element may be
+read and written by multiple state machines, all updates to that state
+element must be concentrated in a single always-block, usually in a
+large conditional construct (if-then-else, case, ...) that describes
+all the different contributions of different state machines.  This
+transposition, from the natural state machine-centric view to the
+rather unnatural state element-centric view, is necessary because in
+the the synthesizable subset there is no synchronization between
+always-blocks; the programmer has to plan every detail of how to
+resolve (arbitrate) competing updates to each state element.
+
+In other words, in conventional HDLs, neither the simulation view
+(sequential processes) nor the synthesizable view (state
+element-centric always blocks) are a natural way to model hardware
+behavior.
+
+BSV programs, instead, directly express the natural model of
+hardware--- concurrent state machines.  Each ``rule'' in BSV is a
+reactive state transition that awaits some condition on the hardware
+state and then takes an action to transforms the state.  Further, each
+rule is an \emph{atomic transaction}, {\ie} the details of how one
+arbitrates competing accesses from multiple rules to common shared
+state is left to the compiler.  This kind of arbitration logic, which
+is hand-written in other HDLs, is a major source of bugs.
+
+In BSV, unlike in other HDLs, the semantics are identical whether you
+execute in simulation or in hardware---there is no mental gear shift
+necessary, and simulation behavior is always identical to synthesized
+hardware behavior.
+
+Finally, the Rules computation model uniquely encourages
+\emph{refinement}, a powerful design methodology.  We initially create
+a high-level, approximate model of a target design, using a few large
+rules.  Both the level of micro-architectural detail and the range of
+functionality are approximated (abstracted).  Often such a model can
+be written in less than a day, and it can immediately be executed to
+verify functional correctness.  Then, over time, we incrementally add
+architectural detail---for example, pipeline registers and state
+machines with more, smaller steps---and the original rules (large step
+state transitions) are replaced by more, smaller rules (small step
+state transitions).  The atomic semantics of rules makes this a robust
+methodology, {\ie}, a refinement does not have a large ripple effect.
+This is in quite dramatic contrast to the difficulty in changing RTL,
+which is notoriously brittle and unforgiving.
+
+Refinement allows early and continous confidence in functional
+correctness and completeness, since we execute the code very
+frequently.  Refinement allows mid-course corrections in
+functionality, after observing execution on real data.  Refinement
+allows separating \emph{functionality} from \emph{performance},
+achieving functionality early and holding it constant while we improve
+performance to meet a performance target (by target performance we
+mean some desired targets for speed, area, and power).
+
+% ================================================================
+
+\subsection{Modern language features}
+
+The field of programming languages has seen tremendous progress since
+the early days (1950s).  Modern high-level languages have advanced
+type systems (polymorphism, typeclasses and overloading, functional
+types, and so on).  Modern high-level languages have strong mechanisms
+for encapsulation and abstraction (such as object-orientation) which
+promote the separation of concerns between externally visible behavior
+and internal representation choices.  Modern high-level languages make
+frequent use of higher-order functions---functions whose arguments and
+results can themselves be functions and data structures whose
+components can be functions.
+
+Unfortunately, practically none of these powerful features are present
+in the synthesizable subsets of conventional
+HDLs\footnote{SystemVerilog and SystemC have object-orientation,
+polymorphism, and overloading, but these are typically used only in
+simulation for verification environments of hardware designs, not for
+actual hardware design itself.}.  BSV, on the other hand, adopts the
+full power of the Haskell functional programming
+language~\cite{PeytonJones2003}: algebraic types, functional types,
+polymorphic types, typeclasses, higher-order functions, and recursive
+and monadic static elaboration.  This delivers unprecedented
+expressive power, type safety and type flexibility in a hardware
+design language.
+
+% ================================================================
+
+\subsection{Comparison with C++-based High Level Synthesis}
+
+Recently, some tools have become available under the rubric of ``High
+Level Synthesis'' (HLS) that claim to shield you from this mental gear
+shift from simulation to hardware.  Designs are written in a
+traditional sequential programming language (typically C++), and an
+HLS tool automatically compiles this into a hardware implementation.
+While beautiful in concept, there are many serious limitations in
+practice, which are discussed below.
+
+% ----------------------------------------------------------------
+
+\subsubsection{C++ codes need significant rewriting}
+
+C++ HLS tools will rarely accept arbitrary, off-the-shelf C++ codes
+and produce good hardware implementations.  C++ codes often requre
+significant restructuring to achieve good results.
+
+First, the tools only accept a limited subset of C++ syntax. In
+particular, these tools are very averse to any kind of pointer-based
+argument passing or data structures, unless all the pointers can be
+resolved by the compiler ({\ie}, the compiler statically knows the
+addresses represented by the pointers).  This is because, while C++
+normally executes on machines that provide the abstraction of a single
+large memory with a single address space (so a pointer is
+fundamentally an address, and dynamic allocation and relocation are
+easy), hardware designs typically use hundreds or thousands of
+individual memory units, from registers to register files to SRAMs,
+DRAMs, Flash memories, and ROMs, each with its own address space.
+
+Second, most C++ codes written for conventional execution rely deeply
+on sequential execution.  For example, they may re-use a variable
+(multiple reads and writes in different phases of the code).  Many of
+these programming techniques, often a good idea for higher performance
+and smaller memory footprints in conventional execution, are exactly
+the opposite of what is needed for hardware implementation, which is
+highly parallel.
+
+Overall, for good results, one must develop a keen sense of the
+hardware implementation impact of various ``styles'' of writing C++
+code.  Small changes in style can mean the difference between a
+terrible implementation and an acceptable one.  One vendor insists
+that any team adopting their tool should not consist solely of C++
+experts, but must also include hardware engineers.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Narrow range of applicability due to automatic parallelization}
+
+C++ is, by official definition, a completely sequential language.
+Hardware, on the other hand, relies on massive, fine-grain
+parallelism.  It is the HLS tool that has to pull off this magical
+transformation.
+
+C++ HLS tools rely on a body of knowledge called CDFG Analysis
+(Control and Data Flow Graph Analysis).  After parsing and
+typechecking, the C++ program is represented internally in a data
+structure called the CDFG. This CDFG, initially directly reflecting
+the sequential nature of the source, is analyzed and transformed into
+a parallel representation from which, eventually, hardware is
+generated.
+
+It turns out that this transformation only works well for a narrow
+range of program structures---cleanly nested \verb|for|-loops with
+fixed iteration bounds, operating on dense rectangular arrays.  Of
+course, many signal-processing and image-processing applications do
+have this structure, and C++ HLS tools have found their greatest
+success in this arena.
+
+But the moment we step outside this sweet spot, towards sparse arrays
+or programs that are highly control-dominated, these tools fall off a
+cliff.  Most hardware design in fact involves components that don't
+fall into the C++ HLS sweet spot: CPUs, cache systems, switched
+interconnects, flash memory and disk controllers, high-speed I/O
+controllers for Ethernet, PCIe, USB, and so on.  For example, we are
+unaware of any project using C++ HLS for CPU design, whereas there are
+over a dozen such projects using BSV.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Lack of ``Algotecture'': Architectural transparency and predictability}
+
+Most people with some training in Computer Science are familiar with
+the idea that Algorithms are Job One---when writing
+performance-critical software, the first-order concern is to design a
+good algorithm.  Further, creating a good algorithm is a creative act;
+compilers don't automatically create good algorithms for
+you\footnote{Of course, there is research in this area, but this
+starts entering the realm of Artificial Intelligence.}.
+
+Unfortunately, because most of our codes run on classical von Neumann
+machines, many people forget that, when the execution platform
+changes, our old algorithms may no longer be any good---the
+assumptions about the cost of fundamental operations may no longer
+valid and in fact may be wildly different, requiring a complete
+re-think of the algorithm.
+
+This bring up a fundamental difference between software design and
+hardware design.  In software, you are given a particular target
+architecture (CPU, GPU, cluster, vector machine, ...), and the
+designer's job is to design a good algorithm for that fixed
+architecture.  In hardware, on the other hand, the designer's job is
+to design the algorithm and the architecture \emph{jointly}.  In other
+words, for hardware designers, algorithm and architecture are joined
+at the hip; it is meaningless to separate these activities.  We thus
+use the term \emph{Algotecture} to describe this integrated activity.
+
+Unfortunately, most C++ HLS tools provide very narrow visibility and
+control into architecture.  For example, directives for loop unrolling
+and loop fusion may allow you to express some variation in iterative
+{\vs} parallel {\vs} pipelined structures.  But, basically, it's the
+tool that chooses the architecture, and you have some weak knobs to
+guide its choices.  A common syndrome with C++ HLS tools is that one
+quickly produces an implementation, but it is terrible in area or
+performance, and this is followed by a \emph{long} tail of activity in
+which the designer tweaks the knobs every which way in an effor to
+beat it down into the desired performance envelope.
+
+In contrast, with BSV, architectural choices (like algorithmic
+choices) are in the hands of the designer, where it should be.  There
+are no surprises with respect to architecture; performance is never a
+mystery, and the designer can quickly improve it and converge to an
+acceptable solution.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Summary}
+
+In summary, it is our experience that BSV is a much better language
+for complex hardware design, whether control or data oriented, whether
+for modeling or architectural exploration or final implementation, or
+for synthesizable on-FPGA verification transactors.  Following the
+philosophy of DSLs (Domain Specific Languages), BSV is very much an
+expressive DSL beautifully suited for hardware design, whereas
+sequential C++ is certainly not (it was never intended to be!).
+
+% ****************************************************************

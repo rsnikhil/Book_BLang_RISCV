@@ -1,0 +1,198 @@
+% -*- mode: fundamental -*-
+
+% Book to reach BSV using Magritte and Fife RISC-V CPUs as working example.
+% Rishiyur Nikhil
+% Begun: December 2023
+
+\documentclass[11pt]{book}
+
+% ================================================================
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{latexsym}
+\usepackage{makeidx}
+\usepackage{alltt}
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+% \usepackage{moreverb}
+\usepackage{index}
+\usepackage{ae}
+\usepackage{aecompl}
+
+  \usepackage[pdftex,colorlinks=true,bookmarksopen, pdfstartview=FitH,
+              linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+  \pdfcompresslevel=9
+  \usepackage[pdftex]{graphicx}
+
+% ================================================================
+
+% HORIZONTAL MARGINS
+% Left margin, odd pages: 1.25 inch (0.25 + 1)
+\setlength{\oddsidemargin}{0.25in}
+% Left margin, even pages: 1.25 inch (0 + 1)
+\setlength{\evensidemargin}{0.25in}
+% Text width 6 inch (so other margin is 1.25 inch).
+\setlength{\textwidth}{6in}
+% ----------------
+% VERTICAL MARGINS
+% Top margin 0.5 inch (-0.5 + 1)
+\setlength{\topmargin}{-0.5in}
+% Head height 0.25 inch (where page headers go)
+\setlength{\headheight}{0.25in}
+% Head separation 0.25 inch (between header and top line of text)
+\setlength{\headsep}{0.25in}
+% Text height 9 inch (so bottom margin 1 in)
+\setlength{\textheight}{9in}
+% ----------------
+% PARAGRAPH INDENTATION
+\setlength{\parindent}{0in}
+% SPACE BETWEEN PARAGRAPHS
+\setlength{\parskip}{\medskipamount}
+% ----------------
+% STRUTS
+% HORIZONTAL STRUT.  One argument (width).
+\newcommand{\hstrut}[1]{\hspace*{#1}}
+% VERTICAL STRUT. Two arguments (offset from baseline, height).
+\newcommand{\vstrut}[2]{\rule[#1]{0in}{#2}}
+% ----------------
+% HORIZONTAL LINE ACROSS PAGE:
+\newcommand{\hdivider}{\noindent\mbox{}\hrulefill\mbox{}} 
+% ----------------
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+\newcommand{\hm}{\hspace*{1em}}
+\newcommand{\hmm}{\hspace*{2em}}
+\newcommand{\hmmm}{\hspace*{3em}}
+\newcommand{\hmmmm}{\hspace*{4em}}
+% ----------------
+% VARIOUS CONVENIENT WIDTHS RELATIVE TO THE TEXT WIDTH, FOR BOXES.
+\newlength{\hlessmm}
+\setlength{\hlessmm}{\textwidth}
+\addtolength{\hlessmm}{-2em}
+
+\newlength{\hlessmmmm}
+\setlength{\hlessmmmm}{\textwidth}
+\addtolength{\hlessmmmm}{-4em}
+% ----------------
+% ``TIGHTLIST'' ENVIRONMENT (no para space betwee items, small indent)
+\newenvironment{tightlist}%
+{\begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1.5em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+}
+}%
+{\end{list}
+}
+% ----------------
+% ITALICISE WORDS
+\newcommand{\ie}{\emph{i.e.,}}
+\newcommand{\eg}{\emph{e.g.,}}
+\newcommand{\Eg}{\emph{E.g.,}}
+\newcommand{\etc}{\emph{etc.}}
+\newcommand{\via}{\emph{via}}
+\newcommand{\vs}{\emph{vs.}}
+% ----------------
+% EXERCISES
+\newcounter{exercise}[chapter]
+% \newcommand{\Exercise}{$\bullet$ {\bf Exercise}:}
+\newcommand{\Exercise}{\addtocounter{exercise}{1}{\bf Exercise \arabic{chapter}.\arabic{exercise}:}}
+\newcommand{\Endexercise}{\hfill {\normalsize$\Box$}}
+% \newcommand{\Endexercise}{\makebox[2in]{\hrulefill} \bigskip}
+
+\newcommand{\ApExercise}%
+    {\addtocounter{exercise}{1}{\bf Exercise \Alph{chapter}.\arabic{exercise}:}}
+
+\newcounter{tmpcounter}
+% ----------------
+% CODE FONT (e.g. {\cf x := 0}).
+\newcommand{\cf}{\footnotesize\tt}
+% ----------------
+% The bsc compiler and BSV language
+\newcommand{\bsc}{\emph{bsc}}
+\newcommand{\BSV}{\bf{BSV}}
+% ----------------
+% The GNU tools and other tools
+\newcommand{\gcc}{\emph{gcc}}
+\newcommand{\objdump}{\emph{objdump}}
+\newcommand{\gdb}{\emph{gdb}}
+\newcommand{\verilator}{\emph{Verilator}}
+% ----------------
+% KEYWORDS
+\newcommand{\kw}[1]{{\bf #1}}
+
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+% HERE BEGINS THE DOCUMENT
+
+\newcommand{\copyrightnotice}{\copyright 2023-2024 R.S.Nikhil}
+
+% ================================================================
+% Subsets of chapters
+
+% \includeonly{ch000_front/front}
+% \includeonly{ch010_intro/ch_intro}
+% \includeonly{ch020_warmup/ch_warmup}
+% \includeonly{ch030_bubblesort/ch_bubblesort}
+% \includeonly{ch040_microarchitectures/ch_microarchitectures}
+% \includeonly{ch500_temp/ch_temp}
+% \includeonly{ch-conclusion/ch-conclusion}
+% \includeonly{ch99_back/back}
+
+% \includeonly{ch00_front/front,ch01_intro/ch_intro,ch02_warmup/ch_warmup,ch03_bubblesort/ch_bubblesort,ch50_temp/temp,ch99_back/back}
+
+% \includeonly{ch00_front/front,ch03_bubblesort/ch_bubblesort,ch99_back/back}
+
+% ================================================================
+
+\makeindex
+
+% ================================================================
+
+\begin{document}
+
+% ----------------------------------------------------------------
+\include{ch000_front/front}
+% ----------------------------------------------------------------
+
+\pagestyle{myheadings}
+
+\markboth{Ch \arabic{chapter}: Warmup: Hello World!}
+         {\copyrightnotice}
+
+% ----------------------------------------------------------------
+\include{ch010_intro/ch_intro}
+% ----------------------------------------------------------------
+\include{ch020_ISA/ch_ISA}
+% ----------------------------------------------------------------
+\include{ch030_Magritte/ch_Magritte}
+% ----------------------------------------------------------------
+
+% ----------------------------------------------------------------
+% \include{ch02_warmup/ch_warmup}
+% ----------------------------------------------------------------
+% \include{ch03_bubblesort/ch_bubblesort}
+% ----------------------------------------------------------------
+% \include{ch04_microarchitectures/ch_microarchitectures}
+% ----------------------------------------------------------------
+% \include{ch50_temp/ch_temp}
+% ----------------------------------------------------------------
+
+\appendix
+
+% ----------------------------------------------------------------
+\include{ch800_apx_resources/apx_resources}
+% ----------------------------------------------------------------
+\include{ch850_apx_BSV/apx_BSV}
+% ----------------------------------------------------------------
+\include{ch860_apx_Glossary/apx_Glossary}
+% ----------------------------------------------------------------
+
+\include{ch900_back/back}
+
+% ----------------------------------------------------------------
+
+\end{document}
