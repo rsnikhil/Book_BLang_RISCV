@@ -4,7 +4,7 @@
 
 \chapter{BSV Combinational circuits for the RISC-V Decode step}
 
-\markboth{Ch \arabic{chapter}: Combinational (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Combinational Decode (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -16,8 +16,8 @@
 
 \section{Introduction}
 
-In this chapter we focus on learning enough BSV to code the Decode
-step of the RISC-V interpretation steps shown
+In this chapter we focus on learning enough BSV to write code for the
+Decode step of the RISC-V interpretation steps shown in
 Figure~\ref{Fig_Simple_Instr_Exec}.  As mentioned earlier, we choose
 to start with the Decode step (instead of the Fetch step) to
 facilitate the BSV-learning process.
@@ -1201,7 +1201,7 @@ x.instr = ... new value ...
 
 % ****************************************************************
 
-\section{The Decode function}
+\section{RISC-V: The Decode function}
 
 \label{Sec_Combo_Decode}
 
@@ -1312,32 +1312,5 @@ combinational circuits, many of which we've seen earlier.
   32-bit values (instructions) and print the results.
 
 \end{enumerate}
-
-% ****************************************************************
-
-\section{Notes}
-
-This chapter is about Magritte:
-
-\begin{tightlist}
-
-\item Combinational circuits for \verb|Fn_XXX|
-
-\item CPU state machine
-
-\item Top-level, connecting to memory
-
-\end{tightlist}
-
-Start with \verb|Fn_D| (decode function):
-\begin{tightlist}
-
-\item Bit vectors, bit-selection, slice-selection
-
-\item Bit-vector equality (XNOR gates)
-
-\item Multiplexers
-
-\end{tightlist}
 
 % ****************************************************************
