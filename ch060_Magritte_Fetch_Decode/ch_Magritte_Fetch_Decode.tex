@@ -1,0 +1,357 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Magritte Fetch and Decode: Modules, Interfaces, Finite State Machines}
+
+\markboth{Ch \arabic{chapter}: Magritte Fetch/Decode; Modules, FSMs (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_Magritte_Fetch_Decode}
+
+% ****************************************************************
+
+\section{BSV: Modules: state, behavior and interfaces}
+
+\label{Sec_Magritte_Fetch_Decode_Modules}
+
+\index{BSV!Modules}
+\index{BSV!Modules!state}
+\index{BSV!Modules!behavior}
+\index{BSV!Modules!interface}
+\index{BSV!Interface!type}
+\index{BSV!Types!interface}
+
+Any non-trivial design needs to be organized into smaller, manageable,
+modules that interact with each other. This is true for any
+programming language, and BSV is no exception.  For Magritte, we will
+want to package the top-level system to contain the CPU and the
+memory; The CPU itself will contain a register-file module and the
+code for its behavior; and so on.
+
+In this section we describe the concept of modules and interfaces in
+BSV.  This section may require re-reading a couple of times; the
+concepts become properly internalized only after seeing/using/creating
+a couple of examples, which we will do in subsequent sections.
+
+Modules and interfaces clearly separate the concerns of
+externally-visible functionality (``external API'', \emph{what} a
+module does) {\vs} internal implementation details (\emph{how} the
+module does it).  BSV's style of modules is very ``object-oriented''
+in flavor: a module is like an object constructor; a module instance
+is like an object; its interface is a set of methods that can be
+invoked like functions.
+
+An \emph{Interface Declaration} in BSV declares a new interface type,
+and looks like this:
+
+\begin{quote}
+{\tt interface} \emph{interface-type};
+
+\hmm \emph{... method and sub-interface declarations ...}
+
+{\tt endinterface}
+\end{quote}
+
+The interface represents the external view of a module, {\ie} it
+specifies a set of \emph{methods} that can be invoked from an external
+context.  Methods have arguments and results, and can change internal
+state in the module.  In the \verb|interface| declaration, we only
+describe a method's argument and result types, {\ie} its externally
+visible features.
+
+Interfaces can be nested (can contain sub-interfaces).
+
+An \verb|interface| declaration just defines a new type.  There can be
+any number of module declarations each of which offers the same
+interface.  For example, the BSV library contains a repertoire of FIFO
+modules, all of which have the same FIFO interface type.
+
+A \verb|module| declaration in BSV describes a module with a
+particular interface type:
+
+\begin{quote}
+{\tt (* synthesize *)} \\
+{\tt module} \emph{module-name} {\tt (} \emph{interface-type} {\tt );}
+
+\hmm \emph{... instantiation of module state (sub-modules) ...}
+
+\hmm \emph{... behavior (rules and FSMs) ...}
+
+\hmm \emph{... interface (API) method implementations ...}
+
+{\tt endmodule}
+\end{quote}
+
+\index{BSV!Modules!instances}
+
+A \verb|module| declaration declares a module constructor; it can be
+invoked multiple times to obtain multiple \emph{instances}.
+
+% ================================================================
+
+\subsection{BSV: Registers}
+
+\index{BSV!Registers}
+
+BSV treats all ``state elements'' (components that store persistent
+values) uniformly as modules with interfaces.  This includes
+``primitives'' like ordinary registers.  Further, unlike Verilog and
+SystemVerilog, registers in BSV are subject to strong type-checking;
+each register only contains a value of a particular type.
+
+% ----------------------------------------------------------------
+
+\subsubsection{BSV: Register interfaces}
+
+\index{BSV!Registers!Interface}
+\index{BSV!Registers!\_read method}
+\index{BSV!Registers!\_write method}
+\index{BSV!Registers!type of stored value}
+
+The standard register interface type in BSV is:
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface Reg #(t);
+   method t _read();
+   method Action _write (t x);
+endinterface
+\end{Verbatim}
+
+Here, ``\verb|t|'' is the type of value stored in the register.
+Registers are accessed using two methods.  The \verb|_read()| method
+(with no arguments) just returns the value stored in the register, of
+type \verb|t|.  The \verb|_write()| method takes one argument, a value
+of type \verb|t|, and stores it in the register, over-writing any
+previous value and holding the new value until over-written by the
+next \verb|_write()|.
+
+% ----------------------------------------------------------------
+
+\subsubsection{BSV: {\tt mkReg}, a register module (consructor)}
+
+\index{BSV!Registers!mkReg}
+\index{BSV!Registers!mkReg!module (constructor)}
+\index{BSV!Registers!mkReg!initial value}
+
+A standard BSV library register module is \verb|mkReg|.  It is used to
+instantiate a new register, with a specified initial value, using a
+statement like this:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    Reg #(Bit #(XLEN)) pc <- mkReg (0);
+\end{Verbatim}
+
+Here we are declaring a new identifier \verb|pc| with type
+\verb|Reg#(Bit#(XLEN))| (the register interface type) and binding it
+to the interface offered by a newly instantiated register.  The ``0''
+argument to \verb|mkReg()| specifies the reset-value of the register,
+{\ie} the value held in the register immediately after the hardware
+has been reset.
+
+% ================================================================
+
+\subsection{BSV: FIFOs}
+
+\index{BSV!FIFOs}
+
+FIFOs (First-in-First-out) elements are queues of values.  We can
+enqueue a new value into a FIFO at the tail (back) of the queue, and
+dequeue a value from the head (front) of the queue.  BSV FIFOs are
+normally ``flow-controlled'', {\ie} it is impossible to enqueue into a
+full FIFO, and to dequeue from an empty FIFO.  FIFOs in BSV are
+subject to strong type-checking; each FIFO can only contain values of
+one particular type.
+
+% ----------------------------------------------------------------
+
+\subsubsection{BSV: FIFOF interfaces}
+
+\index{BSV!FIFOs!FIFOF interface}
+\index{BSV!FIFOs!type of stored value}
+
+A standard FIFO interface type in the BSV library is:
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF #(t);
+   method Bool notEmpty();
+   method Bool notFull();
+   method t first();
+   method Action deq();
+   method Action enq (t x);
+   method Action clear();
+endinterface
+\end{Verbatim}
+
+The \verb|notEmpty()| and \verb|notFull()| are simple predicates to
+test if a FIFOF is empty or full, respectively.
+
+The \verb|first()| and \verb|deq()| methods are used to access the
+head of the queue.  They are only available if the FIFO is not empty.
+The \verb|first()| method returns the value at the head of the queue.
+This is non-destructive, {\ie} it does not alter the state of the
+FIFO.  The \verb|deq()| method discards the value at head of the queue
+and advances the queue.
+
+The \verb|enq()| method is used to access the tail of the queue, and
+is only available if the FIFO is not full.  It appends the argument
+\verb|x| to the tail of the queue.
+
+The \verb|clear| method is used to empty the queue immediately
+(discard all its contents).
+
+Note that all values in a particular FIFO have the same type \verb|t|.
+
+We will also find it useful to use the following interfaces for each
+``end'' of a FIFO queue:
+
+\index{BSV!FIFOs!FIFO\_O interface}
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF_O #(t);
+   method Bool notEmpty();
+   method t first();
+   method Action deq();
+endinterface
+\end{Verbatim}
+
+\index{BSV!FIFOs!FIFO\_I interface}
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF_I #(t);
+   method Bool notFull();
+   method Action enq (t x);
+endinterface
+\end{Verbatim}
+
+% ----------------------------------------------------------------
+
+\subsubsection{BSV: {\tt mkFIFOF}, a FIFO module (constructor)}
+
+\index{BSV!FIFOs!mkFIFOF module (constructor)}
+
+The BSV library contains many different FIFO modules (constructors):
+single-element FIFOs, FIFOs of a specified depth (queue length), FIFOs
+with and without automatic flow-control, {\etc}
+
+In Magritte we use a standard FIFO module (constructor):
+
+\begin{Verbatim}[frame=single, numbers=left]
+   FIFOF #(Mem_Req) f_to_IMem <- mkFIFOF;
+\end{Verbatim}
+
+Here we declare a new identifier \verb|f_to_IMem| with type
+\verb|FIFOF#(Mem_Req)| (the FIFOF interface type, with the values in
+the queue having type \verb|Mem_Req|) and bind it to the interface
+offered by a newly instantiated FIFO.
+
+% ****************************************************************
+
+\section{RISC-V: The interface of the CPU module for Magritte and Fife}
+
+\label{Sec_Magritte_Fetch_Decode_CPU_interface}
+
+\index{Magritte!CPU interface}
+\index{Fife!CPU interface}
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface CPU_IFC;
+   interface FIFOF_O #(Mem_Req) fo_IMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_IMem_rsp;
+
+   interface FIFOF_O #(Mem_Req) fo_DMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_DMem_rsp;
+endinterface
+\end{Verbatim}
+
+
+% ****************************************************************
+
+\section{BSV: Finite State Machines (FSMs)}
+
+\label{Sec_Magritte_Fetch_Decode_FSMs}
+
+\index{BSV!FSM}
+
+So far, we have only been discussing pure combinational functions, for
+which there is no concept of time.  Combinational functions are just
+``instantaneous'' transformers from input values to output values.  We
+are now ready to start discussing \emph{processes}--- behaviors that
+evolve over time.  The general BSV construct for this is the
+``\verb|rule|'', but for Magritte we can use a higher-level BSV
+construct called ``\verb|StmtFSM|'' (which are implemented by the
+\emph{bsc} compiler in terms of rules.
+
+% ****************************************************************
+
+\section{RISC-V: A partial Magritte CPU with Fetch and Decode}
+
+\label{Sec_Magritte_Fetch_Decode_Magritte_Fetch_Decode}
+
+\index{Magritte!Fetch and decode}
+
+\begin{Verbatim}[frame=single, numbers=left]
+(* synthesize *)
+module mkCPU (CPU_IFC);
+   FIFOF #(Mem_Req) f_to_IMem   <- mkFIFOF;
+   FIFOF #(Mem_Rsp) f_from_IMem <- mkFIFOF;
+
+   // The integer register file
+   RegFile #(XLEN)    gprs  <- mkRegFileFull;
+
+   Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
+
+   // Inter-stage registers
+   Reg #(F_to_D)                     rg_F_to_D                  <- mkRegU;
+
+   // ================================================================
+
+   mkAutoFSM (
+      seq
+         // Fetch
+         action
+	     let y <- fn_F (rg_pc);
+             rg_F_to_D <= y.to_D;
+             f_to_IMem.enq (y.mem_req);
+	 endaction
+
+         // Decode
+         action
+            Mem_Rsp rsp_IMem = pop_o (to_FIFOF_O (f_from_IMem));
+            let y = fn_D (rg_F_to_D, rsp_IMem);
+            rg_D_to_RR <= y;
+	 endaction
+      endseq);
+
+   // ================================================================
+
+   interface Client_Semi_FIFOF cl_IMem;
+      interface request  = to_FIFOF_O (f_to_IMem);
+      interface response = to_FIFOF_I (f_from_IMem);
+   endinterface
+endmodule
+
+\end{Verbatim}
+
+% ****************************************************************
+
+\section{RISC-V: Partial CPU with Fetch and Decode}
+
+\index{BSV!FSM}
+
+% ****************************************************************
+
+\section{Topics}
+
+\begin{tightlist}
+
+\item CPU state machine
+
+\item Top-level, connecting to memory
+
+\end{tightlist}
+
+% ****************************************************************

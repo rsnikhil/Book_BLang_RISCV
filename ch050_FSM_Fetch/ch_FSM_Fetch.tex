@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{BSV Finite State Machines for the RISC-V Fetch step}
+\chapter{The Fetch function: memory requests and responses}
 
-\markboth{Ch \arabic{chapter}: FSM Fetch (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Fetch, memory requests (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -219,10 +219,10 @@ deriving (Bits, FShow);
 
 \label{Sec_FSM_Fetch_Fn_F}
 
-Finally, we are ready to write the Fetch function.  Its input is the
-current value of the program counter (PC), and it returns a
-\verb|Result_F|.  The PC is used as the address from which to read
-memory.
+Finally, we are ready to write the Fetch function which is very
+simple.  Its input is the current value of the program counter (PC),
+and it returns a \verb|Result_F|.  The PC is used as the address from
+which to read memory.
 
 \begin{Verbatim}[frame=single, numbers=left]
 function Result_F fn_F (Bit #(XLEN)  pc)
@@ -239,35 +239,5 @@ function Result_F fn_F (Bit #(XLEN)  pc)
       return y;
 endfunction
 \end{Verbatim}
-
-% ****************************************************************
-
-\section{BSV: Memory for our RISC-V CPU}
-
-\index{BSV!Memory}
-
-% ****************************************************************
-
-\section{BSV: Finite State Machines (FSMs)}
-
-\index{BSV!FSM}
-
-% ****************************************************************
-
-\section{RISC-V: Partial CPU with Fetch and Decode}
-
-\index{BSV!FSM}
-
-% ****************************************************************
-
-\section{Topics}
-
-\begin{tightlist}
-
-\item CPU state machine
-
-\item Top-level, connecting to memory
-
-\end{tightlist}
 
 % ****************************************************************

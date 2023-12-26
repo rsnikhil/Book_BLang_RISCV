@@ -437,6 +437,7 @@ SystemVerilog.
 \label{BSV_small_testbench}
 
 \index{BSV!Testbenches}
+\index{BSV!Testbenches!FSMs}
 
 Here is a small program to run our \verb|is_legal_BRANCH()| function on
 a few tests:
@@ -485,17 +486,19 @@ endmodule
 
 For the moment, don't try to understand all these boilerplate
 constructs in detail.  Briefly, \verb|mkAutoFSM| is like a sequential
-program.  It performs a sequence of four actions.  In each action we
-define a 32-bit instruction with standard Verilog bit-concatenation
-syntax.  For example, \verb|instr_BEQ| is defined as a 32-bit value by
-concatenating a 7-bit hex 0 as an ``immediate'' value, a 5-bit hex 9
-for rs2, a 5-bit hex 8 for rs1, a 3-bit 0 for funct3, a 5-bit hex 7
-for rd, and a 7-bit binary value for the branch opcode.
-\verb|instr_BEQ| and \verb|instr_BNE| are legal branch instruction
-encodings.  \verb|instr_ILL_op| is not a legal branch instruction
-because it has the wrong 7-bit opcode in the opcode slice.
-\verb|instr_ILL_f3| is not a legal branch instruction because it has
-an illegal 3-bit value in the funct3 slice.
+program (discussed in more detail in
+Section~\ref{Sec_Magritte_Fetch_Decode_FSMs}).  It performs a sequence
+of four actions.  In each action we define a 32-bit instruction with
+standard Verilog bit-concatenation syntax.  For example,
+\verb|instr_BEQ| is defined as a 32-bit value by concatenating a 7-bit
+hex 0 as an ``immediate'' value, a 5-bit hex 9 for rs2, a 5-bit hex 8
+for rs1, a 3-bit 0 for funct3, a 5-bit hex 7 for rd, and a 7-bit
+binary value for the branch opcode.  \verb|instr_BEQ| and
+\verb|instr_BNE| are legal branch instruction encodings.
+\verb|instr_ILL_op| is not a legal branch instruction because it has
+the wrong 7-bit opcode in the opcode slice.  \verb|instr_ILL_f3| is
+not a legal branch instruction because it has an illegal 3-bit value
+in the funct3 slice.
 
 In each action, the \verb|$display()| prints the instruction in hex
 format, and prints the \verb|Bool| result of applying
