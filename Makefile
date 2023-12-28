@@ -1,12 +1,12 @@
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "    pdf     Single run of pdflatex"
+	@echo "    p, pp, pip, pbipp:    p=pdf, i=index, b=bib"
+	@echo "    figs    Create png files from svg files"
 	@echo "    bib     Single run of bibtex"
 	@echo "    full    Multiple runs of bibtex and pdflatex"
-	@echo "    clean   Remove emacs backups"
-	@echo "    clean1  + LaTeX intermediate files"
-	@echo "    clean2  + pdf file"
+	@echo "    clean        Remove emacs backups and minor intermediates"
+	@echo "    full_clean   + remove LaTeX intermediate files backups and pdf"
 
 TOPFILE = Book
 
@@ -24,8 +24,13 @@ SOURCES = \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch900_back/back.tex
 
-.PHONY: pdf
-pdf: $(SOURCES)
+.PHONY: p
+p: $(SOURCES)
+	pdflatex  $(TOPFILE)
+
+.PHONY: pp
+pp: $(SOURCES)
+	pdflatex  $(TOPFILE)
 	pdflatex  $(TOPFILE)
 
 .PHONY: pip
@@ -34,18 +39,19 @@ pip: $(SOURCES)
 	makeindex $(TOPFILE)
 	pdflatex  $(TOPFILE)
 
+.PHONY: pip
+pbipp: $(SOURCES)
+	pdflatex  $(TOPFILE)
+	bibtex  $(TOPFILE)
+	makeindex $(TOPFILE)
+	pdflatex  $(TOPFILE)
+	pdflatex  $(TOPFILE)
+
 .PHONY: figs
 figs:
 	make -C ch010_intro/Figures
 	make -C ch030_RISCV_Design_Space/Figures
 	make -C ch040_Combo_Circuits/Figures
-
-.PHONY: full
-full: $(SOURCES)
-	pdflatex  $(TOPFILE)
-	bibtex    $(TOPFILE)
-	pdflatex  $(TOPFILE)
-	pdflatex  $(TOPFILE)
 
 .PHONY: bib
 bib:

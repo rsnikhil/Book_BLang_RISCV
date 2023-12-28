@@ -1,4 +1,3 @@
-FIGS += Fig_Combo_Simple_Instr_Exec.png
 FIGS += Fig_Combo_Is_Legal_BRANCH.png
 FIGS += Fig_Combo_Multiplexer.png
 FIGS += Fig_Combo_Multiplexer_Cascade.png
