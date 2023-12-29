@@ -71,7 +71,7 @@ this functionality inside a ``function'' with clearly specified
 input(s) and output(s).
 
 In the next several sections---\ref{Sec_BSV_Bit_Vectors},
-\ref{Sec_BSV_Boolean_values}, \ref{BSV_if_then_else},
+\ref{Sec_BSV_Boolean_values}, \ref{BSV_Combo_Circuits_if_then_else},
 \ref{BSV_functions}---we will learn the BSV concepts needed to code
 the Decode step.  Then, in Section~\ref{Sec_Combo_Decode} we use these
 concepts to show the BSV code for the Decode function.
@@ -308,7 +308,7 @@ operators in BSV include comparisons (like \verb|==| and \verb|!=|),
 boolean operations (like \verb|&&|), bit-slicing (\verb|[n1:n2]|)
 truncation and extension, arithmetic (like \verb|+|, \verb|-|,
 \verb|*|), shifts (\verb|<<| and \verb|>>|), and multiplexers
-(discussed in Section~\ref{BSV_if_then_else}, later).
+(discussed in Section~\ref{BSV_Combo_Circuits_if_then_else}, later).
 
 In BSV, and Verilog/SystgemVerilog RTL, we consider such operators as
 ``primitive''.  In fact, such operators must themselves be implemented
@@ -486,19 +486,18 @@ endmodule
 
 For the moment, don't try to understand all these boilerplate
 constructs in detail.  Briefly, \verb|mkAutoFSM| is like a sequential
-program (discussed in more detail in
-Section~\ref{Sec_Magritte_Fetch_Decode_FSMs}).  It performs a sequence
-of four actions.  In each action we define a 32-bit instruction with
-standard Verilog bit-concatenation syntax.  For example,
-\verb|instr_BEQ| is defined as a 32-bit value by concatenating a 7-bit
-hex 0 as an ``immediate'' value, a 5-bit hex 9 for rs2, a 5-bit hex 8
-for rs1, a 3-bit 0 for funct3, a 5-bit hex 7 for rd, and a 7-bit
-binary value for the branch opcode.  \verb|instr_BEQ| and
-\verb|instr_BNE| are legal branch instruction encodings.
-\verb|instr_ILL_op| is not a legal branch instruction because it has
-the wrong 7-bit opcode in the opcode slice.  \verb|instr_ILL_f3| is
-not a legal branch instruction because it has an illegal 3-bit value
-in the funct3 slice.
+program (discussed in more detail in Section~\ref{ch_FSMs}).  It
+performs a sequence of four actions.  In each action we define a
+32-bit instruction with standard Verilog bit-concatenation syntax.
+For example, \verb|instr_BEQ| is defined as a 32-bit value by
+concatenating a 7-bit hex 0 as an ``immediate'' value, a 5-bit hex 9
+for rs2, a 5-bit hex 8 for rs1, a 3-bit 0 for funct3, a 5-bit hex 7
+for rd, and a 7-bit binary value for the branch opcode.
+\verb|instr_BEQ| and \verb|instr_BNE| are legal branch instruction
+encodings.  \verb|instr_ILL_op| is not a legal branch instruction
+because it has the wrong 7-bit opcode in the opcode slice.
+\verb|instr_ILL_f3| is not a legal branch instruction because it has
+an illegal 3-bit value in the funct3 slice.
 
 In each action, the \verb|$display()| prints the instruction in hex
 format, and prints the \verb|Bool| result of applying
@@ -537,15 +536,19 @@ instr_ILL_f3 009421e3 => 0
 
 % ================================================================
 
-\subsection{Exercises}
+\hdivider
 
-\begin{enumerate}
+% ----------------
+\Exercise
 
-\item Extend the testbench to test more 32-bit values with
+Extend the testbench to test more 32-bit values with
 \verb|is_legal_BRANCH()|.
 
-\item Refer to the ``RV32I Base Instruction Set'' listing in ``Chapter
-24 RV32/64G Instruction Set Listings'' in the RISC-V Unprivileged ISA
+% ----------------
+\Exercise
+
+Refer to the ``RV32I Base Instruction Set'' listing in ``Chapter 24
+RV32/64G Instruction Set Listings'' in the RISC-V Unprivileged ISA
 specification document~\cite{RISCV_Unpriv_2019_12_13}.  It lists 40
 RV32I instructions.  Similar to \verb|is_legal_BRANCH()|, write BSV
 code for the following functions:
@@ -567,10 +570,13 @@ code for the following functions:
 Ignore FENCE, ECALL and EBREAK instructions; for the moment we'll
 treat them as illegal instructions.
 
-\item Extend the testbench to test more 32-bit values with all the
+% ----------------
+\Exercise
+
+Extend the testbench to test more 32-bit values with all the
 \verb|is_legal_XXX()| functions.
 
-\end{enumerate}
+\Endexercise
 
 % ****************************************************************
 
@@ -694,7 +700,7 @@ SystemVerilog and C/C++:
 
 \section{BSV: if-then-else statements and hardware multiplexers}
 
-\label{BSV_if_then_else}
+\label{BSV_Combo_Circuits_if_then_else}
 
 \index{BSV!if-then-else}
 \index{BSV!multiplexers}
@@ -816,18 +822,22 @@ automatically.
 
 % ================================================================
 
-\subsection{Exercises}
+\hdivider
 
-\begin{enumerate}
+% ----------------
+\Exercise
 
-\item Write a testbench for the \verb|instr_opclass()| function: pass
-  in different 32-bit instructions to produce the op class, and print
-  out the op class.  When printing the class, try printing it as an
-  integer, and also using \verb|fshow()|.
+Write a testbench for the \verb|instr_opclass()| function: pass in
+different 32-bit instructions to produce the op class, and print out
+the op class.  When printing the class, try printing it as an integer,
+and also using \verb|fshow()|.
 
-\item Write a new version of the \verb|instr_opclass()| function that
-  expresses a parallel MUX instead of a priority MUX.  The key ideas
-  are:
+% ----------------
+\Exercise
+
+Write a new version of the \verb|instr_opclass()| function that
+expresses a parallel MUX instead of a priority MUX.  The key ideas
+are:
 
   \begin{itemize}
 
@@ -859,23 +869,29 @@ automatically.
   we are assured of this because of the mutual exclusivity of the
   conditions.
 
-\item Sketch out a schematic diagram for the hardware of the parallel
-  MUX in the previous exercise.
+% ----------------
+\Exercise
 
-  The schematic will clearly reveal the parallel nature of the MUX
-  compared to the serial nature of the priority MUX shown earlier in
-  the schematic in Figure~\ref{Fig_Combo_Multiplexer_Cascade}.
+Sketch out a schematic diagram for the hardware of the parallel MUX in
+the previous exercise.
 
-  How many multiplexers does each \verb|OPCLASS_XXX| value flow
-  through?  How many bitwise-OR operators are needed?  Note that we
-  can organize the bitwise-OR operators as a balanced binary tree, so
-  that the path through the circuit grows \emph{logarithmically}, not
-  linearly, with the number of classes.
+The schematic will clearly reveal the parallel nature of the MUX
+compared to the serial nature of the priority MUX shown earlier in the
+schematic in Figure~\ref{Fig_Combo_Multiplexer_Cascade}.
 
-\item Test your new version of the \verb|instr_opclass()| function in
-  your testbench.
+How many multiplexers does each \verb|OPCLASS_XXX| value flow through?
+How many bitwise-OR operators are needed?  Note that we can organize
+the bitwise-OR operators as a balanced binary tree, so that the path
+through the circuit grows \emph{logarithmically}, not linearly, with
+the number of classes.
 
-\end{enumerate}
+% ----------------
+\Exercise
+
+Test your new version of the \verb|instr_opclass()| function in your
+testbench.
+
+\Endexercise
 
 % ****************************************************************
 
@@ -1303,16 +1319,20 @@ combinational circuits, many of which we've seen earlier.
 
 % ================================================================
 
-\subsection{Exercises}
+\hdivider
 
-\begin{enumerate}
+% ----------------
+\Exercise
 
-\item Write the functions \verb|instr_imm_I()|, \verb|instr_imm_S()|,
-  \verb|instr_imm_B()|, \verb|instr_imm_U()| and \verb|instr_imm_J()|.
+Write the functions \verb|instr_imm_I()|, \verb|instr_imm_S()|,
+\verb|instr_imm_B()|, \verb|instr_imm_U()| and \verb|instr_imm_J()|.
 
-\item Write a testbench for \verb|fn_D()|, apply it on a number of
-  32-bit values (instructions) and print the results.
+% ----------------
+\Exercise
 
-\end{enumerate}
+Write a testbench for \verb|fn_D()|, apply it on a number of 32-bit
+values (instructions) and print the results.
+
+\Endexercise
 
 % ****************************************************************

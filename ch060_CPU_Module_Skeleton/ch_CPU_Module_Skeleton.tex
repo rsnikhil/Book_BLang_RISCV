@@ -2,80 +2,80 @@
 
 % ****************************************************************
 
-\chapter{Magritte Fetch and Decode: Modules, Interfaces, Finite State Machines}
+\chapter{BSV: Modules and Interfaces; \\
+Magritte and Fife Interface and Module Skeleton}
 
-\markboth{Ch \arabic{chapter}: Magritte Fetch/Decode; Modules, FSMs (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: CPU module skeleton; Modules, interfaces (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
 \renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
 
-\label{ch_Magritte_Fetch_Decode}
-
-% ****************************************************************
+\label{ch_Module_Skeleton}
 
 % ****************************************************************
 
 \section{Introduction}
 
-So far, we have only been discussing pure combinational functions, for
-which there is no concept of time.  Combinational functions are just
-``instantaneous'' mathematical functions transforming input values to
-output values.  However, a CPU, as shown in
-Figure~\ref{Fig_Magritte_Fetch_Decode_Simple_Instr_Exec}
+It is good engineering practice to organize the code for any
+non-trivial system, whether in hardware or software, into a
+well-structured network of smaller, manageable \emph{modules}.  Each
+module should have a clear, independent specification so that it can
+be understood on its own, and so that it can transparently be
+substituted by another module with the same functionality but perhaps
+other desirable properties ({\eg} speed, area, power).  The external
+specification of a module---its ``interface''---should not rely on,
+and ideally note even mention, internal implementation details of the
+module.
+
+For example, each of the units shown in
+Figure~\ref{Fig_CPU_Module_Skeleton_Simple_Instr_Exec} could be a
+separate module.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Simple_Instr_Exec}}
-  \caption{\label{Fig_Magritte_Fetch_Decode_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Simple_Instr_Exec})}
+  \caption{\label{Fig_CPU_Module_Skeleton_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Simple_Instr_Exec})}
 \end{figure}
-represents a \emph{processs}, a behavior that evolves over time.  For
-example the Magritte CPU executes one full instruction after another
-(the backward black arrows in the diagram reprsent an infinite loop).
-For each instruction, first it performs a Fetch operation, which sends
-a request to memory. Some time later, the memory sends back a
-response, which is then processed by the Decode step, before
-proceeding to the next step, and so on.
 
-The central BSV construct for temporal behavior is the
-``\verb|rule|'', but for Magritte we can use a higher-level BSV
-construct called``\verb|StmtFSM|'' (which are implemented by the
-\emph{bsc} compiler using rules).  In this chapter we build up to
-creating a partial Magritte CPU containing just the Fetch and Decode
-steps.
+In this chapter we discuss interfaces and modules in BSV, including a
+few that are provided by the BSV libraries and are useful in
+implementing our RISC-V CPUs.  At the end of this chapter, we show the
+interface for the Magritte and Fife CPUs---everything excluding the
+Memory in Figure~\ref{Fig_CPU_Module_Skeleton_Simple_Instr_Exec}.
 
 % ****************************************************************
 
 \section{BSV: Modules: state, behavior and interfaces}
 
-\label{Sec_Magritte_Fetch_Decode_Modules}
+\label{Sec_CPU_Module_Skeleton_Modules}
 
 \index{BSV!Module}
 
-The construct in BSV that exhibits temporal behavior is the
-\emph{module}.  Modules encapsulate modifiable state, internal
-behavior (\emph{rules}) and external behavior (\emph{interface
-methods}).  In this sense they are similar to ``objects'' in
-object-oriented programming languages such as C++, Java, and Python.
-A BSV module is like an object constructor; a module instance is like
-an object; and its interface is a set of methods that can be invoked
-like functions.
+Modules encapsulate modifiable state, internal behavior (\emph{rules})
+and external behavior (\emph{interface methods}).  In this sense they
+are similar to ``objects'' in object-oriented programming languages
+such as C++, Java, and Python.  A BSV module is like an object
+constructor; a module \emph{instance} is like an object; and its
+interface is \emph{a set of methods} that can be invoked like
+functions/procedures.
 
 Modules and interfaces clearly separate the concerns of
 externally-visible functionality (``external API'', \emph{what} a
 module does) {\vs} internal implementation details (\emph{how} the
 module does it).
 
-BSV modules also play a software-engineering role in that we use them
-to organize a large system into smaller, independently understandable
-and manageable parts.  These modules are typically organized in a
-\emph{hierarchy}---in Magritte and Fife, the top-level system will be
-a module, instantiating as sub-modules a CPU module (Magritte or Fife)
-and a memory system module; the CPU module, in turn, will instantiate
-sub-modules such as a register-file module, and so on.
+BSV modules are typically organized in a \emph{hierarchy}---in
+Magritte and Fife, the top-level system will be a module,
+instantiating, as sub-modules, a CPU module (Magritte or Fife) and a
+memory system module; the CPU module, in turn, will instantiate
+sub-modules such as a register-file module, and so on.  A clean,
+common interface allows us transparently to substitute the Magritte
+CPU module for the Fife CPU module and \emph{vice versa}.
 
 In the next several sections we describe the concepts of BSV modules
 and interfaces.  These sections may require re-reading a couple of
 times; the concepts become properly internalized only after
-seeing/using/creating several examples.
+seeing/using/creating several examples.  Temporal behavior will be
+discussed in the next chapter.
 
 % ================================================================
 
@@ -113,14 +113,16 @@ any number of module declarations each of which offers the same
 interface.  For example, the BSV library contains a repertoire of FIFO
 modules, all of which have the same FIFO interface type.
 
-Section~\ref{Sec_Magritte_Fetch_Decode_Register_interface} shows the
+Section~\ref{Sec_CPU_Module_Skeleton_Register_interface} shows the
 interface declaration type for register modules.
-Section~\ref{Sec_Magritte_Fetch_Decode_FIFOF_interface} shows the
+Section~\ref{Sec_CPU_Module_Skeleton_FIFOF_interface} shows the
 interface declaration type for FIFO modules.
 
 % ================================================================
 
 \subsection{BSV: Module declarations}
+
+\label{Sec_CPU_Module_Skeleton_module_declarations}
 
 \index{BSV!Module!state}
 \index{BSV!Module!behavior}
@@ -142,7 +144,7 @@ particular interface type:
 {\tt endmodule}
 \end{quote}
 
-\index{BSV!{\tt (* synthesize *)} attribute}
+\index{BSV!synthesize@{\tt (* synthesize *)} attribute}
 
 The \verb|(* synthesize *)| attribute at the top has no semantic
 significance.  It is merely an indication to the \emph{bsc} compiler,
@@ -154,9 +156,9 @@ module, and not to ``inline'' it into any parent module.
 A module declaration declares a module constructor; it can be invoked
 multiple times to obtain multiple \emph{instances}.
 
-% ================================================================
+% ****************************************************************
 
-\subsection{BSV: Example: Registers}
+\section{BSV: Example: Registers}
 
 \index{BSV!Register}
 
@@ -169,16 +171,16 @@ single memory cell containing a single value (represented as a
 bit-vector).  We can (over-)write with a new value, and we can read
 out the value stored by the most recent write.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt Reg\#(}\emph{t}{\tt )}, the register interface}
+\subsection{BSV: {\tt Reg\#(}\emph{t}{\tt )}, the register interface}
 
-\label{Sec_Magritte_Fetch_Decode_Register_interface}
+\label{Sec_CPU_Module_Skeleton_Register_interface}
 
-\index{BSV!Interface!{\tt Reg} register interface}
-\index{BSV!Register!{\tt Reg} register interface}
-\index{BSV!Register!\_read method}
-\index{BSV!Register!\_write method}
+\index{BSV!Interface!Reg@{\tt Reg} register interface}
+\index{BSV!Register!Reg@{\tt Reg} register interface}
+\index{BSV!Register!read@{\tt \_read} method}
+\index{BSV!Register!write@{\tt \_write} method}
 
 The standard register interface type in BSV has two methods:
 
@@ -198,20 +200,24 @@ takes one argument, a value of type \verb|t|, and stores it in the
 register, over-writing any previous value and holding the new value
 until over-written by the next \verb|_write()|.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt mkReg(}\emph{v}{\tt )}, a register module (consructor)}
+\subsection{BSV: {\tt mkReg(}\emph{v}{\tt )}, a register module (consructor)}
 
-\index{BSV!Module!{\tt mkReg} module (constructor)}
+\index{BSV!Module!mkReg@{\tt mkReg} module (constructor)}
 
-\index{BSV!Register!{\tt mkReg}!module (constructor)}
-\index{BSV!Register!{\tt mkReg}!reset value}
+\index{BSV!Register!mkReg@{\tt mkReg}!module (constructor)}
+\index{BSV!mkReg@{\tt mkReg}!module (constructor)}
+
+\index{BSV!Register!mkReg@{\tt mkReg}!reset value}
+\index{BSV!mkReg@{\tt mkReg}!reset value}
 
 A standard BSV library register module is \verb|mkReg|.  It is used to
 instantiate a new register, with a specified reset value, using a
 statement like this:
 
-\index{BSV!Register!{\tt mkReg}!instantiation}
+\index{BSV!Register!mkReg@{\tt mkReg}!instantiation}
+\index{BSV!mkReg@{\tt mkReg}!instantiation}
 
 \begin{Verbatim}[frame=single, numbers=left]
     Reg #(Bit #(XLEN)) pc <- mkReg (0);
@@ -236,18 +242,19 @@ Different module-constructors may or may not have arguments.  For
 example, this instantiation uses a different BSV library register
 constructor:
 
-\index{BSV!Register!{\tt mkRegU}!module (constructor)}
+\index{BSV!Register!mkRegU@{\tt mkRegU}!module (constructor)}
+\index{BSV!mkRegU@{\tt mkRegU}!module (constructor)}
 
 \begin{Verbatim}[frame=single, numbers=left]
-    Reg #(Bit #(XLEN)) pc <- mkRegU;
+   Reg #(Bit #(XLEN)) pc <- mkRegU;
 \end{Verbatim}
 
 \verb|mkRegU| instantiates a register with an unspecified
 (unpredictable) reset value, and hence does not need an argument.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: Registers are strongly typed}
+\subsection{BSV: Registers are strongly typed}
 
 \index{Register!strongly-typed}
 
@@ -264,7 +271,62 @@ that it has a representation in bits.
 
 % ================================================================
 
-\subsection{BSV: Example: FIFOs}
+\subsection{BSV: Syntactic shorthands for register access}
+
+\label{Sec_CPU_Module_Skeleton_register_syntactic_shorthands}
+
+\label{}
+
+\index{Register!{\tt <=} register assignment}
+\index{Register!implicit register read}
+
+Registers are so ubuiquitous in digital design that BSV provides some
+special syntactic shorthands for reading and writing registers.
+
+Just mentioning a register in an expression can be used as a shorthand
+for invoking its \verb|_read| method.  Thus, the expression:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc + 4
+\end{Verbatim}
+
+is shorthand for:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc._read + 4
+\end{Verbatim}
+
+To invoke the \verb|_write| method on a register, one can use a
+conventional assignment statement.  Thus, the expression:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc._write (v)
+\end{Verbatim}
+
+can be written like this:\footnote{Rather than use ``{\tt =}'' or
+``{\tt :=}'' common in software programming languages, we use ``{\tt
+<=}'', which is the Verilog/SystemVerilog notation for ``delayed
+assignment''.}
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc <= v
+\end{Verbatim}
+
+To recap, a statement like this:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc <= rg_pc + 4
+\end{Verbatim}
+
+is shorthand for:
+
+\begin{Verbatim}[frame=single, numbers=left]
+    rg_pc._write (rg_pc_read + 4)
+\end{Verbatim}
+
+% ****************************************************************
+
+\section{BSV: Example: FIFOs}
 
 \index{BSV!FIFO}
 
@@ -276,18 +338,16 @@ Most BSV FIFOs are automatically ``flow-controlled'', {\ie} it is
 impossible to enqueue into a full FIFO and to dequeue from an empty
 FIFO.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt FIFOF\#(}\emph{t}{\tt )}, the FIFO interface}
+\subsection{BSV: {\tt FIFOF\#(}\emph{t}{\tt )}, the FIFO interface}
 
-\label{Sec_Magritte_Fetch_Decode_FIFOF_interface}
+\label{Sec_CPU_Module_Skeleton_FIFOF_interface}
 
-\index{BSV!Interface!{\tt FIFOF} FIFO interface}
-\index{BSV!FIFO!{\tt FIFOF} FIFO interface}
-\index{BSV!FIFO!methods}
-
-\index{BSV!FIFO!{\tt FIFOF} interface}
-\index{BSV!FIFO!type of stored value}
+\index{BSV!Interface!FIFOF@{\tt FIFOF} FIFO interface}
+\index{BSV!FIFOF@{\tt FIFOF} interface}
+\index{BSV!FIFOF@{\tt FIFOF}!type of stored value}
+\index{BSV!FIFOF@{\tt FIFOF} interface methods}
 
 A standard FIFO interface type in the BSV library is:
 
@@ -322,21 +382,24 @@ appending the argument \verb|x| to the tail of the queue.
 The \verb|clear| method is used to empty the queue immediately
 (discard all its contents).
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt mkFIFOF}, a FIFO module (constructor)}
+\subsection{BSV: {\tt mkFIFOF}, a fifo module (constructor)}
 
-\index{BSV!Module!{\tt mkFIFOF} module (constructor)}
+\index{BSV!Module!mkFIFOF@{\tt mkFIFOF} module (constructor)}
 
-\index{BSV!FIFO!{\tt mkFIFOF}!module (constructor)}
-\index{BSV!FIFO!{\tt mkFIFOF}!reset value}
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!reset value}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!reset value}
 
 The BSV library contains many different FIFO modules (constructors):
 single-element FIFOs, FIFOs of a specified depth (queue length), FIFOs
 with and without automatic flow-control, {\etc} In Magritte we use
 this one:
 
-\index{BSV!FIFO!{\tt mkFIFOF}!instantiation}
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!instantiation}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!instantiation}
 
 \begin{Verbatim}[frame=single, numbers=left]
    FIFOF #(Mem_Req) f_to_IMem <- mkFIFOF;
@@ -350,7 +413,8 @@ Different module-constructors may or may not have arguments.  For
 example, this instantiation uses a different BSV library FIFO
 constructor:
 
-\index{BSV!FIFO!{\tt mkSizedFIFOF}!module (constructor)}
+\index{BSV!FIFO!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
+\index{BSV!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
 
 \begin{Verbatim}[frame=single, numbers=left]
    FIFOF #(RR_to_RW)  f_RR_to_RW  <- mkSizedFIFOF (8);
@@ -362,9 +426,9 @@ module constructor arguments can play different roles.  In
 held by the register after reset.  Here, the argument (8) only
 describes \emph{structure}, {\ie} the size of the FIFO.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: FIFOFs are strongly typed}
+\subsection{BSV: FIFOFs are strongly typed}
 
 \index{FIFO!strongly-typed}
 
@@ -377,9 +441,9 @@ a nested struct, {\etc}, if we have used a \verb|deriving(Bits)|
 declaration (or its explicit analog) to ensure that it has a
 representation in bits.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: Semi-FIFO interfaces for each end of a FIFO}
+\subsection{BSV: Semi-FIFO interfaces for each end of a FIFO}
 
 FIFOs are often used to connect two separate modules together, for one
 module to communicate values to the next one.  For example, the Fetch
@@ -390,8 +454,8 @@ only interacts with the ```dequeue'' side.
 In these situations we will also find it useful to use the following
 ``Semi-FIFO'' interfaces interfaces for each ``end'' of a FIFO queue:
 
-\index{BSV!FIFO!FIFO\_O interface}
-\index{BSV!Semi-FIFO!FIFO\_O interface}
+\index{BSV!FIFOF_O@{\tt FIFOF\_O}: semi-fifo interface}
+\index{BSV!Semi-FIFO!{\tt FIFOF\_O} semi-fifo interface}
 
 \begin{Verbatim}[frame=single, numbers=left]
 interface FIFOF_O #(t);
@@ -401,8 +465,8 @@ interface FIFOF_O #(t);
 endinterface
 \end{Verbatim}
 
-\index{BSV!FIFO!FIFO\_I interface}
-\index{BSV!Semi-FIFO!FIFO\_I interface}
+\index{BSV!FIFOF_I@{\tt FIFOF\_I} semi-fifo interface}
+\index{BSV!Semi-FIFO!{\tt FIFOF\_I} semi-fifo interface}
 
 \begin{Verbatim}[frame=single, numbers=left]
 interface FIFOF_I #(t);
@@ -414,28 +478,28 @@ endinterface
 There is no extra hardware implied here; these are simply limited
 ``views'', or abstractions of an existing FIFO interface.
 
-% ================================================================
+% ****************************************************************
 
-\subsection{BSV: Example: Register-files}
+\section{BSV: Example: Register-files}
 
 \index{BSV!Register-file}
-\index{BSV!{\tt RegFile}}
+\index{BSV!RegFile@{\tt RegFile}}
 
 A register-file is an array of registers with a common pair of methods
 to read or write a particular register identified by an index, which
 is an argument to the read and write methods.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt Regfile\#(}\emph{t1}{\tt ,}\emph{t2}{\tt )}, the register-file interface}
+\subsection{BSV: {\tt Regfile\#(}\emph{t1}{\tt ,}\emph{t2}{\tt )}, the register-file interface}
 
-\label{Sec_Magritte_Fetch_Decode_RegFile_interface}
+\label{Sec_CPU_Module_Skeleton_RegFile_interface}
 
-\index{BSV!Interface!{\tt RegFile} register-file interface}
-\index{BSV!Register-file!{\tt RegFile} register-file interface}
+\index{BSV!Interface!RegFile@{\tt RegFile} register-file interface}
+\index{BSV!Register-file!RegFile@{\tt RegFile} register-file interface}
 \index{BSV!Register-file!methods}
 
-\index{BSV!Register-file!{\tt RegFile} interface}
+\index{BSV!Register-file!RegFile@{\tt RegFile} interface}
 \index{BSV!Register-file!type of index}
 \index{BSV!Register-file!type of stored value}
 
@@ -460,18 +524,18 @@ value \emph{v} in the \emph{j}'th register.  The
 \verb|sub(|\emph{j}\verb|)| method returns the current value \emph{v}
 in the \emph{j}'th register.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: {\tt mkRegFileFull}, a register-file module (constructor)}
+\subsection{BSV: {\tt mkRegFileFull}, a register-file module (constructor)}
 
-\index{BSV!Module!{\tt mkRegFileFull} module (constructor)}
-\index{BSV!Register-file!{\tt mkRegFileFull}!module (constructor)}
-\index{BSV!Register-file!{\tt mkRegFileFull}!reset value}
+\index{BSV!Module!mkRegFileFull@{\tt mkRegFileFull} module (constructor)}
+\index{BSV!Register-file!mkRegFileFull@{\tt mkRegFileFull}!module (constructor)}
+\index{BSV!Register-file!mkRegFileFull@{\tt mkRegFileFull}!reset value}
 
 The BSV library contains some different register-file modules
 (constructors). In Magritte we use this one.
 
-\index{BSV!Register-file!{\tt mkRegFileFull}!instantiation}
+\index{BSV!Register-file!mkRegFileFull@{\tt mkRegFileFull}!instantiation}
 
 \begin{Verbatim}[frame=single, numbers=left]
    RegFile #(Bit #(5), Bit #(XLEN)) gprs <- mkRegFileFull;
@@ -484,12 +548,11 @@ register-file.  The number of registers in the register-file is known
 from the full range of the index type \verb|Bit#(5)|, {\ie} it will
 have 32 registers, indexed from 0 to 31.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{BSV: What about the RISC-V register {\tt x0}?}
+\subsection{BSV: What about the RISC-V register {\tt x0}?}
 
-\index{BSV!Register-file!RISC-V special register {\tt x0}}
-\index{RISC-V!{\tt x0}!Special ``always zero'' register}
+\index{RISC-V!x0@{\tt x0}: Special ``always zero'' register}
 
 In RISC-V, register \verb|x0| (index 0) is defined as ``always zero''.
 Any value written to \verb|x0| is ignored/discarded, and any read from
@@ -517,13 +580,14 @@ semantics of \verb|x0|.
 
 \section{RISC-V: The interface for the Magritte and Fife CPU modules}
 
-\label{Sec_Magritte_Fetch_Decode_CPU_interface}
+\label{Sec_CPU_Module_Skeleton_CPU_interface}
 
 By sharing a common interface between the Magritte and Fife CPU
 modules, we can easily substiute one for the other in the overall
 system.  We now have all the pieces in place to describe the interface:
 
-\index{Magritte!CPU interface} \index{Fife!CPU interface}
+\index{Magritte!CPU interface}
+\index{Fife!CPU interface}
 
 \begin{Verbatim}[frame=single, numbers=left]
 interface CPU_IFC;
@@ -539,16 +603,16 @@ The interface is simple:
 
 \begin{tightlist}
 
-\item A \verb|FIFO_O| to carry memory requests instructions (out-bound
+\item A \verb|FIFOF_O| to carry memory requests instructions (out-bound
 from the CPU to the memory);
 
-\item A \verb|FIFO_I| to carry memory responses containing
+\item A \verb|FIFOF_I| to carry memory responses containing
 instructions (in-bound from memory to the CPU);
 
 \item A \verb|FIFO_O| to carry memory requests from load/store
 instructions (out-bound from the CPU to the memory);
 
-\item A \verb|FIFO_I| to carry corresponding load/store memory
+\item A \verb|FIFOF_I| to carry corresponding load/store memory
 responses (in-bound from memory to the CPU).
 
 \end{tightlist}
@@ -583,8 +647,8 @@ dynamic behavioral patterns.  In some systems we can also
 \emph{protect} the instruction memory area, {\ie} enforce in hardware
 the policy of not over-writing instructions.
 
-\index{RISC-C!IMem (instruction memory)}
-\index{RISC-C!DMem (data memory)}
+\index{RISC-V!IMem (instruction memory)}
+\index{RISC-V!DMem (data memory)}
 
 In this book we will use the term ``IMem'' for instruction memory and
 its supporting infrastructure (data paths, caches, {\etc}) and
@@ -594,7 +658,7 @@ its supporting infrastructure (data paths, caches, {\etc}) and
 
 \section{RISC-V: A skeleton CPU module for Magritte}
 
-\label{Sec_Magritte_Fetch_Decode_skeleton_CPU_module}
+\label{Sec_CPU_Module_Skeleton_skeleton_CPU_module}
 
 \index{RISC-V!Magritte skeleton module}
 \index{RISC-V!Fife skeleton module}
@@ -633,7 +697,7 @@ module mkCPU (CPU_IFC);
    // BEHAVIOR
 
    ... // This section will code the dynamic "behavior" of the module
-   ... // and will be different in Magritte and Fife
+   ... // and will be discussed in the next chapter
 
    // ================================================================
    // INTERFACE
@@ -661,15 +725,15 @@ endmodule
 
 \end{Verbatim}
 
-% ================================================================
+% ****************************************************************
 
-\subsection{BSV: Interface-transformer functions}
+\section{BSV: Interface-transformer functions}
 
 \index{BSV!Interface transformer functions}
-\index{BSV!{\tt FIFOF\_O}!interface transformer from {\tt FIFOF}}
+\index{BSV!FIFOF\_O@{\tt FIFOF\_O}!interface transformer from {\tt FIFOF}}
 
 The idea of ``viewing'' the output-side of a \verb|FIFOF| interface as
-a \verb|FIFOF_O| interface can be captured in a BSV function:
+a \verb|FIFOF_O| interface can be expressed in a BSV function:
 
 \begin{Verbatim}[frame=single, numbers=left]
 function FIFO_O #(t) to_FIFOF_O (FIFOF #(t) f);
@@ -689,11 +753,21 @@ function FIFO_O #(t) to_FIFOF_O (FIFOF #(t) f);
 endinterface
 \end{Verbatim}
 
-EXERCISE: write a similar function to transform a \verb|FIFOF|
-interface into a \verb|FIFOF_I| interface.
+% ----------------
 
-With these functions in hand, we can simplify our Magritte CPU
-interface section to just four lines:
+\hdivider
+
+\Exercise
+
+Write a similar function to transform a \verb|FIFOF| interface into a
+\verb|FIFOF_I| interface, with \verb|notFull| and \verb|enq| methods.
+
+\Endexercise
+
+With these functions in hand, we can simplify the INTERFACE section of
+our Magritte CPU module just four lines:
+
+% ----------------
 
 \begin{Verbatim}[frame=single, numbers=left]
 (* synthesize *)
@@ -710,17 +784,5 @@ module mkCPU (CPU_IFC);
    interface fi_DMem_req = to FIFOF_O (f_from_DMem);
 endmodule
 \end{Verbatim}
-
-% ****************************************************************
-
-\section{Topics}
-
-\begin{tightlist}
-
-\item CPU state machine
-
-\item Top-level, connecting to memory
-
-\end{tightlist}
 
 % ****************************************************************

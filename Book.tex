@@ -100,7 +100,7 @@
 \newcounter{exercise}[chapter]
 % \newcommand{\Exercise}{$\bullet$ {\bf Exercise}:}
 \newcommand{\Exercise}{\addtocounter{exercise}{1}{\bf Exercise \arabic{chapter}.\arabic{exercise}:}}
-\newcommand{\Endexercise}{\hfill {\normalsize$\Box$}}
+\newcommand{\Endexercise}{\hfill {\normalsize$\Box$} \\ \hdivider}
 % \newcommand{\Endexercise}{\makebox[2in]{\hrulefill} \bigskip}
 
 \newcommand{\ApExercise}%
@@ -176,7 +176,9 @@
 % ----------------------------------------------------------------
 \include{ch050_Fetch_function/ch_Fetch_function}
 % ----------------------------------------------------------------
-\include{ch060_Magritte_Fetch_Decode/ch_Magritte_Fetch_Decode}
+\include{ch060_CPU_Module_Skeleton/ch_CPU_Module_Skeleton}
+% ----------------------------------------------------------------
+\include{ch070_FSMs_Magritte_CPU/ch_FSMs_Magritte_CPU}
 % ----------------------------------------------------------------
 
 \appendix
