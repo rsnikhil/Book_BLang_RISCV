@@ -98,7 +98,7 @@ further processed by FPGA tools to run on FPGAs, or by ASIC tools for
 ASIC implemenetations.  For more discussion of our choice of BSV,
 please see Appendix~\ref{apx_Why_BSV}.
 
-Our first hardware RISC-V implementation---``Magritte''---will be a
+Our first hardware RISC-V implementation---``Drum''---will be a
 simple one-full-instruction-at-a-time interpereter, almost a direct
 transliteration into BSV code of the generic ISA execution algorithm
 to be described next in Section~\ref{Sec_ISA_Exec_Algorithm}.  It does
@@ -109,7 +109,7 @@ BSV code will look very similar to what you might write in C/C++ for a
 purely functional RISC-V simulator.  Being written in BSV, however, we
 can compile and run it on actual hardware (FPGAs, ASICs).
 
-Magritte will not be fast compared to other hardware CPUs, because of
+Drum will not be fast compared to other hardware CPUs, because of
 lack of microarchitectural features, but we should still be able to
 run it at several 100 MHz on an FPGA, which will make it faster than
 many software functional simulators.  It will be small (silicon area,
@@ -119,10 +119,10 @@ Our second implementation---``Fife''---adds pipelining.  Pipelining
 introduces new complications because of potential interaction between
 instructions that are at different stages in the pipe.  We can focus
 on these new complications because all the functional aspects of
-RISC-V ISA execution have already been addressed in Magritte.  In
-fact, we will reuse the functional code from Magritte without change.
+RISC-V ISA execution have already been addressed in Drum.  In
+fact, we will reuse the functional code from Drum without change.
 
-For both Magritte and Fife, we will focus initially on only the RV32I
+For both Drum and Fife, we will focus initially on only the RV32I
 option of the RISC-V ISA.  Please refer to the specification document
 ``The RISC-V Instruction Set Manual Volume I: Unprivileged
 ISA''~\cite{RISCV_Unpriv_2019_12_13}.  In particular, look at Chapter
@@ -138,12 +138,12 @@ minimal functionality will be taken from the specficitation document
 ``The RISC-V Instruction Set Manual Volume II: Privileged
 Architecture''\cite{RISCV_Priv_2021_12_03}.
 
-Beyond this book, we extend Magritte and Fife to handle RV64I and more
+Beyond this book, we extend Drum and Fife to handle RV64I and more
 Unprivileged ISA options---M: integer multiply/divide, A: atomics, FD:
 single-and double-precision floating point, and C: compressed. We also
 handle more privileged ISA options---Privilege levels (M: Machine, S:
 Supervisor and U:User; full complement of Control and Status Registers
-(CSRs); Virtual Memory).  With these extensions, Magritte and Fife
+(CSRs); Virtual Memory).  With these extensions, Drum and Fife
 will be able to a full-feature Operating System (OS), such as Linux.
 
 % ****************************************************************

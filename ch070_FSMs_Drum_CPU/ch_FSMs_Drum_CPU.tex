@@ -3,7 +3,7 @@
 % ****************************************************************
 
 \chapter{BSV: Finite State Machines (FSMs); \\
-The Magritte CPU}
+The Drum CPU}
 
 \markboth{Ch \arabic{chapter}: FSMs (DRAFT)}{\copyrightnotice}
 
@@ -27,7 +27,7 @@ Figure~\ref{Fig_FSMs_Simple_Instr_Exec}
   \caption{\label{Fig_FSMs_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Simple_Instr_Exec})}
 \end{figure}
 represents a \emph{processs}, a behavior that evolves over time.  For
-example the Magritte CPU executes one full instruction after another,
+example the Drum CPU executes one full instruction after another,
 and the black arrows in the diagram reprsent an infinite loop. For
 each instruction, first it performs a Fetch operation, which sends a
 request to memory. Some time later, the memory sends back a response,
@@ -44,7 +44,7 @@ stage is already working on the second instruction, and so on.  There
 is a sequence of instructions in this pipeline, advancing on every
 ``tick''.
 
-In this chapter we build up to creating the Magritte CPU.
+In this chapter we build up to creating the Drum CPU.
 
 % ****************************************************************
 
@@ -97,9 +97,9 @@ states.  Thus, an FSM is a specification of a \emph{process} that,
 over time, moves from state to to state.  The process can be infinite,
 with an transitions back to earlier states.
 
-\index{Magritte!as an FSM}
+\index{Drum!as an FSM}
 
-For Magritte, we will interpret
+For Drum, we will interpret
 Figure~\ref{Fig_FSMs_Simple_Instr_Exec} as a bubble-and-arrow diagram
 for an FSM.  Each of the yellow boxes will be a state, and the black
 arrows represent state-transitions.
@@ -138,7 +138,7 @@ and the black arrows represent communication between FSMs.
 
 The central BSV construct for temporal behavior (processes) is the
 ``\verb|rule|''.  Collections of rules can express any sequential or
-concurrent FSM.  However, because Magritte is a simple, structured
+concurrent FSM.  However, because Drum is a simple, structured
 sequential process, we can use a simpler, higher-level BSV notation
 called``\verb|StmtFSM|'' (which, in turn, is just converted into rules
 by the \emph{bsc} compiler).
@@ -146,7 +146,7 @@ by the \emph{bsc} compiler).
 \verb|StmtFSM| is a sub-language within BSV for expressing
 \emph{structured}, mostly sequential processes.\footnote{{\tt StmtFSM}
 can also express structured fork-join parallelism, but we do not need
-that for Magritte.}  The constructs are similar to most common
+that for Drum.}  The constructs are similar to most common
 sequential programming languages: blocks to express temporally
 sequenced actions, if-then-elses, while-loops and for-loops.
 
@@ -282,7 +282,7 @@ Repetitive processes can be expressed with traditional while-loop notation:
       ... expression of type Stmt ...
 \end{Verbatim}
 
-(Note: \verb|StmtFSM| also has for-loop notation, but we do not need it for Magritte.)
+(Note: \verb|StmtFSM| also has for-loop notation, but we do not need it for Drum.)
 
 % ================================================================
 
@@ -304,14 +304,14 @@ the last statement.
 
 % ****************************************************************
 
-\section{RISC-V: The Magritte CPU module}
+\section{RISC-V: The Drum CPU module}
 
-\label{Sec_FSMs_Magritte_CPU_module}
+\label{Sec_FSMs_Drum_CPU_module}
 
-\index{RISC-V!Magritte CPU module}
-\index{Magritte!CPU module}
+\index{RISC-V!Drum CPU module}
+\index{Drum!CPU module}
 
-The outline of the CPU module for Magritte was shown in the display in
+The outline of the CPU module for Drum was shown in the display in
 Section~\ref{Sec_CPU_Module_Skeleton_skeleton_CPU_module}.  Here we
 fill in the BEHAVIOR section that we elided in that display.
 
@@ -363,26 +363,26 @@ endmodule
 
 % ****************************************************************
 
-\section{RISC-V: Compiling Magritte BSV code to Verilog}
+\section{RISC-V: Compiling Drum BSV code to Verilog}
 
-\label{Sec_FSMs_Magritte_compile_to_verilog}
+\label{Sec_FSMs_Drum_compile_to_verilog}
 
 % ****************************************************************
 
 \section{RISC-V: Compiling and linking Verilog using Verilator}
 
-\label{Sec_FSMs_Magritte_verilator}
+\label{Sec_FSMs_Drum_verilator}
 
 % ****************************************************************
 
-\section{RISC-V: Verilog simulation of Magritte}
+\section{RISC-V: Verilog simulation of Drum}
 
-\label{Sec_FSMs_Magritte_simulation}
+\label{Sec_FSMs_Drum_simulation}
 
 % ****************************************************************
 
-\section{RISC-V: Implementing Magritte Verilog on an FPGA}
+\section{RISC-V: Implementing Drum Verilog on an FPGA}
 
-\label{Sec_FSMs_Magritte_FPGA}
+\label{Sec_FSMs_Drum_FPGA}
 
 % ****************************************************************

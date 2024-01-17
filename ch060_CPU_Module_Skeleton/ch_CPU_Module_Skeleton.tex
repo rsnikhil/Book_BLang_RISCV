@@ -3,7 +3,7 @@
 % ****************************************************************
 
 \chapter{BSV: Modules and Interfaces; \\
-Magritte and Fife Interface and Module Skeleton}
+Drum and Fife Interface and Module Skeleton}
 
 \markboth{Ch \arabic{chapter}: CPU module skeleton; Modules, interfaces (DRAFT)}{\copyrightnotice}
 
@@ -39,7 +39,7 @@ separate module.
 In this chapter we discuss interfaces and modules in BSV, including a
 few that are provided by the BSV libraries and are useful in
 implementing our RISC-V CPUs.  At the end of this chapter, we show the
-interface for the Magritte and Fife CPUs---everything excluding the
+interface for the Drum and Fife CPUs---everything excluding the
 Memory in Figure~\ref{Fig_CPU_Module_Skeleton_Simple_Instr_Exec}.
 
 % ****************************************************************
@@ -64,11 +64,11 @@ module does) {\vs} internal implementation details (\emph{how} the
 module does it).
 
 BSV modules are typically organized in a \emph{hierarchy}---in
-Magritte and Fife, the top-level system will be a module,
-instantiating, as sub-modules, a CPU module (Magritte or Fife) and a
+Drum and Fife, the top-level system will be a module,
+instantiating, as sub-modules, a CPU module (Drum or Fife) and a
 memory system module; the CPU module, in turn, will instantiate
 sub-modules such as a register-file module, and so on.  A clean,
-common interface allows us transparently to substitute the Magritte
+common interface allows us transparently to substitute the Drum
 CPU module for the Fife CPU module and \emph{vice versa}.
 
 In the next several sections we describe the concepts of BSV modules
@@ -395,7 +395,7 @@ The \verb|clear| method is used to empty the queue immediately
 
 The BSV library contains many different FIFO modules (constructors):
 single-element FIFOs, FIFOs of a specified depth (queue length), FIFOs
-with and without automatic flow-control, {\etc} In Magritte we use
+with and without automatic flow-control, {\etc} In Drum we use
 this one:
 
 \index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!instantiation}
@@ -533,7 +533,7 @@ in the \emph{j}'th register.
 \index{BSV!Register-file!mkRegFileFull@{\tt mkRegFileFull}!reset value}
 
 The BSV library contains some different register-file modules
-(constructors). In Magritte we use this one.
+(constructors). In Drum we use this one.
 
 \index{BSV!Register-file!mkRegFileFull@{\tt mkRegFileFull}!instantiation}
 
@@ -578,15 +578,15 @@ semantics of \verb|x0|.
 
 % ****************************************************************
 
-\section{RISC-V: The interface for the Magritte and Fife CPU modules}
+\section{RISC-V: The interface for the Drum and Fife CPU modules}
 
 \label{Sec_CPU_Module_Skeleton_CPU_interface}
 
-By sharing a common interface between the Magritte and Fife CPU
+By sharing a common interface between the Drum and Fife CPU
 modules, we can easily substiute one for the other in the overall
 system.  We now have all the pieces in place to describe the interface:
 
-\index{Magritte!CPU interface}
+\index{Drum!CPU interface}
 \index{Fife!CPU interface}
 
 \begin{Verbatim}[frame=single, numbers=left]
@@ -656,16 +656,16 @@ its supporting infrastructure (data paths, caches, {\etc}) and
 
 % ****************************************************************
 
-\section{RISC-V: A skeleton CPU module for Magritte}
+\section{RISC-V: A skeleton CPU module for Drum}
 
 \label{Sec_CPU_Module_Skeleton_skeleton_CPU_module}
 
-\index{RISC-V!Magritte skeleton module}
+\index{RISC-V!Drum skeleton module}
 \index{RISC-V!Fife skeleton module}
-\index{Magritte!Skeleton module}
+\index{Drum!Skeleton module}
 \index{Fife!Skeleton module}
 
-Here is a skeleton of the CPU module for Magritte.  We will fill in
+Here is a skeleton of the CPU module for Drum.  We will fill in
 the missing pieces in subsequent chapters.
 
 \begin{Verbatim}[frame=single, numbers=left]
@@ -765,7 +765,7 @@ Write a similar function to transform a \verb|FIFOF| interface into a
 \Endexercise
 
 With these functions in hand, we can simplify the INTERFACE section of
-our Magritte CPU module just four lines:
+our Drum CPU module just four lines:
 
 % ----------------
 

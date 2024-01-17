@@ -134,17 +134,14 @@ Figure~\ref{fig_Topics} shows the plan for topics covered in this book.
 \end{itemize}
 
 We will create two hardware designs.  The first design is
-``Magritte'', a \emph{non-pipelined} implementation\footnote{ See
-Ren\'e Magritte, Belgian surrealist painter and his famous piece
-labeled \emph{``Ceci n'est pas une pipe''} (``This is not a pipe'')
-\url{https://en.wikipedia.org/wiki/Rene_Magritte}} which will
+``Drum'', a \emph{non-pipelined} implementation which will
 familiarize us all the basic concepts and flows (the RISC-V ISA,
 preparing and running a RISC-V binary to run on the design, analysing
 traces), without being distracted by the complexities of pipelineing
 for high performance.  The second design is ``Fife'', which has a
 five-to-six stage, mostly in-order pipeline, which is a
 microarchitectural change focused on higher performance (speed) than
-Magritte.  Both will execute exactly the same binaries; the only
+Drum.  Both will execute exactly the same binaries; the only
 difference will be in Fife's superior performance (speed).  Both
 designs will share a large part of the BSV code implementing the
 essential functionality for executing the RISC-V ISA.

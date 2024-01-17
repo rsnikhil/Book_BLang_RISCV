@@ -41,12 +41,12 @@
      inkscape:document-units="mm"
      showgrid="true"
      units="in"
-     inkscape:zoom="1.3713055"
-     inkscape:cx="400.34843"
-     inkscape:cy="264.34664"
-     inkscape:window-width="2288"
-     inkscape:window-height="1634"
-     inkscape:window-x="0"
+     inkscape:zoom="2.5816076"
+     inkscape:cx="400.13827"
+     inkscape:cy="262.82073"
+     inkscape:window-width="2768"
+     inkscape:window-height="1968"
+     inkscape:window-x="714"
      inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
@@ -584,19 +584,24 @@
     <text
        xml:space="preserve"
        style="font-size:2.82222px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
-       x="157.40869"
-       y="75.642227"
+       x="157.81865"
+       y="74.002419"
        id="text20"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="157.40869"
-         y="75.642227"
-         id="tspan67">Register-write,</tspan><tspan
+         x="157.81865"
+         y="74.002419"
+         id="tspan67">Retire/Trap,</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="157.40869"
-         y="79.198997"
-         id="tspan68">Incement PC</tspan></text>
+         x="157.81865"
+         y="77.559189"
+         id="tspan5">Register-write,</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
+         x="157.81865"
+         y="81.115959"
+         id="tspan68">Update PC</tspan></text>
     <rect
        style="fill:#ffcc00;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect39"
@@ -656,7 +661,7 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
          x="126.43472"
          y="92.7481"
-         id="tspan53">(Load, Store)</tspan></text>
+         id="tspan53">(Load, Store, AMO)</tspan></text>
     <path
        style="fill:none;stroke:#ff0000;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker1151)"
        d="m 52.752729,81.826669 v 19.158281 c 0,0 2.707795,3.18949 7.278563,3.09006 4.291812,-0.0934 7.023949,-2.88405 7.023949,-2.88405 V 81.826669"
@@ -698,10 +703,6 @@
        d="M 161.97005,70.949162 V 55.837553 H 53.041025"
        id="path68" />
     <path
-       style="fill:none;stroke:#ff0000;stroke-width:0.200001;stroke-dasharray:none;marker-end:url(#marker1275)"
-       d="M 126.59144,61.248235 V 57.482641 H 53.173193"
-       id="path69" />
-    <path
        style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker1151)"
        d="m 76.21573,76.737224 c 0,0 0.551365,-2.092753 2.603909,-2.092753 1.913817,0 4.785246,1.734728 4.785246,1.734728"
        id="path70"
@@ -720,11 +721,6 @@
        style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker1151)"
        d="m 138.54573,76.328056 c 0,0 0.55136,-2.092753 2.60391,-2.092753 1.91381,0 4.78524,1.734728 4.78524,1.734728"
        id="path73"
-       sodipodi:nodetypes="csc" />
-    <path
-       style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker1151)"
-       d="m 120.18719,62.43607 c 0,0 -7.28677,-1.675931 -23.82556,-0.93042 -23.758232,1.070936 -40.76265,9.79242 -40.76265,9.79242"
-       id="path74"
        sodipodi:nodetypes="csc" />
     <text
        xml:space="preserve"
@@ -747,5 +743,10 @@
        d="m 159.75181,71.697317 c 0,0 -8.39147,-8.10542 -15.5491,-10.379443 C 134.89217,58.359857 101.64656,59.164567 92.514179,59.576223 68.755947,60.647163 51.365644,71.29807 51.365644,71.29807"
        id="path75"
        sodipodi:nodetypes="cssc" />
+    <path
+       style="fill:none;stroke:#1a1a1a;stroke-width:0.200001;stroke-dasharray:none;marker-end:url(#marker1151)"
+       d="m 132.54624,67.253994 c 0,0 1.50027,-1.033462 4.90543,-0.573743 4.89156,0.660392 8.39259,6.038489 8.39259,6.038489"
+       id="path5"
+       sodipodi:nodetypes="csc" />
   </g>
 </svg>
