@@ -109,18 +109,21 @@ BSV code will look very similar to what you might write in C/C++ for a
 purely functional RISC-V simulator.  Being written in BSV, however, we
 can compile and run it on actual hardware (FPGAs, ASICs).
 
-Drum will not be fast compared to other hardware CPUs, because of
-lack of microarchitectural features, but we should still be able to
-run it at several 100 MHz on an FPGA, which will make it faster than
-many software functional simulators.  It will be small (silicon area,
-and therefore low power as well).
+Drum will not be fast compared to other hardware CPUs, because of lack
+of microarchitectural features, but we should still be able to run it
+at several 100 MHz on an FPGA, which will make it faster than many
+software functional simulators.  It will be small (silicon area, and
+therefore low power as well).  Drum is covered from
+Chapter~\ref{Sec_Combo_Decode} through Chapter~\ref{ch_Drum_Pending}.
 
 Our second implementation---``Fife''---adds pipelining.  Pipelining
 introduces new complications because of potential interaction between
 instructions that are at different stages in the pipe.  We can focus
 on these new complications because all the functional aspects of
-RISC-V ISA execution have already been addressed in Drum.  In
-fact, we will reuse the functional code from Drum without change.
+RISC-V ISA execution have already been addressed in Drum.  In fact, we
+will reuse the functional code from Drum without change.  Drum is
+covered from Chapter~\ref{ch_Fife_Pending} through
+Chapter~\ref{ch_Fife_Pending}.
 
 For both Drum and Fife, we will focus initially on only the RV32I
 option of the RISC-V ISA.  Please refer to the specification document
@@ -176,10 +179,10 @@ Interpreting a program involves the repetition of a few simple
 steps,\footnote{We prefer the word ``step'' here instead of ``stage'',
 which we will reserve to refer to stages in a hardware pipeline such
 as Fife.}  illustrated in
-Figure~\ref{Fig_Simple_Instr_Exec}:
+Figure~\ref{Fig_Instr_Exec}:
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Simple_Instr_Exec}}
-  \caption{\label{Fig_Simple_Instr_Exec}Simple interpretation of RISC-V instructions}
+  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec}}
+  \caption{\label{Fig_Instr_Exec}Simple interpretation of RISC-V instructions}
 \end{figure}
 \begin{itemize}
 
@@ -231,7 +234,7 @@ starting each time at the Fetch step.
 This book serves two concurrent purposes: learning how to implement
 the RISC-V ISA and, specifically, how to implement it by coding it in
 BSV (``BSV learning'').  To serve the BSV-learning purpose, we will
-tackle the algorithm steps of Figure~\ref{Fig_Simple_Instr_Exec} in a
+tackle the algorithm steps of Figure~\ref{Fig_Instr_Exec} in a
 different order from the logical order of the diagram.
 
 We will start, in the next chapter, with the Decode step because, in a

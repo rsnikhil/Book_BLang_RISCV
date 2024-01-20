@@ -23,8 +23,8 @@ which there is no concept of time.  Combinational functions are just
 values to output values.  However, a CPU, as shown in
 Figure~\ref{Fig_FSMs_Simple_Instr_Exec}
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Simple_Instr_Exec}}
-  \caption{\label{Fig_FSMs_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Simple_Instr_Exec})}
+  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec}}
+  \caption{\label{Fig_FSMs_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec})}
 \end{figure}
 represents a \emph{processs}, a behavior that evolves over time.  For
 example the Drum CPU executes one full instruction after another,
@@ -42,7 +42,10 @@ consuming incoming messages and producing outgoing messages.  Thus,
 while the Decode state is working on the first instruction, the Fetch
 stage is already working on the second instruction, and so on.  There
 is a sequence of instructions in this pipeline, advancing on every
-``tick''.
+``tick''.  A pipelined CPU also needs some additional state to manage
+interactions between multiple instructions in the pipeline, such as
+``epochs'', ``scoreboards'' and ``store-buffers'' (see
+Figure~\ref{Fig_Instr_Exec_w_FIFOs}).
 
 In this chapter we build up to creating the Drum CPU.
 

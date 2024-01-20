@@ -16,19 +16,21 @@
 
 \section{Introduction}
 
-In this chapter we discuss the Fetch function in
-Figure~\ref{Fig_Simple_Instr_Exec}, which we repeat here for
-convenience.
+In this chapter we discuss the Fetch function of
+Figure~\ref{Fig_Instr_Exec}, which we repeat here for convenience,
+adding annotatinos on the arrows to show the \verb|struct| types they
+communicate. All these \verb|struct| declarations can be found in the
+file: \verb|src_Common/Inter_Stage.bsv|.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Simple_Instr_Exec}}
-  \caption{\label{Fig_Fetch_function_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Simple_Instr_Exec})}
+  \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec_w_structs}}
+  \caption{\label{Fig_Fetch_function_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec}, with arrows annotated with {\tt struct} types)}
 \end{figure}
+
 The Fetch function \emph{per se} is fairly simple, even trivial.  Most
 of our discussion is about the messages sent from the Fetch step to
 memory (memory requests) and the messages returned from memory to the
-Decode step (memory responses).
-
-The outputs of Read-PC-and-Fetch step are:
+Decode step (memory responses). The outputs of Read-PC-and-Fetch step
+are:
 \begin{tightlist}
 
  \item A \emph{memory request} to memory, to read an instruction.
@@ -46,7 +48,8 @@ The outputs of Read-PC-and-Fetch step are:
 A memory-request is either for reading data (``load'') or for writing
 data (``store'').\footnote{Later, when we discuss the Execute Memory
 Ops step, we will also discuss so-called ``atomic memory operations''
-(AMOs).} We express these request-types using an enum type:
+(AMOs).} We can express these request-types using an enum type
+(similar to C or SystemVerilog):
 
 \begin{Verbatim}[frame=single, numbers=left]
 typedef enum {MEM_LOAD,
@@ -54,12 +57,12 @@ typedef enum {MEM_LOAD,
 deriving (Eq, FShow, Bits);
 \end{Verbatim}
 
-A memory-request from the Fetch step in Drum and Fife is for one
-32-bit instruction (four bytes). Looking ahead to future discussion of
-the Execute Memory Ops step, memory requests there may be for one, two
-or four bytes.\footnote{With the ``C'' (compressed) ISA extension,
-instructions can also be 16-bits, or 2 bytes.  In RV64, and with the
-``D'' ISA extension for double-precision floating-point,
+A memory-request from the Fetch step is for one 32-bit instruction
+(four bytes). Looking ahead to future discussion of the Execute Memory
+Ops step (Section~\ref{sec_DMem}), memory requests there may be for
+one, two or four bytes.\footnote{With the ``C'' (compressed) ISA
+extension, instructions can also be 16-bits, or 2 bytes.  In RV64, and
+with the ``D'' ISA extension for double-precision floating-point,
 memory-requests can also be for eight bytes.}  We express these
 request-size options using an enum type:
 
@@ -81,21 +84,13 @@ typedef struct {Mem_Req_Type  req_type;
 deriving (Eq, FShow, Bits);
 \end{Verbatim}
 
-For STORE requests of 1 and 2 bytes we assume the data is passed in
-the least-significant bytes of the \verb|data| field, which is wider.
+For STORE requests of 1 and 2 bytes ({\ie} smaller than the `data`
+field) we assume the data is passed in the least-significant bytes of
+the \verb|data| field.
 
 This is the information sent to Memory from the Read-PC-and-Fetch step
 and also from the Execute-Memory-Ops step in
 Figure~\ref{Fig_Fetch_function_Simple_Instr_Exec}.
-
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {Mem_Req_Type  req_type;
-		Mem_Req_Size  size;
-		Bit #(XLEN)   addr;
-		Bit #(XLEN)   data;    // Only for STORE
-} Mem_Req
-deriving (Eq, FShow, Bits);
-\end{Verbatim}
 
 % ****************************************************************
 
