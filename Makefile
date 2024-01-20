@@ -8,7 +8,7 @@ help:
 	@echo "    clean        Remove emacs backups and minor intermediates"
 	@echo "    full_clean   + remove LaTeX intermediate files backups and pdf"
 
-TOPFILE = Book
+TOPFILE = Book_BLang_RISCV
 
 SOURCES = \
 		Makefile \
