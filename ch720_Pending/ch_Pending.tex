@@ -1,0 +1,107 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Pending (to be written): Advanced topics, possibly in ``Book 2''?}
+
+\markboth{Ch \arabic{chapter}: Pending (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_Pending}
+
+% ****************************************************************
+
+This is a place-holder chapter with a TODO list of pending possible
+topics to be written.
+
+Goal: Linux capability, better performance.
+
+\hdivider
+
+% ****************************************************************
+
+\section{Advanced branch prediction}
+
+Is a form of online machine-learning.
+
+Branch instruction hints.
+
+Branch-Target buffers (BTBs)
+
+Return-Address Stacks (RASs)
+
+Hysteresis in prediction.
+
+% ****************************************************************
+
+\section{Caches}
+
+Separate I- and D-caches.
+
+FENCE.I: for ``manual'' I- and D-Mem coherence.
+
+FENCE: flushing caches for for devices.
+
+Multi-level caches and cache hierarchies.
+
+Cache-coherence.
+
+Non-blocking caches.
+
+% ****************************************************************
+
+\section{Compressed instructions}
+
+Implementation: wholly in Decode stage.  Common shared between Fife and Drum.
+
+Affect of compressed instructions on Fetch.
+
+Affect of compressed instructions on PC-prediction.
+
+Affect of non-32-bit alignment of compressed instructions.
+
+% ****************************************************************
+
+\section{AMO operations}
+
+Note: These (implementation-independent) explanations may already be
+done in Chapter~\ref{ch_ISA} on the RISC-V ISA:
+
+\begin{itemize}
+  \item Explanation of LR and SC instructions
+  \item Explanation of AMOxxx instructions
+  \item Implementation in the memory system
+\end{itemize}
+
+% ****************************************************************
+
+\section{Multiple Privilege levels}
+
+Machine, Supervisor, User
+
+Interrupt/trap delegation.
+
+Hypervisor
+
+% ****************************************************************
+
+\section{Memory Protection with PMPs}
+
+Page Tables, TLBs
+
+% ****************************************************************
+
+\section{Virtual Memory}
+
+Page Tables, TLBs
+
+% ****************************************************************
+
+\subsection{RISC-V ISA Formal Specification}
+
+Sail model
+
+% ****************************************************************
