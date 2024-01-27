@@ -617,43 +617,6 @@ responses (in-bound from memory to the CPU).
 
 \end{tightlist}
 
-% ================================================================
-
-\subsection{Separation of IMem and DMem (Harvard Architecture)}
-
-\index{Harvard architecture}
-\index{Harvard architecture!Self-modifying code}
-
-This separation of memory channels for instructions and load/stores is
-quite standard in modern CPU architectures, and is informally called a
-``Harvard Architecture''.  The term refers to the architecture of the
-Harvard Mark I computer, designed and built by Harvard University and
-IBM in the 1940s (the term itself was coined much later).  It
-sometimes refers just to separate, concurrent paths to memory for
-instructions and data, and sometimes also to physically separate
-memories for instructions and data (more discussion in
-Wikipedia:~\url{https://en.wikipedia.org/wiki/Harvard_architecture}).
-
-Modern software is typically not ``self-modifying'', {\ie}
-instructions and data are placed in different areas of memory, and
-load/store instructions never write into the instruction area, {\ie}
-programs never over-write instructions in memory.  This allows
-separate hardware for memory access for instructions {\vs} memory
-access for data, which can run concurrently, {\ie} we may fetch an
-instruction at the same time as we are accessing data memory for a
-previous load/store instruction (we will see this in Fife).  We can
-also tune and optimize each memory path separately for their different
-dynamic behavioral patterns.  In some systems we can also
-\emph{protect} the instruction memory area, {\ie} enforce in hardware
-the policy of not over-writing instructions.
-
-\index{RISC-V!IMem (instruction memory)}
-\index{RISC-V!DMem (data memory)}
-
-In this book we will use the term ``IMem'' for instruction memory and
-its supporting infrastructure (data paths, caches, {\etc}) and
-``DMem'' for data memory and its supporting infrastructure.
-
 % ****************************************************************
 
 \section{RISC-V: A skeleton CPU module for Drum}

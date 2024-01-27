@@ -229,17 +229,29 @@ starting each time at the Fetch step.
 
 % ****************************************************************
 
-\section{Tactics: the order in which we tackle the topics}
+\section{Plan for the order in which we tackle topics}
 
 This book serves two concurrent purposes: learning how to implement
 the RISC-V ISA and, specifically, how to implement it by coding it in
-BSV (``BSV learning'').  To serve the BSV-learning purpose, we will
-tackle the algorithm steps of Figure~\ref{Fig_Instr_Exec} in a
-different order from the logical order of the diagram.
+BSV (``BSV learning'').  The order in which we tackle topics is guided
+by the BSV-learning purpose, not by the step-by-step organization of
+Figure~\ref{Fig_Instr_Exec}.
 
-We will start, in the next chapter, with the Decode step because, in a
-certain hardware sense, it is conceptually the simplest.  In later
-chapters we will move on to the Fetch step and then the remaining
-steps.
+At the center of each step in Figure~\ref{Fig_Instr_Exec} are pure
+functions to decide what kind of instruction each 32-bit instruction
+is, perform arithmetic instructions, calculate addresses in memory,
+calculate conditions on whether to branch or not, etc.  These pure
+functions are ``combinational'' functions, which we tackle in the next
+couple of chapters.
+
+Note, we are \emph{not} going to descend to the level of simple logic
+gates, how to optimize them, or how to implement higher-level
+combinational functions such as adders and multiplexers in terms of
+gates.  These activities are today routinely handled by excellent
+compilers (``synthesis tools'').  Our lowest-level combinational
+circuits, the ones we take as primitives, will be so-called
+``RTL-level'' operators for arithmetic, shifts and logic operators on
+bit-vectors (\verb|+|, \verb|-|, \verb|<<|, \verb|>>|, \verb|&&|,
+\verb'||', \verb|^|, \verb|!|, verb|~|, and so on).
 
 % ****************************************************************

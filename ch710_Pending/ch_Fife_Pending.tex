@@ -17,9 +17,61 @@
 This is a place-holder chapter with a TODO list of pending possible
 topics to be written.
 
+Figure~\ref{Fig_Instr_Exec_w_FIFOs} annotates the abstract execution
+algorithm in Figure~\ref{Fig_Instr_Exec} with some specifics for the
+pipelined implementation in Fife.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec_w_FIFOs}}
-  \caption{\label{Fig_Instr_Exec_w_FIFOs}Pipelined interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec_w_FIFOs})}
+  \caption{\label{Fig_Instr_Exec_w_FIFOs}Pipelined interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec})}
+\end{figure}
+In particular:
+\begin{tightlist}
+
+  \item Each of the yellow boxes is now itself a \emph{process}.  Each
+    yellow box is an infinite loop that consumes data from input FIFOs
+    and produces data on output FIFOs.  All yellow boxes run
+    concurrently, which is how we get pipelined behavior.
+
+  \item Pipelining requires that the Fetch unit fetches the ``next''
+    instruction before it even knows what the current instruction is
+    (it could be a BRANCH or a JAL/JALR which transfers control to a
+    different PC that is not PC+4.  Fetching the instruction, and
+    executing it, could result in a exception in which case, again,
+    the ``next'' instruction will be at the PC for the trap handler,
+    not the current PC+4.
+
+    We may choose to respond to an external interrupt in which case,
+    again, the ``next'' instruction will be at the PC for the
+    trap/interrupt handler, not the current PC+4.
+
+    As a result, we may fetch a ``wrong-path'' instruction. The
+    \verb|epoch| register is for correcting wrong paths.
+
+  \item Pipelining implies that an instruction reaching the RR step,
+    and needing to read register $J$ may have to wait for an older
+    instruction that is further down the pipe that has not yet
+    completed to write a value into register $J$.  The
+    \verb|scoreboard| is for dealing with this.
+
+  \item Instructions may attempt to write to memory. The {\tt store
+    buffer} holds these updates until we can deterimine whether the
+    instruction is a wrong-path instruction or not.  If it's a wrong
+    path instruction, we can discard the update, else commit it to
+    memory.
+
+  \item MMIO accesses may not be ``memory-like''.  A LOAD can have a
+  side effect; a STORE may have side-effects more than just writing a
+  value, such as starting a motor or launching a rocket!  Finally, a
+  STORE to address $A$ followed by a LOAD from address $A$ may not
+  return the same value.  For such accesses, the ``execute DMem''
+  stage must defer the access until later when we are sure it is not a
+  wrong-path instruction.
+
+\end{tightlist}
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{ch710_Pending/Figures/Fig_Fife_Retire}}
+  \caption{\label{Fig_Fife_Retire}Actions in the ``Retire'' stage of Fife}
 \end{figure}
 
 \hdivider

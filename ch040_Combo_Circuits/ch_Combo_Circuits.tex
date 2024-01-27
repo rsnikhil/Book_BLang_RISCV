@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{BSV Combinational circuits for the RISC-V Decode step}
+\chapter{BSV: Combinational circuits for the RISC-V step functions}
 
-\markboth{Ch \arabic{chapter}: Combinational Decode (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Combinational functions (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -16,21 +16,21 @@
 
 \section{Introduction}
 
-In this chapter we focus on learning enough BSV to write code for the
-Decode step of the RISC-V interpretation steps shown in
-Figure~\ref{Fig_Instr_Exec}.  As mentioned earlier, we choose
-to start with the Decode step (instead of the Fetch step) to
-facilitate the BSV-learning process.
+It is useful to start with the Decode step of
+Figure~\ref{Fig_Instr_Exec} because it involves bit-vectors,
+operations on bit-vectors, conditionals to classify instructions into
+classes, and \verb|enum| types to name and encode instruction classes.
 
 The inputs to the Decode step as depicted in
 Figure~\ref{Fig_Instr_Exec} are:
 
 \begin{tightlist}
 
- \item A 32-bit piece of data---RISC-V instruction---that has become
- available by reading it from memory at the PC address.\footnote{In
- RISC-V, so-called ``compressed'' instructions can be 16-bits, but we
- ignore that for now}
+ \item A 32-bit piece of data---a RISC-V instruction---that has become
+ available by reading it from memory at the PC address.\footnote{When
+ implementing the so-called ``C'' RISC-V ISA extension (``compressed
+ instructions''), instructions can also be 16-bits, but we
+ ignore that for now.}
 
  \item Any additional information passed on from the Fetch step.
 
@@ -42,11 +42,15 @@ information includes:
 
 \begin{tightlist}
 
+ \item Was the Fetch itself successful, or did it encounter a memory
+   error; if so, what kind of memory error?
+
  \item Is it a legal 32-bit instruction?
 
- \item If legal, what is its broad classification: Branch? Integer
-   Arithmetic or Logic? Memory Access?  This will help the next step
-   in dispatching to one of the Execute steps.
+ \item If legal, what is its broad classification: Control (Branch or
+   Jump)? Integer Arithmetic or Logic? Memory Access?  This will help
+   in choosing the next step to which we must dispatch to execute the
+   instruction.
 
  \item Does it have zero, one or two input registers?  If so, which
    ones?  This will help the next step in reading registers.
@@ -63,18 +67,13 @@ instruction (``bit vector''), such as the 7-bit ``opcode'' slice, the
 able to compare these slices to constants ({\eg} ``Is the opcode a
 BRANCH opcode?'').  We need to do things conditionally, {\eg} if it is
 a BRANCH instruction, then it has an rs1 and rs2 slice but no rd
-slice.  We need to bundle together all these bits of output
-information so that we can pass to to the next step, for which we need
-some kind of ``struct'' or ``record'' structure.  Finally, as in all
-good programming language methodology, we'd like to package up all
-this functionality inside a ``function'' with clearly specified
-input(s) and output(s).
-
-In the next several sections---\ref{Sec_BSV_Bit_Vectors},
-\ref{Sec_BSV_Boolean_values}, \ref{BSV_Combo_Circuits_if_then_else},
-\ref{BSV_functions}---we will learn the BSV concepts needed to code
-the Decode step.  Then, in Section~\ref{Sec_Combo_Decode} we use these
-concepts to show the BSV code for the Decode function.
+slice, but if it is a JAL instruction it has an rd slice but no rs1 or
+rs2.  Finally, as in all good programming languages, we'd need to be
+able to package all this functionality inside a ``function'' with
+clearly specified input(s) and output(s).  In the next several
+sections---\ref{Sec_BSV_Bit_Vectors}, \ref{Sec_BSV_Boolean_values},
+\ref{BSV_functions}, \ref{BSV_Combo_Circuits_if_then_else}, ---we will
+learn the BSV concepts needed to code these ideas.
 
 % ****************************************************************
 
@@ -605,9 +604,15 @@ deriving (Bits, Eq, FShow);
 \end{Verbatim}
 
 This defines a type \verb|OpClass| containing four constants,
-\verb|OPCLASS_ILLEGAL|, \verb|OPCLASS_CONTROL| ...
+\verb|OPCLASS_ILLEGAL|, \verb|OPCLASS_CONTROL|, and so on.
 
-\index{BSV!deriving!Bits}
+% ================================================================
+
+\subsection{{\tt deriving (Bits)}}
+
+\index{BSV!deriving Bits@{\tt deriving Bits}}
+\index{BSV!Typeclasses}
+\index{BSV!Typeclass!instance}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically represent them with the obvious codes 0, 1, 2 and 3
@@ -616,7 +621,11 @@ in a minimal bit-width (\verb|Bit#(2)|).  For other codings, we would
 explicit mapping function into codes (see ``typeclass instances'',
 later).
 
-\index{BSV!deriving!Eq}
+% ================================================================
+
+\subsection{{\tt deriving (Eq)}}
+
+\index{BSV!deriving Eq@{\tt deriving Eq}}
 
 Because we said ``\verb|deriving(Eq)|'', the \emph{bsc} compiler will
 automatically define the ``equality'' (and ``inequality'') functions
@@ -625,15 +634,20 @@ other definitions of equality/inequality, we would \emph{not} say
 ``\verb|deriving(Eq)|'', and we would define equality/inequality as we
 wish (see ``typeclass instances'', later).
 
-\index{BSV!deriving!Fshow}
+% ================================================================
+
+\subsection{{\tt deriving (FShow)}}
+
+\index{BSV!deriving FShow@{\tt deriving FShow}}
 
 Given a value \emph{v} of type \verb|OpClass|, if we directly print it
 ({\eg} in a \verb|$display()| statement), it will print its numeric
 code (0, 1, ...).  Because we said ``\verb|deriving(FShow)|'', the
 \emph{bsc} compiler will automatically define an ``\verb|fshow()|''
 function for this type: if we print \verb|fshow(|\emph{v}\verb|)|, it
-will print its symbolic name from the enum declaration instead
-(\verb|OPCODE_ILLEGAL|, \verb|OPCODE_CONTROL|, ...).
+will print its symbolic name from the enum declaration instead ({\ie}
+it will print the labels \verb|OPCLASS_ILLEGAL|,
+\verb|OPCLASS_CONTROL|, and so on).
 
 % ****************************************************************
 
@@ -1088,256 +1102,5 @@ form.
 There is zero run-time overhead in using the \verb|if(xlen==...)| form
 because the \emph{bsc} compiler will evalute the if-condition
 statically and reduce the if-then-else to just the relevant arm.
-
-% ****************************************************************
-
-\section{BSV: {\tt struct} types}
-
-\label{BSV_struct_types}
-
-\index{BSV!struct!type declaration}
-
-In the Decode step of Figure~\ref{Fig_Instr_Exec} we
-want to produce several results that will be passed on to subsequent
-steps.  These include:
-
-\begin{tightlist}
-
-\item The PC.  This will be needed by BRANCH and AUIPC instructions to
-  compute addresses that are offset from the current PC.  It will be
-  needed in JAL instructions which save PC+4 or PC+2 as a
-  return-address.  It will be needed for any traps (exceptions) that
-  may occur, which save PC for the trap-handler.
-
-\item The instruction, itself.  This will be needed for opcode
-  details, the rs1, rs2 and rd register indexes, immediate values,
-  {\etc}
-
-\item The \verb|OpClass|.  This will be needed to dispatch the
-  instruction to the appropriate handling step.
-
-\item Whether the instruction reads rs1 and/or rs2 register values.
-  This will be needed to control reading from the register file.
-
-\item Whether the instruction writes an rd register value.  This will
-  be needed to control writing to the register file.
-
-\item The ``immediate'' value in the instruction, which is formatted
-  differently depending on the class of instruction.
-
-\end{tightlist}
-
-This collection of values is most conveniently expressed as a
-\verb|struct| type:
-
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {Bit #(64)   inum;    // for debugging only
-		Bit #(XLEN) pc;
-		Bit #(32)   instr;
-
-                OpClass     opclass;
-		Bool        has_rs1;
-		Bool        has_rs2;
-		Bool        has_rd;
-		Bit #(32)   imm;
-} D_to_RR
-deriving (Bits, FShow);
-\end{Verbatim}
-
-\index{BSV!deriving!Bits}
-
-Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
-will automatically work out a representation for \verb|DD_to_RR|
-values in bits, using the straightforward method of simply
-concatenating the bit-vectors of each field into a bit-vector for the
-whole struct.  If we had not said ``\verb|deriving(Bits)|'', we could
-explicitly provide some other custom representation in bits.
-
-\index{BSV!deriving!Fshow}
-
-Because we said ``\verb|deriving(FShow)|'', the \emph{bsc} compiler
-will automatically define an ``\verb|fshow()|'' function for this
-type: if we print \verb|fshow(|\emph{v}\verb|)|, it will print
-omething like this:
-
-\begin{quote}\tt
-DD\_to\_RR \{inum=..., pc=..., instr=..., ... \}
-\end{quote}
-
-% ================================================================
-
-\subsection{Creating struct values}
-
-\index{BSV!struct!entire struct values}
-
-We can create a new value of type \verb|DD_to_RR| with syntax like
-this:
-
-\begin{Verbatim}[frame=single, numbers=left]
-      DD_to_RR x = D_to_RR {inum:     ... value of field ...,
-			    pc:       ... value of field ...,
-			    instr:    ... value of field ...
-			    ...};
-\end{Verbatim}
-
-The repetition of \verb|DD_to_RR| above seems verbose; the left-hand
-side instance is the type, and the right-hand side instance is the
-``struct constructor''. The \emph{bsc} compiler's type-analysis is
-able to infer the type from the right-hand side, so we can just use
-the keyword ``\verb|let|'':
-
-\begin{Verbatim}[frame=single, numbers=left]
-      let x = D_to_RR {inum:     ... value of field ...,
-                       pc:       ... value of field ...,
-		       instr:    ... value of field ...
-		       ...};
-\end{Verbatim}
-
-% ================================================================
-
-\subsection{Selecting struct fields}
-
-\index{BSV!struct!field selection}
-
-Struct fields can be selected using the usual ``dot'' notation common
-to SystemVerilog and C/C++:
-
-\begin{Verbatim}[frame=single, numbers=left]
-x.pc
-x.instr
-\end{Verbatim}
-
-
-% ================================================================
-
-\subsection{Updating struct fields using assignment}
-
-\index{BSV!struct!field assignment/update}
-
-Struct fields can be updated with assignment using the usual ``dot''
-notation common to SystemVerilog and C/C++:
-
-\begin{Verbatim}[frame=single, numbers=left]
-x.pc    = ... new value ...
-x.instr = ... new value ...
-\end{Verbatim}
-
-% ****************************************************************
-
-\section{RISC-V: The Decode function}
-
-\label{Sec_Combo_Decode}
-
-\index{Drum!Decode function}
-
-We are now in a position to write Figure~\ref{Fig_Instr_Exec}'s Decode function:
-
-\begin{Verbatim}[frame=single, numbers=left]
-function D_to_RR fn_D (Bit #(64) inum, Bit #(XLEN) instr, Bit #(32) instr);
-   Bit #(5) rd = instr_rd (instr);
-
-   // Baseline info to next stage
-   let d_to_rr = D_to_RR {inum:     inum,
-                          pc:       pc,
-                          instr:    instr,
-
-                          opclass:  OPCLASS_ILLEGAL,
-                          has_rs1:  False,
-                          has_rs2:  False,
-                          has_rd:   False,
-                          imm:      0};
-
-   if (is_legal_LUI (instr) || is_legal_AUIPC (instr)) begin
-      d_to_rr.opclass = OPCLASS_IALU;
-      d_to_rr.has_rd  = (rd != 0);
-      d_to_rr.imm     = zeroExtend (instr_imm_U (instr));
-   end
-
-   else if (is_legal_BRANCH (instr)) begin
-      d_to_rr.opclass = OPCLASS_CONTROL;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rs2 = True;
-      d_to_rr.imm     = zeroExtend (instr_imm_B (instr));
-   end
-
-   else if (is_legal_JAL (instr)) begin
-      d_to_rr.opclass = OPCLASS_CONTROL;
-      d_to_rr.has_rd  = (rd != 0);
-      d_to_rr.imm     = zeroExtend (instr_imm_J (instr));
-   end
-
-   else if (is_legal_JALR (instr)) begin
-      d_to_rr.opclass = OPCLASS_CONTROL;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rd  = (rd != 0);
-      d_to_rr.imm     = zeroExtend (instr_imm_I (instr));
-   end
-
-   else if (is_legal_LOAD (instr)) begin
-      d_to_rr.opclass = OPCLASS_MEM;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rd  = (rd != 0);
-      d_to_rr.imm     = zeroExtend (instr_imm_I (instr));
-   end
-
-   else if (is_legal_STORE (instr)) begin
-      d_to_rr.opclass = OPCLASS_MEM;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rs2 = True;
-      d_to_rr.imm     = zeroExtend (instr_imm_S (instr));
-   end
-
-   else if (is_legal_OP_IMM (instr)) begin
-      d_to_rr.opclass = OPCLASS_IALU;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rd  = (rd != 0);
-   end
-
-   else if (is_legal_OP (instr)) begin
-      d_to_rr.opclass = OPCLASS_IALU;
-      d_to_rr.has_rs1 = True;
-      d_to_rr.has_rs2 = True;
-      d_to_rr.has_rd  = (rd != 0);
-   end
-
-   return d_to_rr;
-endfunction
-\end{Verbatim}
-
-Note the use of functions \verb|instr_imm_I()|, \verb|instr_imm_S()|,
-\verb|instr_imm_B()|, \verb|instr_imm_U()| and \verb|instr_imm_J()|,
-which extract the ``immediate'' field from a 32-bit instruction.  For
-the different classes of instruction (I, S, B, U, J), the immediates
-are coded differently, and have different widths.  These functions
-decode the bits and zero-extend them to XLEN bits (the width of
-\verb|d_to_rr.imm|).  Later, in the ``execute'' code for each
-instruction, we will pick out the relevant bits out of the XLEN bits,
-and zero-extend or sign-extend them as needed for the particular
-instruction.
-
-An exercise below suggests that you write the code for these
-\verb|instr_imm_X| functions.
-
-Observe that the entire \verb|fn_D()| function is just a (large)
-combinational circuit---it is an acyclic composition of smaller
-combinational circuits, many of which we've seen earlier.
-
-% ================================================================
-
-\hdivider
-
-% ----------------
-\Exercise
-
-Write the functions \verb|instr_imm_I()|, \verb|instr_imm_S()|,
-\verb|instr_imm_B()|, \verb|instr_imm_U()| and \verb|instr_imm_J()|.
-
-% ----------------
-\Exercise
-
-Write a testbench for \verb|fn_D()|, apply it on a number of 32-bit
-values (instructions) and print the results.
-
-\Endexercise
 
 % ****************************************************************
