@@ -82,7 +82,7 @@ learn the BSV concepts needed to code these ideas.
 \label{Sec_BSV_Bit_Vectors}
 
 \index{BSV!Bit Vectors}
-\index{BSV!Types!Bit\#(n)}
+\index{BSV!Types!{\tt Bit\#(n)}}
 
 In BSV, as in many programming languages, every value has a
 \emph{type}.  The simplest, and lowest-level type in BSV is the
@@ -115,7 +115,7 @@ The bits in a BSV bit-vector of size $n$ are indexed from $n-1$
 (most-significant bit) to 0 (least-significant bit).  You can extract
 a \emph{slice} of a bit-vector using usual Verilog notation:
 
-\index{BSV!Bit Vectors!slices}
+\index{BSV!Bit Vectors!slices of}
 
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val;
@@ -139,7 +139,7 @@ BSV bit-vectors can be compared for equality and inequality.  BSV
 bit-vectors are synonymous with unsigned integers, and so a number of
 other operations are also available on bit-vectors.  Examples:
 
-\index{BSV!Bit Vectors!operators}
+\index{BSV!Bit Vectors!operators on}
 
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) x, a, b, c, d, e, f;
@@ -174,9 +174,9 @@ else we'll get a type error, {\eg} we cannot compare a
 Verilog, BSV does not implicitly extend or truncate bit-vectors to
 match sizes.
 
-\index{BSV!Bit Vectors!truncate}
-\index{BSV!Bit Vectors!extend}
-\index{BSV!Bit Vectors!zeroExtend}
+\index{BSV!Bit Vectors!{\tt truncate}}
+\index{BSV!Bit Vectors!{\tt extend}}
+\index{BSV!Bit Vectors!{\tt zeroExtend}}
 
 Two functions are available to zero-extend and truncate bit-vectors.
 \begin{Verbatim}[frame=single, numbers=left]
@@ -200,9 +200,9 @@ appropriate amount as demanded by the context.
 
 \label{Sec_BSV_Boolean_values}
 
-\index{BSV!Bool}
-\index{BSV!Types!Bool}
-\index{BSV!Bool!operators}
+\index{BSV!{\tt Bool}}
+\index{BSV!Types!{\tt Bool}}
+\index{BSV!Bool@{\tt Bool}!operators on}
 
 In BSV, \verb|Bool| is the type of a Boolean value. It has the usual
 boolean operators \verb|&&| (Boolean/logical AND), \verb'||'
@@ -583,7 +583,7 @@ Extend the testbench to test more 32-bit values with all the
 
 \label{BSV_enum_types}
 
-\index{BSV!enum types}
+\index{BSV!enum@{\tt enum} types}
 
 In Figure~\ref{Fig_Instr_Exec}, in the Register-Read
 and Dispatch step, we need to know whether the incoming instruction is
@@ -612,7 +612,7 @@ This defines a type \verb|OpClass| containing four constants,
 
 \index{BSV!deriving Bits@{\tt deriving Bits}}
 \index{BSV!Typeclasses}
-\index{BSV!Typeclass!instance}
+\index{BSV!Typeclass!instance of}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically represent them with the obvious codes 0, 1, 2 and 3
@@ -655,14 +655,14 @@ it will print the labels \verb|OPCLASS_ILLEGAL|,
 
 \label{BSV_Syntax_of_Identifiers}
 
-\index{BSV!identifer syntax}
+\index{BSV!Identifer syntax}
 
 The syntax of an identifier (name) in BSV follows the same conventions
 as in many programming languages: any sequence of alphabets, digits
 and underscore characters, with the first letter always being an
 alphabet.
 
-\index{BSV!identifer syntax!first letter lower or upper case}
+\index{BSV!Identifer syntax!first letter lower or upper case}
 
 BSV follows the Haskell system where an identifier has a different
 roles depending on whether its first letter is lower-case or
@@ -688,7 +688,10 @@ variables.
 
 \label{BSV_Syntax_of_comments}
 
-\index{BSV!Comments}
+\index{BSV!Comments!to end-of-line, starting with {\tt //}}
+\index{BSV!Comments!block, from {\tt /*} to matching {\tt */}}
+\index{BSV!//@{\tt //}, start of comment-to-end-of-line}
+\index{BSV!/*@{\tt /*}, start of block comment (until-{\tt */})}
 
 Comments in BSV have the same syntactic conventions as in Verilog,
 SystemVerilog and C/C++:

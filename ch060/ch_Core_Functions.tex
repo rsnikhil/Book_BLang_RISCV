@@ -31,6 +31,9 @@ file: \verb|src_Common/Inter_Stage.bsv|).
 
 \label{Sec_Fetch_function}
 
+\index{fn\_F@{\tt fn\_F} (Fetch function)}
+\index{Fetch function ({\tt fn\_D})}
+
 The Fetch function \emph{per se} is fairly simple, even trivial.  Its
 input is the current value of the program counter (PC), which is used
 as the address in a memory-request to IMem.  It has two outputs,
@@ -136,8 +139,8 @@ values (PC values) and print the results using \verb|$display| and
 
 \label{Sec_Combo_Decode}
 
-\index{fn\_D@{\tt fn\_D}!Decode function}
-\index{Decode function!fn\_D@{\tt fn\_D}}
+\index{fn\_D@{\tt fn\_D} (Decode function)}
+\index{Decode function ({\tt fn\_D})}
 
 The core function for the Decode step is called \verb|fn_D|.  It's
 arguments are an \verb|F_to_D| struct from the Fetch step and a
@@ -248,7 +251,7 @@ In line 4, we extract the instruction from the \verb|Mem_Rsp| memory
 response from the Fetch operation, and in line 5 we extract the
 \verb|rd| (``destination register'') field from the instruction.
 
-\index{truncate@{\tt truncate}!operation to shrink bit-width}
+\index{truncate@{\tt truncate}, operation to shrink bit-width}
 
 In line 4, the \verb|truncate| operation is used to shrink the
 bit-vector width of \verb|rsp_IMem.data| to the bit-vector width of
@@ -288,10 +291,10 @@ Each if-then-else clause also fills in the \verb|has_rs1|,
 class of instruction.  We also decode each kind of ``immediate'' field
 and fill in the \verb|imm| field.
 
-The final ``else'' clause is evaluated if the instruction does not
-match one of the forty RV32I instructions.  In this case we set the
-\verb|exception| and \verb|cause| fields to indicate an illegal
-instruction.
+The final ``else'' clause (lines 88-91) is evaluated if the
+instruction does not match one of the forty RV32I instructions.  In
+this case we set the \verb|exception| and \verb|cause| fields to
+indicate an illegal instruction.
 
 Note the use of functions \verb|instr_imm_I()|, \verb|instr_imm_S()|,
 \verb|instr_imm_B()|, \verb|instr_imm_U()| and \verb|instr_imm_J()|,
@@ -342,21 +345,149 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 
 % ****************************************************************
 
-\section{RISC-V: The Register-Read function}
-
-\label{Sec_fn_RR}
-
-\index{fn\_RR@{\tt fn\_RR}!Register-read function}
-\index{Register-read function!fn\_RR@{\tt fn\_RR}}
-
-% ****************************************************************
-
 \section{RISC-V: The Execute Control function}
 
 \label{Sec_fn_Control}
 
-\index{fn\_Control@{\tt fn\_Control}!Execute Control function}
-\index{Execute Control function!fn\_Control@{\tt fn\_Control}}
+\index{fn\_Control@{\tt fn\_Control} (Execute Control function)}
+\index{Execute Control function ({\tt fn\_Control})}
+
+Having discussed the Fetch and Decode functions, we will next discuss
+the ``execute'' functions (Control, IALU and DMem).  We will return to
+the Register Read (RR) and Retire steps after that.
+
+The input and output of \verb|fn_Control|, the Control function, are
+values of the following types, respectively.  Each of the input fields
+is needed to compute one or more of the output fields.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {Bit #(XLEN)  pc;
+		Bit #(XLEN)  fallthru_pc;
+		Bit #(32)    instr;
+		Bit #(XLEN)  rs1_val;
+		Bit #(XLEN)  rs2_val;
+		Bit #(32)    imm;
+} RR_to_Control
+deriving (Bits, Eq, FShow);
+
+typedef struct {Bool         exception;
+		Bit #(XLEN)  cause;        // Misaligned BRANCH/JAL/JALR target
+
+		Bit #(XLEN)  next_pc;
+		Bool         data_valid;    // True for JAL/JALR; False for BRANCH
+		Bit #(XLEN)  data;          // Return-PC for JAL/JALR
+} Control_to_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+Here is the Control function \verb|fn_Control|:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Control_to_Retire fn_Control (RR_to_Control  x);
+   let instr   = x.instr;
+   let rs1_val = x.rs1_val;
+   let rs2_val = x.rs2_val;
+
+   Bit #(XLEN)  next_pc   = ?;
+   Bool         exception = False;    // Misaligned target_pc
+
+   if (is_BRANCH (instr)) begin
+      Bool branch_taken = case (instr_funct3 (instr))
+                             funct3_BEQ:  (rs1_val == rs2_val);
+                             funct3_BNE:  (rs1_val != rs2_val);
+                             funct3_BLT:  signedLT (rs1_val, rs2_val);
+                             funct3_BGE:  signedGE (rs1_val, rs2_val);
+                             funct3_BLTU: (rs1_val < rs2_val);
+                             funct3_BGEU: (rs1_val >= rs2_val);
+                          endcase;
+      Bit #(13) imm13 = x.imm [12:0];
+      let target_pc = x.pc + signExtend (imm13);
+      next_pc = (branch_taken ? target_pc : x.fallthru_pc);
+      exception = (branch_taken && (target_pc [1:0] != 0));
+   end
+   else if (is_JAL (instr)) begin
+      Bit #(21) imm21 = x.imm [20:0];
+      next_pc = x.pc + signExtend (imm21);
+      exception = (next_pc [1:0] != 0);
+   end
+   else if (is_JALR (instr)) begin
+      Bit #(12) imm12 = x.imm [11:0];
+      // zero out LSB in target PC
+      next_pc = ((rs1_val + signExtend (imm12)) & ~1);
+      exception = (next_pc [1:0] != 0);
+   end
+
+   Bool data_valid = ((instr_rd  (instr) != 0)
+                      && (is_JAL (instr) || is_JALR (instr)));
+   let y = Control_to_Retire {inum:       x.inum,
+                              pc:         x.pc,
+                              instr:      x.instr,
+                              exception:  exception,
+                              cause:      cause_INSTRUCTION_ADDRESS_MISALIGNED,
+                              next_pc:    next_pc,
+                              data_valid: data_valid,
+                              data:       x.fallthru_pc};
+   return y;
+endfunction
+\end{Verbatim}
+}
+
+Lines 9-22 handle BRANCH (conditional branch) instructions.  First the
+\verb|case| expression computes the boolean value \verb|branch_taken|,
+the decision whether to take the branch or not.  This is based on the
+3-bit \verb|funct3| field of the instruction that identifies the
+specific condition to be tested.  Note that for BLT and BGE, we use
+the \verb|signedLT| and \verb|signedGE| functions that interpret
+\verb|rs1_val| and \verb|rs2_val| as signed integers.
+
+Line 19 computes the target PC should the the branch be taken.  Line
+20 computes the next PC, which is either the target PC or the
+fall-through PC depending on whether the branch is taken or not.
+Finally, Line 21 checkes that if the branch is taken, that the target
+PC is a suitably aligned address.
+
+Lines 23-27 handle JAL (Jump and Link) instructions, and lines 28-33
+handle the JALR (Jump and Link Register) instructions.  They are both
+straightforward, unconditional calculations of a next PC, along with
+an alignment-check that the next PC is suitably aligned.
+
+Notice that the nested if-then-else has no final ``else'' clause.
+This is safe because of the checks already done in the Decode function
+\verb|Fn_D|, which guarantee that this function will only be invoked
+with inputs that are handled by one of the three clauses.
+
+Finally, lines 35 through 45 construct the final result and return it.
+
+\vspace*{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+{\bf RISC-V: misaligned branch/jump targets}
+
+\vspace{1ex}
+
+In {\tt fn\_Control}, the BRANCH, JAL and JALR clauses set the
+{\tt exception} field to true if the next PC is not aligned.  This is
+required by the RISC-V Spec (see ``Section 2.5 Control Transfer
+Instructions'' in \cite{RISCV_Unpriv_2019_12_13}).  If there is a
+misalignment error, we encounter it here on the control-transfer
+instruction.
+
+\vspace{1ex}
+
+If we do not check alignment here, we will encounter a misalignment
+error on the next Fetch, at the next-PC address.  The choice of
+catching this earlier, at the control-transfer instruction itself, is
+a design choice by the RISC-V ISA architects.
+
+\end{minipage}}
+
+\vspace*{2ex}
 
 % ****************************************************************
 
@@ -364,8 +495,8 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 
 \label{Sec_fn_IALU}
 
-\index{fn\_IALU@{\tt fn\_IALU}!Execute IALU function}
-\index{Execute IALU function!fn\_IALU@{\tt fn\_IALU}}
+\index{fn\_IALU@{\tt fn\_IALU} (Execute IALU function)}
+\index{Execute IALU function ({\tt fn\_IALU})}
 
 % ****************************************************************
 
@@ -373,8 +504,17 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 
 \label{Sec_fn_DMem}
 
-\index{fn\_DMem@{\tt fn\_DMem}!Execute DMem function}
-\index{Execute DMem function!fn\_DMem@{\tt fn\_DMem}}
+\index{fn\_DMem@{\tt fn\_DMem} (Execute DMem function)}
+\index{Execute DMem function ({\tt fn\_DMem})}
+
+% ****************************************************************
+
+\section{RISC-V: The Register-Read function}
+
+\label{Sec_fn_RR}
+
+\index{fn\_RR@{\tt fn\_RR} (Register-read function)}
+\index{Register-read function ({\tt fn\_RR})}
 
 % ****************************************************************
 
@@ -382,7 +522,7 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 
 \label{Sec_fn_Retire}
 
-\index{fn\_Retire@{\tt fn\_Retire}!Retire function}
-\index{Retire function!fn\_Retire@{\tt fn\_Retire}}
+\index{fn\_Retire@{\tt fn\_Retire} (Retire function)}
+\index{Retire function ({\tt fn\_Retire})}
 
 % ****************************************************************

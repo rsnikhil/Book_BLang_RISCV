@@ -21,7 +21,6 @@ Memory requests and responses {\large (RISC-V)}}
 \index{BSV!field!of a {\tt struct}}
 \index{BSV!member!of a {\tt struct}}
 
-
 Various kinds of information need to be communicated between the steps
 of Figure~\ref{Fig_Instr_Exec}---program counter values, instructions,
 values read from registers, values to be written back to registers,
@@ -216,7 +215,7 @@ compiler's type-analysis is able to infer the type from the right-hand
 side, so we can just use the keyword ``\verb|let|'':
 
 \index{BSV!let@{\tt let}!binding an identifier with implicit type declaration}
-\index{let@{\tt let}!BSV: binding an identifier with implicit type declaration}
+\index{let@{\tt let}: BSV, binding an identifier with implicit type declaration}
 
 \begin{Verbatim}[frame=single, numbers=left]
       let x = D_to_RR {pc:           ... value of field ... ,
@@ -376,8 +375,8 @@ dynamic behavioral patterns.  In some systems we can also
 \emph{protect} the instruction memory area, {\ie} enforce in hardware
 the policy of not over-writing instructions.
 
-\index{JIT!Just-in-time compiling}
-\index{Just-in-time compiling!JIT}
+\index{JIT (Just-in-time compiling)}
+\index{Just-in-time compiling (JIT)}
 
 This view of strict separation of IMem and DMem has to be tempered
 somewhat when considering languages like JavaScript, Python {\etc}
