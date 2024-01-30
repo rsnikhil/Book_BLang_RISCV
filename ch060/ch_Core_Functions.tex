@@ -353,12 +353,14 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 \index{Execute Control function ({\tt fn\_Control})}
 
 Having discussed the Fetch and Decode functions, we will next discuss
-the ``execute'' functions (Control, IALU and DMem).  We will return to
-the Register Read (RR) and Retire steps after that.
+the ``execute'' functions (Control, IALU and DMem), which can also be
+characterized as pure value-to-value functions.  We will return to the
+Register Read (RR) and Retire steps in later chapters.
 
-The input and output of \verb|fn_Control|, the Control function, are
-values of the following types, respectively.  Each of the input fields
-is needed to compute one or more of the output fields.
+The input and output of \verb|fn_Control|, the Control function in
+Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, are values of the
+following types, respectively.  Each of the input fields is needed to
+compute one or more of the output fields.
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -489,14 +491,273 @@ a design choice by the RISC-V ISA architects.
 
 \vspace*{2ex}
 
+\hdivider
+
+% ----------------
+\Exercise
+
+Prove (informally) that the three-way if-then-else in
+\verb|Fn_Control| will catch all cases, {\ie} that we never need a
+final ``else'' clause.  This requires reviewing the Decode function
+\verb|fn_D|, and tracking the flow of information through the
+Register-Read function \verb|fn_RR| into \verb|fn_Control|.
+
+% ----------------
+\Exercise
+
+In \verb|Fn_Control|, can we change the final ``if'' condition line:
+
+{\small
+\begin{Verbatim}[frame=single]
+   else if (is_JALR (instr)) begin
+\end{Verbatim}
+}
+
+into a simple ``else'' clause ({\ie} omit the the \verb|is_JALR| check)?
+
+{\small
+\begin{Verbatim}[frame=single]
+   else begin
+\end{Verbatim}
+}
+
+What might be the hardware implication of such a change?
+
+% ----------------
+\Exercise
+
+In line 35 in {\tt fn\_Control}, we are testing {\tt (instr\_rd
+(instr) != 0)}.  But we tested this in computing the boolean {\tt
+has\_rd} in {\tt fn\_D}, the Decode function.  Discuss the hardware
+tradeoffs in just passing that boolean value along in the structs to
+this point, instead of recomputing it here.
+
+\Endexercise
+
 % ****************************************************************
 
-\section{RISC-V: The Execute Integer ALU function}
+\section{RISC-V: The Execute Integer Ops function}
 
-\label{Sec_fn_IALU}
+\label{Sec_fn_EXI}
 
-\index{fn\_IALU@{\tt fn\_IALU} (Execute IALU function)}
-\index{Execute IALU function ({\tt fn\_IALU})}
+\index{fn\_EX\_IALU@{\tt fn\_IALU} (Execute Integer Ops function)}
+\index{Execute Integer Ops function ({\tt fn\_EX\_IALU})}
+
+The input and output of \verb|fn_EX_IALU|, the ``Execute Integer Ops''
+function in Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, are values
+of the following types, respectively.  Each of the input fields is
+needed to compute one or more of the output fields.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {Bit #(XLEN)  pc;
+		Bit #(32)    instr;
+		Bit #(XLEN)  rs1_val;
+		Bit #(XLEN)  rs2_val;
+		Bit #(32)    imm;
+} RR_to_EX
+deriving (Bits, FShow);
+
+typedef struct {Bool         exception;
+		Bit #(XLEN)  cause;
+
+		Bool         data_valid;
+		Bit #(XLEN)  data;
+} EX_to_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+Here is the Execute Integer Ops function \verb|fn_EX_IALU|:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function EX_to_Retire fn_EX_IALU (RR_to_EX x);
+   let instr = x.instr;
+
+   let y = EX_to_Retire {inum:       x.inum,
+                         pc:         x.pc,
+                         instr:      instr,
+                         exception:  False,
+                         cause:      ?,
+                         data_valid: True,
+                         data:       ?};
+
+   if (is_LUI (instr))
+      y.data = (zeroExtend (instr_imm_U (instr)) << 12);
+   else if (is_AUIPC (instr)) begin
+      Bit #(XLEN) offset = signExtend ({ instr_imm_U (instr), 12'b0 });
+      y.data = x.pc + offset;
+   end
+   else begin
+      let result <- fn_IALU (logf, instr, x.rs1_val, x.rs2_val, x.imm);
+      y.data = result;
+   end
+   return y;
+endfunction
+\end{Verbatim}
+}
+
+Lines 12-13 handle LUI instructions (Load Upper Immediate).  Lines
+14-17 handle AUIPC instructions (Add Upper Immediate to PC).  Lines
+18-21 invoke {\tt fn\_IALU} to perform all the remaining Integer ops,
+and this is shown in the code below.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Bit #(XLEN) fn_IALU (Bit #(32)    instr,
+                              Bit #(XLEN)  v1,
+                              Bit #(XLEN)  v2,
+                              Bit #(32)    imm);
+   Bit #(7)    opcode = instr_opcode (instr);
+   Bit #(3)    funct3 = instr_funct3 (instr);
+   Int #(XLEN) iv1    = unpack (v1);
+   Int #(XLEN) iv2    = unpack (v2);
+   Int #(XLEN) i_imm  = unpack (signExtend (instr_imm_I (instr)));
+
+   Bit #(XLEN) y_OP     = 0;
+   if (opcode == opcode_OP) begin
+      Bit #(5) shamt = v2 [4:0];
+      case (funct3)
+         funct3_ADD:  y_OP = pack ((instr [30] == 1'b0)
+	                           ? (iv1 + iv2)
+				   : (iv1 - iv2));
+         funct3_SLL:  y_OP = v1 << shamt;
+         funct3_SLT:  y_OP = ((iv1 < iv2) ? 1 : 0);
+         funct3_SLTU: y_OP = ((v1  < v2)  ? 1 : 0);
+         funct3_XOR:  y_OP = v1 ^ v2;
+         funct3_SRL:  y_OP = v1 >> shamt;
+         funct3_SRA:  y_OP = pack (iv1 >> shamt);
+         funct3_OR:   y_OP = v1 | v2;
+         funct3_AND:  y_OP = v1 & v2;
+      endcase
+   end
+
+   Bit #(XLEN) y_OP_IMM = 0;
+   if (opcode == opcode_OP_IMM) begin
+      Bit #(5) shamt = imm [4:0];
+      case (funct3)
+         funct3_ADDI:  y_OP_IMM = pack (iv1 + i_imm);
+         funct3_SLTI:  y_OP_IMM = ((iv1 < i_imm) ? 1 : 0);
+         funct3_SLTIU: y_OP_IMM = ((v1  < imm)   ? 1 : 0);
+         funct3_XORI:  y_OP_IMM = v1 ^ imm;
+         funct3_ORI:   y_OP_IMM = v1 | imm;
+         funct3_ANDI:  y_OP_IMM = v1 & imm;
+         funct3_SLLI:  y_OP_IMM = v1 << shamt;
+         funct3_SRLI:  y_OP_IMM = v1 >> shamt;
+         funct3_SRAI:  y_OP_IMM = pack (iv1 >> shamt);
+      endcase
+   end
+
+   return (y_OP | y_OP_IMM);
+endfunction
+\end{Verbatim}
+}
+
+In lines 7-8, we define signed-integer versions {\tt iv1}, {\tt iv2}
+of the unsigned integer values {\tt v1} and {\tt v2}, respectively.
+There is no hardware cost to this definition, it's simply a
+declaration to ``view'' the same bits differently (as 2's-complement
+coded integers).  The difference arises later, when we apply certain
+operators to these values.  For example, lines 19-20 compute the SLT
+(Set Less Than (signed)) and SLTU (Set Less Than Unsigned) operations.
+The SLT op uses the signed values {\tt iv1} and {\tt iv2}, whereas
+SLTU uses the unsigned values {\tt v1} and {\v2}.  Between the
+\emph{bsc} compiler and the Verilog back-end, different code will be
+generated for the ``{\tt <}'' operator to perform the correct kind of
+comparison.
+
+Line 13 extracts a 5-bit ``shift amount'' from the {\tt rs2} value for
+the shift operators SLL, SRL and SRA.  Line 31 extract a 5-bit ``shift
+amount'' from the {\tt imm} value for the shift operators SLLI, SRLI
+and SRAI.  SRL (Shift Right Logical) and SRA (Shift Right Arithmetic)
+differ in whether they treat the argument as a signed or unsigned
+value, the difference being whether the new bits shifted in at the
+most-significant bit side are zero (SRL) or replicate the
+most-significant bit (SRA).  SRLI and SRAI exhibit a similar
+difference.
+
+In lines 23 (SRA) and 41 (SRAI) we finally apply the ``{\tt pack}''
+operator to produce the result. This is because the expression
+``\verb|(iv1 >> shamt)|'' has type {\tt Int\#(XLEN)} whereas the
+result needs to be of type {\tt Bit\#(XLEN)}.  The ``{\tt pack}''
+operator performs this type-change for us.
+
+Lines 11-27 define the {\tt y\_OP} result when the opcode is {\tt
+opcode\_OP} {\ie} {\tt 7'b\_011\_0011}, {\ie} the ``3-address''
+operators where the inputs come from {\tt rs1} and {\tt rs2}.
+It defaults to 0 when it is not an {\tt op\_OP}.
+
+Lines 29-43 define the {\tt y\_OP\_IMM} result when the opcode is {\tt
+opcode\_OP\_IMM} {\ie} {\tt 7'b\_001\_0011}, {\ie} the ``2-address''
+operators where one input come from {\tt rs1} and the other input
+comes from an immediate value in the instruction.
+It defaults to 0 when it is not an {\tt op\_OP\_IMM}.
+
+Finally, line 45 combines these results using the ``OR'' function.  We
+rely on the fact that exactly one of \verb|y_OP| and \verb|y_OP_IMM|
+can be relevant; the other one must be zero (and therefore has no
+effect through the OR'ing).
+
+\hdivider
+
+% ----------------
+\Exercise
+
+Lines 11-45 could instead have been written this way:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(XLEN) y = 0;
+   if (opcode == opcode_OP) begin
+      ...
+      ... y = ...
+   end
+   else if (opcode == opcode_OP_IMM) begin
+      ...
+      ... y = ...
+   end
+   return y;
+\end{Verbatim}
+}
+
+Discuss the hardware tradeoffs between writing it in these two ways.
+{\emph Hints:} Consider:
+
+\begin{tightlist}
+
+  \item Sequentiality of if-then-else.
+  \item Ability (or not) to prove exhaustiveness of conditions in nested if-then-else.
+  \item Ability (or not) to prove mutual-exclusivity of conditions in nested if-then-else.
+  \item Discussion in Section~\ref{Sec_MUXes} on parallel and
+    sequential multiplexers (mux).  Note: in our code, we have
+    explicitly coded a parallel mux.
+
+\end{tightlist}
+
+% ----------------
+\Exercise
+
+Note that the ISA has ADD and ADDI instructions, but no corresponding
+SUB and SUBI (subtract) instructions.  Why not?
+
+% ----------------
+\Exercise
+
+Justify the presence or absence of the ``{\tt pack}'' operator in each
+case of {\tt fn\_IALU}.
+
+% ----------------
+\Exercise
+
+Suppose we want to extend {\tt fn\_IALU} so it also works when XLEN=64
+({\ie} for RV64I).  What needs to change to accommodate this?
+
+\emph{Hint:} it only matters in the shift-amount of the shift
+instructions, where the shift-amount can be 6-bits wide instead of
+5-bits (allowing a maximum of 63-bit shifts instead of 31 bits).
+
+\Endexercise
 
 % ****************************************************************
 
@@ -506,6 +767,147 @@ a design choice by the RISC-V ISA architects.
 
 \index{fn\_DMem@{\tt fn\_DMem} (Execute DMem function)}
 \index{Execute DMem function ({\tt fn\_DMem})}
+
+The types of the input and output of the ``Execute Memory Ops''
+function in Figure~\ref{Fig_Simple_Instr_Exec_w_structs} are the same
+as for ``Execute Integer Ops'', {\ie} {\tt RR\_to\_EX} and {\tt
+EX\_to\_Retire}, which were described in Section~\ref{Sec_fn_EXI}.
+
+Figure~\ref{Fig_fn_DMem} shows that the ``Execute Memory Ops''
+function can be split into two phases,
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{ch060/Figures/Fig_fn_DMem}}
+  \caption{\label{Fig_fn_DMem}The Execute Memory Ops function is split into two phases.}
+\end{figure}
+just like we did for Fetch.  The first phase generates a memory
+request, and the second phase processes the memory response.  As with
+Fetch, there is no guarantee how ``soon'' the response will come.
+
+Here is the function for the first phase, computing a memory request:
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Mem_Req fn_DMem_Req (RR_to_EX  x);
+   Bool is_LD = is_LOAD  (x.instr);
+   Bool is_ST = is_STORE (x.instr);
+
+   // Mem effective-address calculation
+   Int #(XLEN) ibase   = unpack (x.rs1_val);                  // Signed
+   Int #(XLEN) ioffset = unpack (signExtend (x.imm [11:0]));  // Signed
+   Bit #(XLEN) eaddr   = pack (ibase + ioffset);
+
+   Mem_Req_Size mrq_size = unpack (x.instr [13:12]);  // B, H, W or D
+   Mem_Req_Type mrq_type = (is_LD ? funct5_LOAD : funct5_STORE);
+
+   let y = Mem_Req {inum:     x.inum,
+                    pc:       x.pc,
+                    instr:    x.instr,
+                    req_type: mrq_type,
+                    size:     mrq_size,
+                    addr:     zeroExtend (eaddr),
+                    data :    zeroExtend (x.rs2_val)};
+   return y;
+endfunction
+\end{Verbatim}
+}
+
+Lines 6-8 compute the so-called ``Effective Address'' of a LOAD/STORE,
+by performing a \emph{signed} addition of the {\tt rs1} and immediate
+values.
+
+Line 10 defines the memory-request size (1, 2, 4 or 8 bytes), which in
+RISC-V terminology are referred to as Bytes (B), Halfwords (H), Words
+(W) and Doublewords (D), respectively).  The {\tt Mem\_Req\_Size} type
+is defined in the file {\tt Mem\_Req\_Rsp.bsv} as follows:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum {MEM_1B, MEM_2B, MEM_4B} Mem_Req_Size
+deriving (Eq, FShow, Bits);
+\end{Verbatim}
+}
+
+Line 10 relies on the fact that these will be coded as 2'b00, 2'b01
+and 2'b10, which is exactly the coding found in {\tt instr[13:12]}, so
+we can simply ``{\tt unpack}'' the bits to the type {\tt
+Mem\_Req\_Size} without any further manipulation.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+In Line 10, what if {\tt instr[13:12]} had the value 2'b11?  This is a
+legal instruction in the RV64I ISA, for LOADs and STOREs of 8-byte
+values, but illegal in RV32I.  Should we check that here?
+
+\emph{Hint:} study the {\tt is\_legal\_LOAD()} {\tt
+is\_legal\_STORE()} functions used in the Decode function {\tt
+fn\_D()} to see if we will ever encounter an illegal value here.
+
+\Exercise
+
+Write a different version of Line 10 that does not rely on the
+one-to-one coding equivalence of {\tt instr[13:12]} and the bit coding
+of {\tt Mem\_Req\_Size}.
+
+\emph{Hint:} The solution will be a nested if-then-else, or a {\tt
+case} expression.
+
+\Endexercise
+% ----------------
+
+Here is the function for the second phase, accepting a memory response
+as argument and computing the struct to be sent to the Retire step.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function EX_to_Retire fn_DMem_Rsp (Mem_Rsp x);
+   Bool exception = ((x.rsp_type == MEM_RSP_ERR)
+                     || (x.rsp_type == MEM_RSP_MISALIGNED));
+   Bit #(XLEN)  cause = ((x.rsp_type == MEM_RSP_MISALIGNED)
+       		      	 ? (is_LOAD (x.instr)
+			    ? cause_LOAD_ADDRESS_MISALIGNED
+			    : cause_STORE_AMO_ADDRESS_MISALIGNED)
+			 : (is_LOAD (x.instr)
+                            ? cause_LOAD_ACCESS_FAULT
+                            : cause_STORE_AMO_ACCESS_FAULT));
+
+   let y = EX_to_Retire {exception:  exception,
+                         cause:      cause,
+
+                         data_valid: (! is_STORE (x.instr)),
+                         data:       truncate (x.data)};
+   return y;
+endfunction
+\end{Verbatim}
+}
+
+Lines 2-10 convert the memory-systems ``exception'' codes ({\tt
+MEM\_RSP\_ERR} and {\tt MEM\_RSP\_MISALIGNED}) into RISC-V {\tt cause}
+codes ({\tt cause\_...}).)
+
+Lines 12-16 constructs the required {\tt EX\_to\_Retire} result and
+line 17 returns it.
+
+Line 15 uses {\tt (!~is\_STORE())} to indicate whether the {\tt data}
+field is valid or not, {\ie} if it is not a STORE, it must be a LOAD,
+returning data.  Note that the code may set {\tt data\_valid} to true
+when there is an exception in a LOAD, but in that case the {\tt
+data\_valid} value does not matter.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+When implementing the ``A'' RISC-V ISA Extension (Atomic Memory Ops),
+the repertoire of memory operations widens from LOAD and STORE to
+include LR (Load-Reserved), SC (Store-Conditional) and a variety of
+AMOxxx ops such as AMOADD, AMOSWAP, and so on.
+Will line 15's {\tt (!~is\_STORE())} remain adequate, in that case?
+
+\Endexercise
+% ----------------
 
 % ****************************************************************
 

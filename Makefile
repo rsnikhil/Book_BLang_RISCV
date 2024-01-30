@@ -19,7 +19,13 @@ SOURCES = \
 		ch010_intro/ch_intro.tex \
 		ch020_ISA/ch_ISA.tex \
 		ch030_RISCV_Design_Space/ch_RISCV_Design_Space.tex \
-		ch040_Combo_Circuits/ch_Combo_Circuits.tex \
+		ch040/ch_Combo_Circuits.tex \
+		ch050/ch_struct_mem_req_rsp.tex \
+		ch060/ch_Core_Functions.tex \
+		ch070_FSMs_Drum_CPU/ch_FSMs_Drum_CPU.tex \
+		ch700_Pending/ch_Drum_Pending.tex \
+		ch710_Pending/ch_Fife_Pending.tex \
+		ch720_Pending/ch_Pending.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch900_back/back.tex
