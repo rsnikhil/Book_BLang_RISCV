@@ -1,0 +1,944 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{BSV: Modules and Interfaces: Registers, Register Files and FIFOs}
+
+\markboth{Ch \arabic{chapter}: Modules and interfaces (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_Modules_and_Interfaces}
+
+% ****************************************************************
+
+\section{Introduction}
+
+It is good engineering practice to organize the code for any
+non-trivial system, whether in hardware or software, into a
+well-structured composition of smaller, manageable \emph{modules}.
+Each module should have a clear, independent specification so that it
+can be understood on its own, and so that it can transparently be
+substituted by another module with the same functionality but perhaps
+other desirable properties ({\eg} speed, area, power).  The external
+specification of a module---its ``interface''---should not rely on,
+and ideally not even mention, internal implementation details of the
+module.  For example, each of the units shown in
+Figure~\ref{Fig_Instr_Exec} could be a separate module.
+
+This chapter is mostly a BSV chapter; we discuss modules and
+interfaces in BSV, including a few that are provided by the BSV
+libraries and that we will use in subsequent chapters to implement our
+RISC-V CPUs.
+
+% ****************************************************************
+
+\section{BSV: Modules: state, behavior and interfaces}
+
+\label{Sec_Modules}
+
+\index{BSV!Module}
+\index{BSV!Module!rules}
+
+Modules encapsulate modifiable state and external behavior
+(\emph{interface methods}).  In this sense they are similar to
+``objects'' in object-oriented programming languages such as C++,
+Java, and Python.  A BSV module is like an object constructor; a
+module \emph{instance} is like an object; and its interface is \emph{a
+set of methods} that can be invoked like functions/procedures.
+
+Unlike most programming languages, BSV modules typically also contain
+\emph{internal} free-running processes called \emph{rules} that run
+concurrently with the rest of the system (all other rules in the
+system).  Rules can be considered the independent, concurrent,
+internal behavior of a module.
+
+Modules and interfaces clearly separate concerns of externally-visible
+functionality (``external API'', \emph{what} a module does) {\vs}
+internal implementation details (\emph{how} the module does it).
+
+BSV modules are typically organized in a \emph{hierarchy}---a top-level module, which instantiates sub-modules which, in turn, instantiate lower-level modules, and so on.
+In Drum and Fife:
+\begin{tabbing}
+\hmm \= Top-level module \\
+     \> \hmm \= CPU module \\
+     \>      \> \hmm \= CPU sub-modules \\
+     \>      \>      \> \hmm Library modules: Registers, Register file, FIFOs, ... \\
+     \>      \> Memory system \\
+     \>      \>      \> Memory module(s) \\
+     \>      \>      \> MMIO device modules ({\eg} UART, timer, interrupt controller)
+\end{tabbing}
+
+In the next several sections we describe the concepts of BSV modules
+and interfaces.  These sections may require re-reading a couple of
+times; the concepts become properly internalized only after
+seeing/using/creating several examples.
+
+% ================================================================
+
+\subsection{BSV: Interface declarations}
+
+\index{BSV!Interface!type}
+\index{BSV!Types!interface}
+
+An \emph{interface declaration} in BSV declares a new interface, which
+is a new BSV \emph{type}, and looks like this:
+
+\begin{quote}
+{\tt interface} \emph{interface-type};
+
+\hmm \emph{... method and sub-interface declarations ...}
+
+{\tt endinterface}
+\end{quote}
+
+The interface represents the external view of a module, {\ie} it
+declares a set of \emph{methods} that can be invoked from an external
+context.  Each method declaration only lists its arguments and their
+types, and the method's overall result type.  The \emph{body} of the
+method is defined in the module declaration of each module that offers
+this interface type.
+
+Interfaces can be nested (can contain sub-interfaces which themselves
+have methods or sub-sub-interfaces, and so on).  This is just a
+syntactic abstraction mechanism; ultimately, all interactions with a
+module are through its methods, whether at the top level of the
+interface type, in a sub-interface, in a sub-sub-interface, {\etc}
+
+There can be many module declarations each of which offers the same
+interface, {\ie} these are different \emph{implementations} of the
+same interface.  For example, the BSV library contains a repertoire of
+FIFO modules, all of which have the same FIFO interface type.
+Different implementations of a particular interface type typically
+differ on some dimension such as performance (latency, bandwdith,
+MHz), silicon area/FPGA gates, power consumption, {\etc}.  One chooses
+a particular implementation based on such practical requirements.
+
+Sections~\ref{Sec_Register_interface}, \ref{Sec_RegFile_interface} and
+\ref{Sec_FIFOF_interface} show the interface declaration for BSV
+library modules: Registers, Register Files and FIFOs, respectively.
+
+% ================================================================
+
+\subsection{BSV: Module declarations}
+
+\label{Sec_Module_Decls}
+
+\index{BSV!Module!state}
+\index{BSV!Module!behavior}
+\index{BSV!Module!interface}
+\index{BSV!Module!constructor}
+
+A \emph{module declaration} in BSV describes a module with a
+particular interface type:
+
+\begin{quote}
+{\tt (* synthesize *)} \\
+{\tt module} \emph{module-name} {\tt (} \emph{interface-type} {\tt );}
+
+\hmm \emph{... instantiation of module state (registers, FIFOs, other sub-modules) ...}
+
+\hmm \emph{... behavior (rules and FSMs) ...}
+
+\hmm \emph{... interface (API) method implementations ...}
+
+{\tt endmodule}
+\end{quote}
+
+\index{BSV!synthesize@{\tt (* synthesize *)} attribute}
+\index{BSV!Module!behavior}
+
+The \verb|(* synthesize *)| attribute at the top is optional.  With
+this attribute, the \emph{bsc} compiler create a separate Verilog
+module for this BSV module.  Without the attribute, the compiler will
+``inline'' it into any parent module where it is instantiated.
+
+\index{BSV!Module!instance}
+
+A module declaration declares a module \emph{constructor}. The
+constructor can be invoked multiple times to obtain multiple
+\emph{instances} of the module.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+A notable difference between BSV and other HDLs (Verilog,
+SystemVerilog and VHDL) is that even a lowly register is not special;
+it is just another module, with an interface containing ``{\tt
+\_read()}'' and ``{\tt \_write()}'' methods.
+
+\vspace{1ex}
+
+In fact BSV treats \emph{all} ``state elements'' (components that store
+persistent values) uniformly as modules with interfaces.
+
+\end{minipage}}
+
+% ================================================================
+
+\subsection{BSV: Module instantiation and method invocation}
+
+\index{BSV!Module!instantiation}
+
+A module is \emph{instantiated} using this syntax:
+
+\hm \emph{interface-type} \emph{x} {\tt <-} \emph{constructor} {\tt (}\emph{constructor-arg},...,\emph{constructor-arg}{\tt );}
+
+This creates a new instance of the module and binds the offered
+interface to the identifier \emph{x}.  Some constructors have no
+arguments, in which case even the parentheses surrounding the
+arguments can be omitted.
+
+Subsequently, methods of the module can be invoked using the syntax
+
+\index{BSV!Module!method invocation}
+\index{BSV!Method!invocation of module method}
+
+\hmmmm \emph{x}.\emph{method-name} {\tt (}\emph{method-arg},...,\emph{method-arg}{\tt );}
+
+Some methods have no arguments, in which case even the parentheses
+surrounding the arguments can be omitted.
+
+% ****************************************************************
+
+\section{BSV Library Modules: Registers}
+
+\index{BSV!Register}
+
+A register is the simplest storage element in digital hardware, a
+single memory cell containing a single value (represented as a
+bit-vector).  We can (over-)write with a new value, and we can read
+out the value stored by the most recent write.
+
+% ================================================================
+
+\subsection{BSV: {\tt Reg\#(t)}, the register interface}
+
+\label{Sec_Register_interface}
+
+\index{BSV!Interface!Reg@{\tt Reg} register interface}
+\index{BSV!Register!Reg@{\tt Reg} register interface}
+\index{BSV!Register!read@{\tt \_read} method}
+\index{BSV!Register!write@{\tt \_write} method}
+\index{BSV!read@{\tt \_read}: register method}
+\index{BSV!write@{\tt \_write}: register method}
+
+The standard register interface type in BSV has two methods:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface Reg #(t);
+   method t _read();
+   method Action _write (t x);
+endinterface
+\end{Verbatim}
+}
+
+Here, ``\verb|t|'' is the type of value stored in the register
+(discussed in more detail below).
+
+The \verb|_read()| method (with no arguments) just returns the value
+stored in the register, of type \verb|t|.  The \verb|_write()| method
+takes one argument, a value of type \verb|t|, and stores it in the
+register, over-writing any previous value and holding the new value
+until over-written by the next \verb|_write()|.
+
+\index{BSV!Action@{\tt Action}: type of pure side-effect expressions}
+
+We will explain the {\tt Action} type of the {\tt \_write} method in
+more detail later.  For now, just think of it as the type of any
+method that is a pure side-effect, {\ie} the method modifies some
+internal state of the module, and does not return any value.
+
+% ================================================================
+
+\subsection{BSV: Registers are strongly typed}
+
+\index{Register!strongly-typed}
+
+Unlike Verilog, SystemVerilog and VHDL, BSV registers are ``strongly
+typed''.  Each register instance can only hold values of one
+particular type, specified at the place where the register is
+instantiated.
+
+Further, the register-contents type need not be \verb|Bits#()|; it can
+more generally be \emph{any} BSV type that has a representation in
+bits.  Thus, the type of a value in a register can be an enum, a
+struct, a nested struct, {\etc}, if we have used a
+\verb|deriving(Bits)| declaration (or its explicit analog) to ensure
+that it has a representation in bits.
+
+Any attempt to read or write a value into a register that does not
+match the declared type will provoke a compile-time type-checking
+error from the \emph{bsc} compiler.
+
+% ================================================================
+
+\subsection{BSV: {\tt mkReg(}\emph{v}{\tt )}, a register module (consructor)}
+
+\index{BSV!Module!mkReg@{\tt mkReg} module (constructor)}
+
+\index{BSV!Register!mkReg@{\tt mkReg}!module (constructor)}
+\index{BSV!mkReg@{\tt mkReg}!module (constructor)}
+
+\index{BSV!Register!mkReg@{\tt mkReg}!reset value}
+\index{BSV!mkReg@{\tt mkReg}!reset value}
+
+A standard BSV library register module is \verb|mkReg|.  It is used to
+instantiate a new register, with a specified reset value, using a
+statement like this:
+
+\index{BSV!Register!mkReg@{\tt mkReg}!instantiation}
+\index{BSV!mkReg@{\tt mkReg}!instantiation}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+    Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
+\end{Verbatim}
+}
+
+Here we declare a new identifier \verb|pc| with interface type
+\verb|Reg#(Bit#(XLEN))| (the register interface type) and bind it to
+the interface offered by a newly instantiated register.  The ``0''
+argument to \verb|mkReg()| specifies the reset-value of the register,
+{\ie} the value held in the register immediately after the hardware
+has been reset.
+
+An alternative register constructor provided by the BSV library is
+{\tt mkRegU}, where the ``U'' indicates that it is uninitialized,
+{\ie} has no specified reset value:
+
+\index{BSV!Register!mkRegU@{\tt mkRegU}!module (constructor)}
+\index{BSV!mkRegU@{\tt mkRegU}!module (constructor)}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   Reg #(Bit #(XLEN)) rg_pc <- mkRegU;
+\end{Verbatim}
+}
+
+\verb|mkRegU| instantiates a register with an unspecified
+(unpredictable) reset value, and hence does not need an argument.
+
+% ================================================================
+
+\subsection{BSV: Syntactic shorthands for register access}
+
+\label{Sec_Register_syntactic_shorthands}
+
+\index{Register!{\tt <=} register assignment}
+\index{Register!implicit register read}
+
+Registers are so ubuiquitous in digital design that BSV provides some
+special syntactic shorthands for reading and writing registers.
+
+Just mentioning a register in an expression can be used as a shorthand
+for invoking its \verb|_read| method.  Thus, the expression:
+
+\begin{tabbing}\small\tt
+\hmmmm  rg\_pc + 4
+\end{tabbing}
+
+is shorthand for:
+
+\begin{tabbing}\small\tt
+\hmmmm  rg\_pc.\_read + 4
+\end{tabbing}
+
+To invoke the \verb|_write| method on a register, one can use a
+conventional assignment statement.  Thus, the expression:
+
+\begin{tabbing}\small\tt
+\hmmmm rg\_pc.\_write (v)
+\end{tabbing}
+
+can be written like this:\footnote{Rather than use ``{\tt =}'' or
+``{\tt :=}'' common in software programming languages, we use ``{\tt
+<=}'', which is the Verilog/SystemVerilog notation for ``delayed
+assignment''.}
+
+\begin{tabbing}\small\tt
+\hmmmm rg\_pc <= v
+\end{tabbing}
+
+A statement like this:
+
+\begin{tabbing}\small\tt
+\hmmmm rg\_pc <= rg\_pc + 4
+\end{tabbing}
+
+contains both shorthands:
+
+\begin{tabbing}\small\tt
+\hmmmm rg\_pc.\_write (rg\_pc.\_read + 4)
+\end{tabbing}
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+The use of the ``{\tt rg\_}'' prefix in the above examples is just our
+own syntactic convention, and not required in BSV syntax, where any
+legal identifier can be bound to a register interface.  We will be
+mixing identifiers bound to ordinary values and identifiers bound to
+register interfaces in various expressions.  The {\tt rg\_} prefix
+reminds us that there is an implicit ``{\tt \_read}'' on the latter.
+
+\end{minipage}}
+
+% ****************************************************************
+
+\section{BSV Library Modules: Register files}
+
+\index{BSV!Register file}
+\index{BSV!RegFile@{\tt RegFile}}
+
+A register file is an array of registers with a common pair of methods
+to read or write a particular register identified by an index, which
+is an argument to the methods for reading and writing.
+
+% ================================================================
+
+\subsection{BSV: The register file interface: {\tt RegFile\#(index\_t,data\_t)}}
+
+\label{Sec_RegFile_interface}
+
+\index{BSV!Interface!RegFile@{\tt RegFile} register file interface}
+\index{BSV!Register file!RegFile@{\tt RegFile} register file interface}
+\index{BSV!Register file!methods}
+
+\index{BSV!Register file!RegFile@{\tt RegFile} interface}
+\index{BSV!Register file!type of index}
+\index{BSV!Register file!type of stored value}
+
+The standard register file interface type in the BSV library is:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface RegFile #(type index_t, type data_t);
+    method Action upd (index_t addr, data_t d);
+    method data_t sub (index_t addr);
+endinterface: RegFile
+\end{Verbatim}
+}
+
+Here, ``\verb|index_t|'' is the type for the index, which we use to
+identify one of the registers in the register file.  For RISC-V, since
+we have 32 registers, we will use \verb|Bit#(5)| as the index type.
+
+``\verb|data_t|'' is the type of value stored in each of the
+registers.  For RISC-V, this will be \verb|Bit#(XLEN)|.
+
+The \emph{rf}{\tt.upd(j,v)} method allows us to store the value
+\emph{v} in the \emph{j}'th register of register file \emph{rf}.  The
+\emph{rf}{\tt.sub(j)} method returns the current value \emph{v} in the
+\emph{j}'th register of register file \emph{rf}.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+The index type {\tt index\_t} can be any type that has a
+representation in bits, {\ie} for which we have used the {\tt
+deriving(Bits)} annotation in the type declaration (or for which we
+have provided a so-called {\tt Bits} instance explicitly).
+
+\end{minipage}}
+
+\vspace{2ex}
+% ----------------
+
+BSV Register files, like BSV registers, are strongly typed.  At time
+of instantiation of a register file \emph{rf}, we specify its {\tt
+index\_t} and {\tt data\_t} types.  In subsequent uses of \emph{rf},
+the provided index and data value, and returned data value, must have
+exactly those types (else the \emph{bsc} compiler will raise a
+compile-time type-error.).
+
+% ================================================================
+
+\subsection{BSV: {\tt mkRegFileFull}, a register file module (constructor)}
+
+\index{BSV!Module!mkRegFileFull@{\tt mkRegFileFull} module (constructor)}
+\index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!module (constructor)}
+\index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!reset value}
+
+The BSV library contains a couple of register file modules
+(constructors). In Drum we use {\tt mkRegFileFull}:
+
+\index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!instantiation}
+
+\begin{tabbing}\small\tt
+\hmm RegFile \#(Bit \#(5), Bit \#(XLEN)) gprs <- mkRegFileFull;
+\end{tabbing}
+
+Here we declare a new identifier \verb|gprs| with interface type
+\verb|RegFile#(Bit#(5),Bit#(XLEN))| (the register file interface type)
+and bind it to the interface offered by a newly instantiated register
+file.  The number of registers in the register file is known from the
+full range of the index type \verb|Bit#(5)|, {\ie} it will have 32
+registers, indexed from 0 to 31.
+
+% ================================================================
+
+\subsection{BSV: What about the RISC-V register {\tt x0}?}
+
+\index{RISC-V!x0@{\tt x0}: Special ``always zero'' register}
+
+In RISC-V, register \verb|x0| (index 0) is defined as ``always zero''.
+Any value written to \verb|x0| is ignored/discarded, and any read from
+\verb|x0| always returns 0.  So, presumably, we do not need an actual
+register to hold this value, just some circuitry to ensure that we
+always get 0 when we try to ``read'' from \verb|x0|.
+
+In the previous section, we used the module \verb|mkRegFileFull| to
+instantiate a register file with 32 registers (inferring 32 from the
+full range of the index type \verb|Bit#(5)|).  Instead, we could use
+an alternate register file module from the BSV library that allows us
+to provide, as module constructor arguments, the lower and upper
+indexes of interest.  This instantiate exactly 31 registers indexed
+from 1 to 31, thereby saving XLEN bits of register state in our
+hardware.
+
+\begin{tabbing}\small\tt
+\hmm RegFile \#(Bit \#(5), Bit \#(XLEN)) gprs <- mkRegFile (1, 31);
+\end{tabbing}
+
+Regardless of whether we instantiated 31 or 32 registers, RISC-V
+instructions can (and do) use {\tt x0} as a source or destination
+register, so we need circuitry to deal with attempts to read/write
+{\tt x0}.  One possible solution is to make a ``wrapper'' module {\tt
+mkRISCV\_RegFile} around the library register file module, as follows:
+
+\index{mkRISCV\_Regfile@{\tt mkRISCV\_Regfile} wrapper around library register file}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface RISCV_RegFile_IFC;
+   method Bit #(XLEN) read_rs1 (Bit #(5) rs1);
+   method Bit #(XLEN) read_rs2 (Bit #(5) rs2);
+   method Action write_rd (Bit #(5) j, Bit #(XLEN) v);
+endinterface
+
+(* synthesize *)
+module mkRISCV_RegFile (RISCV_RegFile_IFC);
+   RegFile #(Bit #(5), Bit #(XLEN)) rf <- mkRegFileFull;
+
+   method Bit #(XLEN) read_rs1 (Bit #(5) rs1);
+      return ((j == 0) ? 0 : rf.sub (j));
+   endmethod
+
+   method Bit #(XLEN) read_rs2 (Bit #(5) rs2);
+      return ((j == 0) ? 0 : rf.sub (j));
+   endmethod
+
+   method Action write_rd (Bit #(5) j, Bit #(XLEN) v);
+      rf.upd (j, v);
+   endmethod
+endmodule
+\end{Verbatim}
+}
+
+Although we could have re-used the {\tt RegFile \#(t1,t2)} interface,
+we take the opportunity to define a new interface {\tt
+RISCV\_RegFile\_IFC} that has some RISC-V specific method names, for
+reading the rs1, rs2 values (register source 1 and 2) and writing the
+rd value (register destination).
+
+The module instantiates a library register file {\tt rf}.  The methods
+simply invoke the underlying {\tt rf} methods.  The read-methods
+override this by returning 0 when the index is 0.
+
+% ----------------
+\hdivider
+
+\Exercise
+\hm In {\tt mkRISCV\_RegFile} we write the value when \emph{j} is zero, but we
+ignore it on reads.  Write a variant where, in {\tt write\_rd}, we
+write 0 when the index is zero, and the read methods no longer check
+for index 0.
+
+\Exercise
+\hm In {\tt mkRISCV\_RegFile} suppose we use {\tt mkRegFile(1,31)} instead of
+{\tt mkRegFileFull}.  What needs to change to accommodate this?
+
+\Endexercise
+
+% ****************************************************************
+
+\section{BSV Library Modules: FIFOs}
+
+\index{BSV!FIFO}
+
+FIFOs (First-in-First-out) elements are \emph{ordered queues} of
+values and are broadly useful in many hardware designs (arguably as
+useful as registers).  We can enqueue a new value into a FIFO at the
+tail (back) of the queue, and dequeue a value from the head (front) of
+the queue.  Most BSV FIFOs are automatically ``flow-controlled'',
+{\ie} it is impossible to enqueue into a full FIFO and to dequeue from
+an empty FIFO.
+
+% ================================================================
+
+\subsection{{\tt FIFOF\#(}\emph{t}{\tt )}, the FIFO interface}
+
+\label{Sec_FIFOF_interface}
+
+\index{BSV!Interface!FIFOF@{\tt FIFOF} FIFO interface}
+\index{BSV!FIFOF@{\tt FIFOF} interface}
+\index{BSV!FIFOF@{\tt FIFOF}!type of stored value}
+\index{BSV!FIFOF@{\tt FIFOF} interface methods}
+\index{BSV!FIFOF@{\tt FIFO} interface}
+
+A standard FIFO interface type in the BSV library is:\footnote{The BSV
+library also defines the {\tt FIFO\#(t)} interface which is the same
+as the {\tt FIFOF\#(t)} except that it omits the {\tt notEmpty} and
+{\tt notFull} methods.  We prefer the latter, which provides more
+flexibility.}.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF #(t);
+   method Bool notEmpty();
+   method Bool notFull();
+   method t first();
+   method Action deq();
+   method Action enq (t x);
+   method Action clear();
+endinterface
+\end{Verbatim}
+}
+
+Here, ``\verb|t|'' is the type of values stored in the FIFO (discussed
+in more detail below).
+
+The \verb|f.notEmpty()| and \verb|f.notFull()| are simple predicates
+to test if a FIFOF {\tt f} is empty or full, respectively.
+
+The \verb|f.first()| and \verb|f.deq()| methods are used to access the
+head of the queue.  They are only available if the FIFO is not empty.
+The \verb|first()| method returns the value at the head of the queue.
+This is non-destructive, {\ie} it does not modify the FIFO.  The
+\verb|f.deq()| method modifies the FIFO: it discards the value at head
+of the queue and advances the queue.
+
+The \verb|f.enq(x)| method is used to access the tail of the queue,
+and is only available if the FIFO is not full.  It modifies the FIFO
+by appending the argument \verb|x| to the tail of the queue.
+
+The \verb|clear| method is used to empty the queue immediately
+(discard all its contents).
+
+Notice that the {\tt FIFOF\#(t)} interface does not indicate the
+\emph{capacity} of the FIFO, {\ie} the number of elements it can hold
+from head to tail.  This is deliberate; we may choose different
+capacities for each FIFO instance as required by its use context.  We
+also want to be able flexibly and transparently to substitute a FIFO
+with another that has greater or less capacity.
+
+% ================================================================
+
+\subsection{{\tt mkFIFOF}, a FIFO module (constructor)}
+
+\index{BSV!Module!mkFIFOF@{\tt mkFIFOF} module (constructor)}
+
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!reset value}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!reset value}
+
+The BSV library contains many different FIFO modules (constructors):
+single-element FIFOs, FIFOs of a specified depth (queue length), FIFOs
+with and without automatic flow-control, {\etc} In Drum we use
+this one:
+
+\index{BSV!FIFO!mkFIFOF@{\tt mkFIFOF}!instantiation}
+\index{BSV!mkFIFOF@{\tt mkFIFOF}!instantiation}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   FIFOF #(Mem_Req) f_to_IMem   <- mkFIFOF;
+   FIFOF #(Mem_Rsp) f_from_IMem <- mkFIFOF;
+\end{Verbatim}
+}
+
+Here we declare a new identifier \verb|f_to_IMem| with interface type
+\verb|FIFOF#(Mem_Req)| and bind it to the interface offered by a newly
+instantiated FIFO.  Similarly, we declare a new identifier
+\verb|f_from_IMem| with interface type \verb|FIFOF#(Mem_Rsp)| and bind
+it to the interface offered by a newly instantiated FIFO.  Due to
+BSV's strong-typing, the first FIFO can only hold items of type {\tt
+Mem\_Req} and the second FIFO can only hold items of type {\tt
+Mem\_Rsp}.
+
+Different module-constructors may or may not have arguments.  This
+example from Fife uses a different BSV library FIFO constructor:
+
+\index{BSV!FIFO!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
+\index{BSV!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   FIFOF #(RR_to_Retire)  f_RR_to_Retire <- mkSizedFIFOF (8);
+\end{Verbatim}
+
+This instantiates a FIFO whose queue capacity is 8.  Note that module
+constructor arguments can play different roles.  In \verb|mkReg|
+above, the argument (0) became a dynamic value, the value held by the
+register after reset.  Here, the argument (8) only describes
+\emph{structure}, {\ie} the size of the FIFO.
+
+{\tt mkFIFOF} happens to have capacity 2, although it will support
+sustained simultaneous enqueueing and dequeuing only when its average
+occupancy is $\leq 1$ (zero or one element in the queue).
+
+% ================================================================
+
+\subsection{FIFOs are strongly typed}
+
+\index{FIFO!strongly-typed}
+
+Each BSV FIFO instance can only hold values of one particular type.
+
+Further, the FIFO-contents type need not be \verb|Bits#()|; it can
+more generally be \emph{any} BSV type that has a representation in
+bits.  Thus, the type of values in a FIFO can be an enum, a struct, a
+nested struct, {\etc}, if we have used a \verb|deriving(Bits)|
+declaration (or its explicit analog) to ensure that it has a
+representation in bits.
+
+% ================================================================
+
+\subsection{Semi-FIFO interfaces for each end of a FIFO}
+
+FIFOs are often used to connect two separate modules together, for one
+module to communicate values to the next one.  For example, the Fetch
+step communicates memory requests to memory.  In this situation, one
+module only interacts with the ``enqueue'' side, and the other module
+only interacts with the ```dequeue'' side.
+
+In these situations we will also find it useful to use the following
+``Semi-FIFO'' interfaces interfaces for each ``end'' of a FIFO queue:
+
+\index{BSV!FIFOF_O@{\tt FIFOF\_O}: semi-fifo interface}
+\index{BSV!Semi-FIFO!{\tt FIFOF\_O} semi-fifo interface}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF_O #(t);
+   method Bool notEmpty();
+   method t first();
+   method Action deq();
+endinterface
+\end{Verbatim}
+}
+
+\index{BSV!FIFOF_I@{\tt FIFOF\_I} semi-fifo interface}
+\index{BSV!Semi-FIFO!{\tt FIFOF\_I} semi-fifo interface}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface FIFOF_I #(t);
+   method Bool notFull();
+   method Action enq (t x);
+endinterface
+\end{Verbatim}
+}
+
+There is no extra hardware implied here; these are simply limited
+``views'', or abstractions of an existing FIFO interface.
+
+% ================================================================
+
+\subsection{BSV: Interface-transformer functions}
+
+\label{Sec_interface_transfomers}
+
+\index{BSV!Interface transformer functions}
+\index{BSV!FIFOF\_O@{\tt FIFOF\_O}!interface transformer from {\tt FIFOF}}
+
+The idea of ``viewing'' the output-side of a \verb|FIFOF| interface as
+a \verb|FIFOF_O| interface can be expressed in a BSV function:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function FIFO_O #(t) to_FIFOF_O (FIFOF #(t) f);
+   interface FIFOF_O #(Mem_Req) fo_IMem_req;
+      method Bool notEmpty();
+         return f.notEmpty;
+      endmethod
+
+      method t first();
+         return f.first;
+      endmethod
+
+      method Action deq();
+         f.deq;
+      endmethod
+   endinterface
+endinterface
+\end{Verbatim}
+}
+
+% ----------------
+\hdivider
+
+\Exercise
+
+Write a similar function to transform a \verb|FIFOF| interface into a
+\verb|FIFOF_I| interface, with \verb|notFull| and \verb|enq| methods.
+
+\Endexercise
+% ----------------
+
+% ================================================================
+
+\subsection{BSV: Connecting FIFOs}
+
+\label{Sec_connecting_FIFOs}
+
+\index{BSV!Connecting FIFOs}
+\index{BSV!mkConnection@{\tt mkConnection} for connecting compatible interfaces}
+
+We will frequently want to connect the output of one FIFO to the input
+of another FIFO.  For example, in Fife, the interface of the Fetch
+stage includes this semi-FIFO sub-interface to commicate \verb|F_to_D|
+values to the Decode unit:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface F_IFC;
+   ...
+   interface FIFOF_O #(F_to_D)  fo_F_to_D;
+   ...
+endinterface
+\end{Verbatim}
+}
+
+The interface of the Decode stage has this corresponding sub-interface
+to receive those values:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+interface D_IFC;
+   ...
+   interface FIFOF_I #(F_to_D)  fi_F_to_D;
+   ...
+endinterface
+\end{Verbatim}
+}
+
+The the CPU module, at the next level up, instantiates the Fetch and
+Decode stages.  Then, they can be connected with a simple {\tt
+mkConnection} one-liner:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+module mkCPU (CPU_IFC);
+   ...
+   // Instantiate Fetch and Decode stages
+   F_IFC  stage_F  <- mkF;
+   D_IFC  stage_D  <- mkD;
+   ...
+   // Connect the F_to_D flow
+   mkConnection_O_to_I (stage_F.fo_F_to_D, stage_D.fi_F_to_D);
+   ...
+endmodule
+\end{Verbatim}
+}
+
+There is actually no magic in this!  First, {\tt
+mkConnection\_O\_to\_I} is just another BSV module which happens to
+have an ``empty'' interface (called {\tt Empty}, with no interface
+methods), so line 8 is actually shorthand for another module
+instantiation (the shorthand omits the ``{\tt Empty~tmp~<-}''
+left-hand side):
+
+\begin{tabbing}
+\hmm\small\tt   // Connect the F\_to\_D flow \\
+\hmm\small\tt   Empty tmp <- mkConnection\_O\_to\_I (stage\_F.fo\_F\_to\_D, stage\_D.fi\_F\_to\_D);
+\end{tabbing}
+
+Then, the module {\tt mkConnection\_O\_to\_I} can be written simply in BSV itself:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+module mkConnection_O_to_I #(FIFOF_O #(F_to_D) f,    // module argument
+                             FIFOF_I #(F_to_D) d)    // module argument
+                           (Empty);                  // module interface
+   rule rl_connect;
+       let x = f.first;
+       f.deq;
+       d.enq (x);
+   endrule
+endmodule
+\end{Verbatim}
+}
+
+{\tt mkConnection\_O\_to\_I} is a module with two arguments {\tt f} and {\tt d}
+and producing an empty interface.  In BSV, Verilog and SystemVerilog
+syntax, a module's arguments are provided in {\tt \#(...)} and its
+interface follows in {\tt (...)}.
+
+\index{BSV!rule@{\tt rule}: the fundamental behavioral construct in BSV}
+
+The module contains a \emph{rule}, which is an infinite process.  It
+binds {\tt x} to {\tt f.first}, the head of the {\tt f} queue, and
+discards it from the queue ({\tt f.deq}).  It enqueues the value {\tt
+x} into {\tt d}.  Being an infinite process, it repeats this every
+time this is possible.
+
+Because of the automatic flow-control in BSV FIFOs, this rule will
+only execute when {\tt f} is non-empty (contains an item, available to
+dequeue) and {\tt d} is not full (has space, available to enqueue).
+
+% ----------------
+\vspace{2ex}
+
+\index{BSV!Typeclasses!BSV's ``overloading'' mechanism}
+\index{BSV!Typeclass!instance of}
+\index{BSV!Overloading: Typeclasses and typeclass instances}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+{\bf Advanced BSV topic:} What if we want to connect the two
+semi-FIFOF interfaces with the arguments in the opposite order, {\ie}
+a {\tt FIFOF\_I} interface to a {\tt FIFOF\_O} interface?  We could
+write a corresponding {\tt mkConnection\_I\_to\_O} module.  What if we
+want to connect an ARM AXI4 M interface to an ARM AXI4 S interface?
+We could write a corresponding {\tt mkConnection\_AXI4\_M\_to\_S}
+module.
+
+\vspace{1ex}
+
+When there are many different kinds of connection, inventing new
+module names {\tt mkConnecton\_X\_to\_Y} for each pair of interface
+types {\tt X} and {\tt Y} becomes tedious.
+
+\vspace{1ex}
+
+BSV contains a mechanism called ``Typeclasses'' and ``Typeclass
+instances'' that allows us to reuse the name {\tt mkConnection} for
+the connection module for every such pair of interface types.
+
+\vspace{1ex}
+
+In Programming Language design this issue and solutions are called
+``overloading''.
+
+\end{minipage}}
+
+% ****************************************************************

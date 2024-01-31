@@ -15,6 +15,143 @@ The Drum CPU}
 
 % ****************************************************************
 
+\section{RISC-V: The interface for the Drum and Fife CPU modules}
+
+\label{Sec_CPU_Module_Skeleton_CPU_interface}
+
+A clean, common interface allows us transparently to substitute the
+Drum CPU module for the Fife CPU module and \emph{vice versa}.
+
+By sharing a common interface between the Drum and Fife CPU
+modules, we can easily substiute one for the other in the overall
+system.  We now have all the pieces in place to describe the interface:
+
+\index{Drum!CPU interface}
+\index{Fife!CPU interface}
+
+\begin{Verbatim}[frame=single, numbers=left]
+interface CPU_IFC;
+   interface FIFOF_O #(Mem_Req) fo_IMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_IMem_rsp;
+
+   interface FIFOF_O #(Mem_Req) fo_DMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_DMem_rsp;
+endinterface
+\end{Verbatim}
+
+The interface is simple:
+
+\begin{tightlist}
+
+\item A \verb|FIFOF_O| to carry memory requests instructions (out-bound
+from the CPU to the memory);
+
+\item A \verb|FIFOF_I| to carry memory responses containing
+instructions (in-bound from memory to the CPU);
+
+\item A \verb|FIFO_O| to carry memory requests from load/store
+instructions (out-bound from the CPU to the memory);
+
+\item A \verb|FIFOF_I| to carry corresponding load/store memory
+responses (in-bound from memory to the CPU).
+
+\end{tightlist}
+
+% ****************************************************************
+
+\section{RISC-V: A skeleton CPU module for Drum}
+
+\label{Sec_CPU_Module_Skeleton_skeleton_CPU_module}
+
+\index{RISC-V!Drum skeleton module}
+\index{RISC-V!Fife skeleton module}
+\index{Drum!Skeleton module}
+\index{Fife!Skeleton module}
+
+Here is a skeleton of the CPU module for Drum.  We will fill in
+the missing pieces in subsequent chapters.
+
+\begin{Verbatim}[frame=single, numbers=left]
+(* synthesize *)
+module mkCPU (CPU_IFC);
+   // ================================================================
+   // STATE
+
+   // Paths to and from memory
+   FIFOF #(Mem_Req) f_to_IMem   <- mkFIFOF;
+   FIFOF #(Mem_Rsp) f_from_IMem <- mkFIFOF;
+   FIFOF #(Mem_Req) f_to_DMem   <- mkFIFOF;
+   FIFOF #(Mem_Rsp) f_from_DMem <- mkFIFOF;
+
+   // The integer register-file
+   RegFile #(XLEN)    gprs  <- mkRegFileFull;
+
+   // The program counter
+   Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
+
+   // Inter-step registers
+   Reg #(F_to_D)                     rg_F_to_D                  <- mkRegU;
+   Reg #(D_to_RR)                    rg_D_to_RR                 <- mkRegU;
+   Reg #(RR_to_EX_IALU)              rg_RR_to_EX_IALU           <- mkRegU;
+   Reg #(RR_to_EX_DMem_Req)          rg_RR_to_EX_DMem_Req       <- mkRegU;
+   Reg #(EX_DMem_Req_to_EX_DMem_Rsp) rg_EX_DMem_Req_to_EX_DMem_Rsp <- mkRegU;
+
+   // ================================================================
+   // BEHAVIOR
+
+   ... // This section will code the dynamic "behavior" of the module
+   ... // and will be discussed in the next chapter
+
+   // ================================================================
+   // INTERFACE
+
+   // One of the sub-interfaces
+   interface FIFOF_O #(Mem_Req) fo_IMem_req;
+      method Bool notEmpty();
+         return f_to_IMem.notEmpty;
+      endmethod
+
+      method t first();
+         return f_to_IMem.first;
+      endmethod
+
+      method Action deq();
+         f_to_IMem.deq;
+      endmethod
+   endinterface
+
+   ... // and similarly for the fi_IMem_rsp sub-interface
+   ... // and similarly for the fo_DMem_req sub-interface
+   ... // and similarly for the fi_DMem_rsp sub-interface
+
+endmodule
+
+\end{Verbatim}
+
+With the interface transformers discussed in
+Section~\ref{Sec_interface_transfomers}, we can simplify the INTERFACE
+section of our Drum CPU module just four lines:
+
+% ----------------
+
+\begin{Verbatim}[frame=single, numbers=left]
+(* synthesize *)
+module mkCPU (CPU_IFC);
+
+   ... STATE and BEHAVIOR ...
+
+   // ================================================================
+   // INTERFACE
+
+   interface fo_IMem_req = to_FIFOF_O (f_to_IMem);
+   interface fi_IMem_req = to_FIFOF_O (f_from_IMem);
+   interface fo_DMem_req = to_FIFOF_O (f_to_DMem);
+   interface fi_DMem_req = to_FIFOF_O (f_from_DMem);
+endmodule
+\end{Verbatim}
+
+% ****************************************************************
+
 \section{Introduction}
 
 So far, we have only been discussing pure combinational functions, for
@@ -48,33 +185,6 @@ interactions between multiple instructions in the pipeline, such as
 Figure~\ref{Fig_Instr_Exec_w_FIFOs}).
 
 In this chapter we build up to creating the Drum CPU.
-
-% ****************************************************************
-
-\section{BSV: Behavior in Modules}
-
-\label{Sec_FSMs_Behavior}
-
-\index{BSV!Module!behavior}
-
-We repeat here, as a reminder, the display from
-Section~\ref{Sec_CPU_Module_Skeleton_module_declarations} that shows
-the overall components of a BSV module to remind us of where the
-independent behaviours (processes) of a module reside textually in a
-module declaration:
-
-\begin{quote}
-{\tt (* synthesize *)} \\
-{\tt module} \emph{module-name} {\tt (} \emph{interface-type} {\tt );}
-
-\hmm \emph{... instantiation of module state (registers, FIFOs, other sub-modules) ...}
-
-\hmm \emph{... behavior (rules and FSMs) ...}
-
-\hmm \emph{... interface (API) method implementations ...}
-
-{\tt endmodule}
-\end{quote}
 
 % ****************************************************************
 
@@ -175,7 +285,7 @@ examples:
 \end{Verbatim}
 
 As discussed in
-Section~\ref{Sec_CPU_Module_Skeleton_register_syntactic_shorthands}
+Section~\ref{Sec_Register_syntactic_shorthands}
 the first assignment statement is syntactic shorthand for:
 
 \begin{Verbatim}[frame=single, numbers=left]
@@ -184,9 +294,9 @@ the first assignment statement is syntactic shorthand for:
 
 {\ie} it is an invocation of the register \verb|_write| method which,
 as described in
-Section~\ref{Sec_CPU_Module_Skeleton_Register_interface} has type
+Section~\ref{Sec_Register_interface} has type
 \verb|Action|.  Similarly, as described in
-Section~\ref{Sec_CPU_Module_Skeleton_FIFOF_interface}, fifo \verb|enq|
+Section~\ref{Sec_FIFOF_interface}, fifo \verb|enq|
 and \verb|deq| methods have return-type \verb|Action|, so the
 statements \verb|f_D_to_RR.enq (v)| and \verb|f_D_to_RR.enq (v)| have
 type \verb|Action|.

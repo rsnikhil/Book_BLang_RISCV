@@ -22,7 +22,8 @@ SOURCES = \
 		ch040/ch_Combo_Circuits.tex \
 		ch050/ch_struct_mem_req_rsp.tex \
 		ch060/ch_Core_Functions.tex \
-		ch070_FSMs_Drum_CPU/ch_FSMs_Drum_CPU.tex \
+		ch070/ch_Modules_Interfaces.tex \
+		ch080/ch_FSMs_Drum_CPU.tex \
 		ch700_Pending/ch_Drum_Pending.tex \
 		ch710_Pending/ch_Fife_Pending.tex \
 		ch720_Pending/ch_Pending.tex \
