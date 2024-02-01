@@ -35,29 +35,34 @@ RISC-V CPUs.
 
 % ****************************************************************
 
-\section{BSV: Modules: state, behavior and interfaces}
+\section{BSV: Modules: state, interfaces and behavior}
 
 \label{Sec_Modules}
 
 \index{BSV!Module}
-\index{BSV!Module!rules}
+\index{BSV!Module!(persisitent) state}
 
-Modules encapsulate modifiable state and external behavior
-(\emph{interface methods}).  In this sense they are similar to
-``objects'' in object-oriented programming languages such as C++,
-Java, and Python.  A BSV module is like an object constructor; a
-module \emph{instance} is like an object; and its interface is \emph{a
-set of methods} that can be invoked like functions/procedures.
+Modules encapsulate modifiable \emph{state}.  Examples include
+Registers, Register Files and FIFOs (all of which are discussed later
+in this chapter).  Modules with state are the only entities containing
+values that \emph{persist} over time, {\ie} a value ``written'' at one
+moment in time can be ``read'' at a later moment in time.
 
-Unlike most programming languages, BSV modules typically also contain
-\emph{internal} free-running processes called \emph{rules} that run
-concurrently with the rest of the system (all other rules in the
-system).  Rules can be considered the independent, concurrent,
-internal behavior of a module.
+\index{BSV!Module!interface}
+
+Modules also encapsulate external behavior, using \emph{interface
+methods}.  In this sense they are similar to ``objects'' in
+object-oriented programming languages such as C++, Java, and Python.
+A BSV module is like an object constructor; a module \emph{instance}
+is like an object; its internal state is like the internal, private
+``members'' of the object, and its interface is \emph{a set of
+methods} that can be invoked like functions/procedures, and which can
+access the internal state.
 
 Modules and interfaces clearly separate concerns of externally-visible
-functionality (``external API'', \emph{what} a module does) {\vs}
-internal implementation details (\emph{how} the module does it).
+functionality (``external API''; \emph{what} a module does; a module
+\emph{specification}) {\vs} internal implementation details
+(\emph{how} the module does it).
 
 BSV modules are typically organized in a \emph{hierarchy}---a top-level module, which instantiates sub-modules which, in turn, instantiate lower-level modules, and so on.
 In Drum and Fife:
@@ -75,6 +80,35 @@ In the next several sections we describe the concepts of BSV modules
 and interfaces.  These sections may require re-reading a couple of
 times; the concepts become properly internalized only after
 seeing/using/creating several examples.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+We sometimes write BSV modules that do not themselves contain internal
+state, for stylistic and readability reasons.  One example is seen in
+Section~\ref{Sec_connecting_FIFOs} where a module is used to
+encapsulate the logic of connecting two complementary interfaces.
+
+\end{minipage}}
+
+% ================================================================
+
+\subsection{BSV: internal behavior (\emph{rules})}
+
+\label{Sec_rules1}
+
+\index{BSV!rules!internal behavior, internal processes}
+\index{BSV!internal behavion: rules}
+
+Unlike most programming languages, BSV modules typically also contain
+\emph{internal} free-running processes called \emph{rules} that run
+concurrently with the rest of the system (all other rules in the
+system).  Rules can be considered to be the independent, concurrent,
+internal behavior of a module.
 
 % ================================================================
 
@@ -399,6 +433,8 @@ reminds us that there is an implicit ``{\tt \_read}'' on the latter.
 
 \section{BSV Library Modules: Register files}
 
+\label{Sec_Register_files}
+
 \index{BSV!Register file}
 \index{BSV!RegFile@{\tt RegFile}}
 
@@ -495,6 +531,8 @@ registers, indexed from 0 to 31.
 
 \subsection{BSV: What about the RISC-V register {\tt x0}?}
 
+\label{Sec_RISCV_regfile}
+
 \index{RISC-V!x0@{\tt x0}: Special ``always zero'' register}
 
 In RISC-V, register \verb|x0| (index 0) is defined as ``always zero''.
@@ -522,6 +560,7 @@ register, so we need circuitry to deal with attempts to read/write
 {\tt x0}.  One possible solution is to make a ``wrapper'' module {\tt
 mkRISCV\_RegFile} around the library register file module, as follows:
 
+\index{mkRISCV\_Regfile@{mkRISCV\_Regfile} a module wrapper around library {\tt RegFile}}
 \index{mkRISCV\_Regfile@{\tt mkRISCV\_Regfile} wrapper around library register file}
 
 {\small

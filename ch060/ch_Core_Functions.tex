@@ -22,7 +22,9 @@ convenience (all the \verb|struct| declarations can be found in the
 file: \verb|src_Common/Inter_Stage.bsv|).
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec_w_structs}}
-  \caption{\label{Fig_Fetch_function_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec}, with arrows annotated with {\tt struct} types)}
+  \caption{\label{Fig_Fetch_function_Simple_Instr_Exec}
+           Simple interpretation of RISC-V instructions
+	   (same as Fig.~\ref{Fig_Instr_Exec}, with arrows annotated with {\tt struct} types)}
 \end{figure}
 
 % ****************************************************************
@@ -51,12 +53,14 @@ as the address in a memory-request to IMem.  It has two outputs,
 
 The ``\verb|F_to_D|'' struct has only one interesting field, the PC:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 typedef struct {
    Bit #(XLEN) pc;
 } F_to_D
 deriving (Bits, FShow);
 \end{Verbatim}
+}
 
 \index{BSV!struct@{\tt struct}!Single-field structs}
 
@@ -97,6 +101,7 @@ the PC (why not just pass the PC?), but it has the following advantages:
 To pass both results of \verb|fn_F|, we simply use a \emph{nested}
 struct, {\ie} a struct containing the two component structs:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 typedef struct {
    F_to_D   to_D;        // info to Decode step
@@ -104,10 +109,12 @@ typedef struct {
 } Result_F
 deriving (Bits, FShow);
 \end{Verbatim}
+}
 
 Finally, as mentioned earlier, the function \verb|fn_F| is almost
 trivial:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 function Result_F fn_F (Bit #(XLEN)  pc)
    let y = Result_F {to_D: F_to_D {pc: pc},
@@ -118,6 +125,7 @@ function Result_F fn_F (Bit #(XLEN)  pc)
    return y;
 endfunction
 \end{Verbatim}
+}
 
 % ================================================================
 
@@ -137,19 +145,20 @@ values (PC values) and print the results using \verb|$display| and
 
 \section{RISC-V: The Decode function}
 
-\label{Sec_Combo_Decode}
+\label{Sec_Decode_Function}
 
 \index{fn\_D@{\tt fn\_D} (Decode function)}
 \index{Decode function ({\tt fn\_D})}
 
 The core function for the Decode step is called \verb|fn_D|.  It's
 arguments are an \verb|F_to_D| struct from the Fetch step and a
-\verb|Mem_Rsp| memory response struct from memory.  It's output struct
-type , \verb|D_to_RR|, was described in
+\verb|Mem_Rsp| memory response struct from memory.  Its output struct
+type, \verb|D_to_RR|, was described in
 Section~\ref{Sec_struct_D_to_RR}.  The code for \verb|fn_D| is mostly
 a big if-then-else that analyses the incoming instruction and produces
 some summary information:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 function D_to_RR
          fn_D (F_to_D  x_F_to_D, Mem_Rsp  rsp_IMem);
@@ -246,6 +255,7 @@ function D_to_RR
    return y;
 endfunction
 \end{Verbatim}
+}
 
 In line 4, we extract the instruction from the \verb|Mem_Rsp| memory
 response from the Fetch operation, and in line 5 we extract the
@@ -345,17 +355,223 @@ using \verb|$display| and \verb|fshow|, and visually check that the
 
 % ****************************************************************
 
+\section{RISC-V: Register Read and the Dispatch function (``RRD'')}
+
+\label{Sec_RRD_function}
+
+\index{Register-Read and Dispatch function}
+
+\index{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
+\index{Dispatch function ({\tt fn\_Dispatch})}
+
+In the Register-Read and Dispatch step, we read the \verb|rs1| and
+\verb|rs2| values from the Register File, and then use a Dispatch
+function to determine what needs to be passed to the the alternative
+following steps.
+
+We will cover register files in Section~\ref{Sec_Register_files}
+register-reads in Chapter~\ref{ch_Drum_FSMs}.
+
+The core function for Dispatch step is called \verb|fn_Dispatch|, and
+is rather simple.  Its
+
+The argument for \verb|fn_RR| is a \verb|D_to_RR| struct from the
+Decode step, which was described in Section~\ref{Sec_struct_D_to_RR}.
+Before we look at its result type let us look at the ``flows'' through
+the subsequent steps.
+
+There are four possible ``flows'' after RR:
+
+\begin{itemize}
+
+  \item Some information is sent directly from RR to Retire for
+    \emph{every} instruction.  This includes any error indication
+    (memory error during Fetch, or decode illegal instruction).
+
+    Equally important, RR sends a \emph{tag} to Retire indicating
+    which, if any, of the next three bits of information have also
+    been produced.
+
+  \item If there is no error indication, then we also perform one of
+  the following three flows:
+
+  \begin{tightlist}
+
+    \item If the instruction is a BRANCH, JAL or JALR, we produce
+      information to Execute Control.
+
+    \item If the instruction is a LUI, AUIPC or integer arithmetic or
+      logic (IALU) operation, we produce information to Execute Integer
+      Arithmetic and Logic Ops.
+
+    \item If the instruction is a LOAD or STORE, we produce information to
+      Execute Memory Ops.
+  \end{tightlist}
+
+\end{itemize}
+
+The following type, \verb|Exec_Tag|, identifies which of the four
+flows is being performed for this instruction:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum {EXEC_TAG_RETIRE,     // to Retire only
+              EXEC_TAG_CONTROL,    // to Retire and Control
+              EXEC_TAG_IALU,       // to Retire and IALU
+              EXEC_TAG_DMEM        // to Retire and DMem
+} Exec_Tag
+deriving (Bits, Eq, FShow);
+\end{Verbatim}
+}
+
+The information sent to Retire directly is defined in the type
+\verb|RR_to_Retire|:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {
+                // Informs Retire about flow for this instruction
+                Exec_Tag     exec_tag;
+
+                Bool         exception;
+                Bit #(XLEN)  cause;    // Fetch exception, decode illegal instr
+                Bit #(XLEN)  pc;
+
+                // If not exception
+                Bool         has_rd;
+                Bit #(5)     rd;
+                Bit #(XLEN)  fallthru_pc;
+
+} RR_to_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+The \verb|exec_tag| informs Retire about the flow for this
+instruction.  The {\tt exception} and {\tt cause} fields are carried
+through since it is the Retire step that handles traps.  Note, in
+addition to passing exceptions from RR to Retire, the Control or
+Execute steps could also raise exceptions.  The {\tt pc} field is
+needed in case Retire needs to handle a trap or interrupt, which saves
+the {\tt pc} before handling it.
+
+The \verb|has_rd| and \verb|rd| fields are carried through to control
+whether Retire tries to write a value back to the register file nor
+not.  The \verb|fallthru_pc| is used for most instructions that
+complete successfully (without raising an exception).
+
+It's result type, \verb|Result_RR|, is just a nested struct that
+contains the three different struct types shown in
+Figure~\ref{Fig_Drum_Instr_Exec}:
+
+The \verb|RR_to_Control| and \verb|RR_to_EX| types were described in
+Section~\ref{Sec_Control_function} and Section~\ref{Sec_EXI_function},
+respectively.
+
+We can now describe the result of the \verb|fn_RR| function, which is
+simply a nested struct containing the previously described structs:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {
+   RR_to_Retire   to_Retire;    // to Retire only
+   RR_to_Control  to_Control;   // to Retire and to Control
+   RR_to_EX       to_EX;        // to Retire and one of the execute pipes
+} Result_Dispatch
+deriving (FShow);
+\end{Verbatim}
+}
+
+The first component goes directly to the Retire step.  The second
+component goes to the Control step.  The third component is used for
+the Execute Integer Arithmetic Ops step and for the Execute DMem Ops
+steps.
+
+The code for \verb|fn_RR| is shown below.  It's arguments are the
+interface to the register file and the information from the Decode
+step:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Result_Dispatch fn_Dispatch (D_to_RR              x,
+                                      Bit #(XLEN)          rs1_val,
+                                      Bit #(XLEN)          rs2_val);
+   // Compute tag to control merging at Retire
+   Exec_Tag exec_tag = EXEC_TAG_RETIRE;    // exceptions and OPCLASS_SYSTEM
+   if (! x.exception) begin
+      if (is_BRANCH (x.instr)
+         || is_JAL (x.instr)
+         || is_JALR (x.instr))             exec_tag = EXEC_TAG_CONTROL;
+      else if (x.opclass == OPCLASS_IALU)  exec_tag = EXEC_TAG_IALU;
+      else if (x.opclass == OPCLASS_MEM)   exec_tag = EXEC_TAG_DMEM;
+   end
+
+   // ----------------
+   // Info direct for Retire
+   let to_Retire = RR_to_Retire {exec_tag:     exec_tag,
+
+                                 exception:    x.exception,
+                                 cause:        x.cause,
+                                 pc:           x.pc,
+
+                                 has_rd:       x.has_rd,
+				 rd:           x.rd
+                                 fallthru_pc:  x.fallthru_pc};
+
+   // ----------------
+   // Info for Control
+   let to_Control = RR_to_Control {pc:           x.pc,
+                                   fallthru_pc:  x.fallthru_pc,
+                                   instr:        x.instr,
+                                   rs1_val:      rs1_val,
+                                   rs2_val:      rs2_val,
+                                   imm:          x.imm};
+
+   // ----------------
+   // Info for Execute pipes
+   let to_EX  = RR_to_EX {instr:   x.instr,
+                          rs1_val: rs1_val,
+                          rs2_val: rs2_val,
+                          imm:     x.imm};
+
+   // ----------------
+   let result = Result_Dispatch {to_Retire:  to_Retire,
+                                 to_Control: to_Control,
+                                 to_EX:      to_EX};
+   return result;
+endfunction
+\end{Verbatim}
+}
+
+Lines 2-9 read the \verb|rs1| and \verb|rs2| values from the register
+file.  Note that the \verb|rs1| and \verb|rs2| fields are not
+meaningful for all instructions; in those cases, these reads may be
+``wild'' reads from random registers.  This does not matter, because
+the values will only be used if they are needed.
+
+Lines 13-20 compute the \verb|exec_tag| based on the kind of
+insrruction.
+
+Lines 24-32, 36-41 and 45-48 construct the information for the Retire,
+Control, and IALU/DMem steps, respectively.  Like the register-read
+discussion above described above, the latter two are meaningful only
+for certain instructions, but we can construct them anyway; they will
+only be used if meaningful.
+
+Lines 51-54 construct the final result and return it.
+
+% ****************************************************************
+
 \section{RISC-V: The Execute Control function}
 
-\label{Sec_fn_Control}
+\label{Sec_Control_function}
 
 \index{fn\_Control@{\tt fn\_Control} (Execute Control function)}
 \index{Execute Control function ({\tt fn\_Control})}
 
-Having discussed the Fetch and Decode functions, we will next discuss
-the ``execute'' functions (Control, IALU and DMem), which can also be
-characterized as pure value-to-value functions.  We will return to the
-Register Read (RR) and Retire steps in later chapters.
+We will next discuss the ``execute'' functions (Control, IALU and
+DMem), which can also be characterized as pure value-to-value
+functions.
 
 The input and output of \verb|fn_Control|, the Control function in
 Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, are values of the
@@ -500,7 +716,8 @@ Prove (informally) that the three-way if-then-else in
 \verb|Fn_Control| will catch all cases, {\ie} that we never need a
 final ``else'' clause.  This requires reviewing the Decode function
 \verb|fn_D|, and tracking the flow of information through the
-Register-Read function \verb|fn_RR| into \verb|fn_Control|.
+Register-Read-and-Dispatch step (including the Dispatch function
+\verb|fn_Dispatch)| into \verb|fn_Control|.
 
 % ----------------
 \Exercise
@@ -538,7 +755,7 @@ this point, instead of recomputing it here.
 
 \section{RISC-V: The Execute Integer Ops function}
 
-\label{Sec_fn_EXI}
+\label{Sec_EXI_function}
 
 \index{fn\_EX\_IALU@{\tt fn\_IALU} (Execute Integer Ops function)}
 \index{Execute Integer Ops function ({\tt fn\_EX\_IALU})}
@@ -763,7 +980,7 @@ instructions, where the shift-amount can be 6-bits wide instead of
 
 \section{RISC-V: The Execute DMem function}
 
-\label{Sec_fn_DMem}
+\label{Sec_DMem_function}
 
 \index{fn\_DMem@{\tt fn\_DMem} (Execute DMem function)}
 \index{Execute DMem function ({\tt fn\_DMem})}
@@ -771,7 +988,7 @@ instructions, where the shift-amount can be 6-bits wide instead of
 The types of the input and output of the ``Execute Memory Ops''
 function in Figure~\ref{Fig_Simple_Instr_Exec_w_structs} are the same
 as for ``Execute Integer Ops'', {\ie} {\tt RR\_to\_EX} and {\tt
-EX\_to\_Retire}, which were described in Section~\ref{Sec_fn_EXI}.
+EX\_to\_Retire}, which were described in Section~\ref{Sec_EXI_function}.
 
 Figure~\ref{Fig_fn_DMem} shows that the ``Execute Memory Ops''
 function can be split into two phases,
@@ -784,6 +1001,7 @@ request, and the second phase processes the memory response.  As with
 Fetch, there is no guarantee how ``soon'' the response will come.
 
 Here is the function for the first phase, computing a memory request:
+
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
 function Mem_Req fn_DMem_Req (RR_to_EX  x);
@@ -911,20 +1129,187 @@ Will line 15's {\tt (!~is\_STORE())} remain adequate, in that case?
 
 % ****************************************************************
 
-\section{RISC-V: The Register-Read function}
-
-\label{Sec_fn_RR}
-
-\index{fn\_RR@{\tt fn\_RR} (Register-read function)}
-\index{Register-read function ({\tt fn\_RR})}
-
-% ****************************************************************
-
 \section{RISC-V: The Retire function}
 
-\label{Sec_fn_Retire}
+\label{Sec_Retire_function}
 
 \index{fn\_Retire@{\tt fn\_Retire} (Retire function)}
 \index{Retire function ({\tt fn\_Retire})}
+
+As seen in Figure~\ref{Fig_Fetch_function_Simple_Instr_Exec} the
+Retire function takes an input of type \verb|RR_to_Retire| from
+Register-Read-and-Dispatch (RRD).  This input exists for every
+instruction.  Depending on the kind of instruction, it may also
+receive an input:
+
+\begin{tightlist}
+
+  \item from Control (of type \verb|Control_to_Retire|), discussed in
+    Section~\ref{Sec_Control_function},
+
+  \item from Execute Integer Arithmetic and Logic Ops (EXI, of type
+    \verb|EX_to_Retire|), discussed in Section~\ref{Sec_EXI_function},
+    or
+
+  \item from Execute Memory Ops (DMem, also of type
+    \verb|EX_to_Retire|).
+
+\end{tightlist}
+
+One of the outputs of the Retire function, also called the
+\emph{redirection} output, is an indication of the next PC from which
+Fetch should resume.  This could be:
+
+\begin{tightlist}
+
+  \item the fall-through PC (the most common case); or
+
+  \item the target PC of a taken BRANCH, or of JAL/JALR; or
+
+  \item the PC of the trap-vector, in case the current instruction had
+    an exception; or
+
+  \item the PC of the interrupt handler, in case there is an
+    interrupt pending and we choose to handle it now.
+\end{tightlist}
+
+This redirection information from the Retire function is carried in
+this struct:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {
+    Bit #(XLEN) next_pc;
+} F_from_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+Note, in Fife, the Fetch unit would have predicted the next PC and
+already fetched an instruction from that predicted address.  If it
+predicted correctly, the Fetch unit does not need to be redirected
+from the Retire unit, and we can just discard this information.  We'll
+discuss this in more detail when we discuss Fife in later chapters.
+
+A second output from Retire is an indication of a value to be written
+back to the GPRs, for those instructions that have an \verb|rd|
+destination field and which have completed successfully (without an
+exception).
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {Bool        commit;    // True: write rd
+                Bit #(5)    rd;
+                Bit #(XLEN) data;
+} RW_from_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+The \verb|commit| field tells us whether to write a register or not.
+If true, the other two fields specify the register and the value to be
+written.
+
+Now we can describe the overall output of Retire, \verb|Result_Retire|:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+typedef struct {
+   Bool         exception;
+   Bit #(XLEN)  cause;
+   Bit #(XLEN)  exception_pc;
+
+   F_from_Retire   to_F;
+   RW_from_Retire  to_RW;
+} Result_Retire
+deriving (Bits, FShow);
+\end{Verbatim}
+}
+
+If there was an exception in this instruction, \verb|exception| is
+true, \verb|cause| specifies the kind of exception, and
+\verb|exception_pc| is the PC of this instruction, to be saved as
+information for the exception handler.  If \verb|exception| is false,
+then \verb|to_F| specifies the redirection, and \verb|to_RW| specifies
+the optional register-write.
+
+We can now see the Retire function, \verb|fn_Retire|:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Result_Retire
+         fn_Retire (RR_to_Retire         x_RR,
+                    Control_to_Retire    x_Control,
+                    EX_to_Retire         x_EX);
+
+   Bool         exception    = False;
+   Bit #(XLEN)  cause        = ?;
+   Bit #(XLEN)  exception_pc = x_RR.pc;
+   let          y_to_F       = F_from_Retire {next_pc: ?};
+   let          y_to_RW      = RW_from_Retire {commit: False, rd: ?, data: ?};
+
+   // Fill in fields according to the various incoming flows
+   if (x_RR.exec_tag == EXEC_TAG_RETIRE) begin
+      if (x_RR.exception) begin
+         exception = True;
+         cause     = x_RR.cause;
+      end
+      else
+         y_to_F.next_pc = x_RR.fallthru_pc;
+   end
+   else if (x_RR.exec_tag == EXEC_TAG_CONTROL) begin
+      if (x_Control.exception) begin
+         exception = True;
+         cause     = x_Control.cause;
+      end
+      else begin
+         y_to_F.next_pc = x_Control.next_pc;
+         y_to_RW.commit = x_Control.data_valid;
+         y_to_RW.rd     = instr_rd (x_RR.instr);
+         y_to_RW.data   = x_Control.data;
+      end
+   end
+   else begin // exec_tag == EXEC_TAG_IALU/EXEC_TAG_DMEM
+      if (x_EX.exception) begin
+         exception = True;
+         cause     = x_EX.cause;
+      end
+      else begin
+         y_to_F.next_pc = x_RR.fallthru_pc;
+         y_to_RW.commit = x_EX.data_valid;
+         y_to_RW.rd     = instr_rd (x_RR.instr);
+         y_to_RW.data   = x_EX.data;
+      end
+   end
+
+   // Construct and return final result
+   let y = Result_Retire {exception:    exception,
+                          cause:        cause,
+                          exception_pc: exception_pc,
+                          to_F:         y_to_F,
+                          to_RW:        y_to_RW};
+   return y;
+endfunction
+\end{Verbatim}
+}
+
+The meat of the code is lines 13-44, which is a big if-then-else that
+examines the incoming \verb|x_RR.exec_tag| and the various exception
+fields \verb|x_RR.exception|, \verb|x_Control.exception| and
+\verb|x_EX.exception| to decide how to fill in the output struct
+fields.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+In line 33 (the final \verb|else| clause) we have a comment asserting
+that \verb|exec_tag| must be \verb|EXEC_TAG_IALU| or
+\verb|EXEC_TAG_DMEM|.  Prove this assertion by reasoning forward from
+the Register-Read-and-Dispatch function \verb|fn_RR|.
+
+\Endexercise
+% ----------------
 
 % ****************************************************************

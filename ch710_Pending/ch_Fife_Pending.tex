@@ -17,6 +17,19 @@
 This is a place-holder chapter with a TODO list of pending possible
 topics to be written.
 
+In the Fife CPU, on the other hand, each of the yellow boxes
+represents a ``stage'' and the black arrows represent messages sent
+from one stage to another.  Each stage is itself an infinite loop,
+consuming incoming messages and producing outgoing messages.  Thus,
+while the Decode state is working on the first instruction, the Fetch
+stage is already working on the second instruction, and so on.  There
+is a sequence of instructions in this pipeline, advancing on every
+``tick''.  A pipelined CPU also needs some additional state to manage
+interactions between multiple instructions in the pipeline, such as
+``epochs'', ``scoreboards'' and ``store-buffers'' (see
+Figure~\ref{Fig_Instr_Exec_w_FIFOs}).
+
+
 Figure~\ref{Fig_Instr_Exec_w_FIFOs} annotates the abstract execution
 algorithm in Figure~\ref{Fig_Instr_Exec} with some specifics for the
 pipelined implementation in Fife.
