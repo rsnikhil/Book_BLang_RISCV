@@ -10,10 +10,12 @@ Rishiyur S. Nikhil, Bluespec, Inc. (c) 2024
 
 // ================================================================
 
+image::Fig_Under_Construction.png[align="center", width=300]
+
 NOTE: Latest draft of the book is in
       link:Book_BLang_RISCV.pdf[`Book_BLang_RISCV.pdf`].  This book
-      and accompanying BSV code is under construction (January 20,
-      2024). Expected completion date: mid-to-late February 2024.
+      and accompanying BSV code is under construction (February 7,
+      2024). Expected completion date: late February 2024.
 
 This is a free textbook with two kinds of audience:
 
