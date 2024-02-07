@@ -164,6 +164,7 @@ library modules: Registers, Register Files and FIFOs, respectively.
 \index{BSV!Module!behavior}
 \index{BSV!Module!interface}
 \index{BSV!Module!constructor}
+\index{BSV!synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
 
 A \emph{module declaration} in BSV describes a module with a
 particular interface type:
@@ -252,7 +253,7 @@ out the value stored by the most recent write.
 
 % ================================================================
 
-\subsection{BSV: {\tt Reg\#(t)}, the register interface}
+\subsection{BSV lib: {\tt Reg\#(t)}, the register interface}
 
 \label{Sec_Register_interface}
 
@@ -314,7 +315,7 @@ error from the \emph{bsc} compiler.
 
 % ================================================================
 
-\subsection{BSV: {\tt mkReg(}\emph{v}{\tt )}, a register module (consructor)}
+\subsection{BSV lib: {\tt mkReg(}\emph{v}{\tt )}, a register module (consructor)}
 
 \index{BSV!Module!mkReg@{\tt mkReg} module (constructor)}
 
@@ -444,7 +445,7 @@ is an argument to the methods for reading and writing.
 
 % ================================================================
 
-\subsection{BSV: The register file interface: {\tt RegFile\#(index\_t,data\_t)}}
+\subsection{BSV lib: The register file interface: {\tt RegFile\#(index\_t,data\_t)}}
 
 \label{Sec_RegFile_interface}
 
@@ -505,14 +506,16 @@ compile-time type-error.).
 
 % ================================================================
 
-\subsection{BSV: {\tt mkRegFileFull}, a register file module (constructor)}
+\subsection{BSV lib: {\tt mkRegFileFull}, a register file module (constructor)}
+
+\label{Sec_RegFile_module}
 
 \index{BSV!Module!mkRegFileFull@{\tt mkRegFileFull} module (constructor)}
 \index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!module (constructor)}
 \index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!reset value}
 
 The BSV library contains a couple of register file modules
-(constructors). In Drum we use {\tt mkRegFileFull}:
+(constructors). For RISC-V we can use {\tt mkRegFileFull}:
 
 \index{BSV!Register file!mkRegFileFull@{\tt mkRegFileFull}!instantiation}
 
@@ -525,11 +528,12 @@ Here we declare a new identifier \verb|gprs| with interface type
 and bind it to the interface offered by a newly instantiated register
 file.  The number of registers in the register file is known from the
 full range of the index type \verb|Bit#(5)|, {\ie} it will have 32
-registers, indexed from 0 to 31.
+registers, indexed from 0 to 31.  Each register is \verb|XLEN| bits
+wide.
 
 % ================================================================
 
-\subsection{BSV: What about the RISC-V register {\tt x0}?}
+\subsection{RISC-V: A register file for RISC-V, with special {\tt x0}}
 
 \label{Sec_RISCV_regfile}
 
@@ -546,7 +550,7 @@ instantiate a register file with 32 registers (inferring 32 from the
 full range of the index type \verb|Bit#(5)|).  Instead, we could use
 an alternate register file module from the BSV library that allows us
 to provide, as module constructor arguments, the lower and upper
-indexes of interest.  This instantiate exactly 31 registers indexed
+indexes of interest.  This instantiates exactly 31 registers indexed
 from 1 to 31, thereby saving XLEN bits of register state in our
 hardware.
 
@@ -558,43 +562,44 @@ Regardless of whether we instantiated 31 or 32 registers, RISC-V
 instructions can (and do) use {\tt x0} as a source or destination
 register, so we need circuitry to deal with attempts to read/write
 {\tt x0}.  One possible solution is to make a ``wrapper'' module {\tt
-mkRISCV\_RegFile} around the library register file module, as follows:
+mkRISCV\_GPRs} around the library register file module, as follows:
 
-\index{mkRISCV\_Regfile@{mkRISCV\_Regfile} a module wrapper around library {\tt RegFile}}
-\index{mkRISCV\_Regfile@{\tt mkRISCV\_Regfile} wrapper around library register file}
+\index{mkRISCV\_GPRs@{mkRISCV\_GPRs} a module wrapper around library {\tt RegFile}}
+\index{mkRISCV\_GPRs@{\tt mkRISCV\_GPRs} wrapper around library register file}
+\index{mkRISCV\_GPRs\_IFC@{mkRISCV\_GPRs\_IFC}     interface for {\tt mkRISCV\_GPRs}}
+\index{mkRISCV\_GPRs\_IFC@{\tt mkRISCV\_GPRs\_IFC} interface for {\tt mkRISCV\_GPRs}}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-interface RISCV_RegFile_IFC;
-   method Bit #(XLEN) read_rs1 (Bit #(5) rs1);
-   method Bit #(XLEN) read_rs2 (Bit #(5) rs2);
-   method Action write_rd (Bit #(5) j, Bit #(XLEN) v);
+interface RISCV_GPRs_IFC #(xlen);
+   method Bit #(xlen) read_rs1 (Bit #(5) rs1);
+   method Bit #(xlen) read_rs2 (Bit #(5) rs2);
+   method Action write_rd (Bit #(5) rd, Bit #(xlen) rd_val);
 endinterface
 
-(* synthesize *)
-module mkRISCV_RegFile (RISCV_RegFile_IFC);
-   RegFile #(Bit #(5), Bit #(XLEN)) rf <- mkRegFileFull;
+module mkRISCV_GPRs (RISCV_GPRs_IFC #(xlen));
+   RegFile #(Bit #(5), Bit #(xlen)) rf <- mkRegFileFull;
 
-   method Bit #(XLEN) read_rs1 (Bit #(5) rs1);
-      return ((j == 0) ? 0 : rf.sub (j));
+   method Bit #(xlen) read_rs1 (Bit #(5) rs1);
+      return ((rs1 == 0) ? 0 : rf.sub (rs1));
    endmethod
 
-   method Bit #(XLEN) read_rs2 (Bit #(5) rs2);
-      return ((j == 0) ? 0 : rf.sub (j));
+   method Bit #(xlen) read_rs2 (Bit #(5) rs2);
+      return ((rs2 == 0) ? 0 : rf.sub (rs2));
    endmethod
 
-   method Action write_rd (Bit #(5) j, Bit #(XLEN) v);
-      rf.upd (j, v);
+   method Action write_rd (Bit #(5) rd, Bit #(xlen) rd_val);
+      rf.upd (rd, rd_val);
    endmethod
 endmodule
 \end{Verbatim}
 }
 
-Although we could have re-used the {\tt RegFile \#(t1,t2)} interface,
+Although we could have reused the {\tt RegFile \#(t1,t2)} interface,
 we take the opportunity to define a new interface {\tt
-RISCV\_RegFile\_IFC} that has some RISC-V specific method names, for
-reading the rs1, rs2 values (register source 1 and 2) and writing the
-rd value (register destination).
+RISCV\_GPRs\_IFC} that has some RISC-V specific method and argument
+names, for reading the rs1, rs2 values (register source 1 and 2) and
+writing the rd value (register destination).
 
 The module instantiates a library register file {\tt rf}.  The methods
 simply invoke the underlying {\tt rf} methods.  The read-methods
@@ -604,13 +609,19 @@ override this by returning 0 when the index is 0.
 \hdivider
 
 \Exercise
-\hm In {\tt mkRISCV\_RegFile} we write the value when \emph{j} is zero, but we
-ignore it on reads.  Write a variant where, in {\tt write\_rd}, we
-write 0 when the index is zero, and the read methods no longer check
-for index 0.
+\hm In {\tt mkRISCV\_GPRs} we write the value when \emph{j} is zero,
+but we ignore it on reads.  Write a variant where, in {\tt write\_rd},
+we alway write 0 when the index {\tt rd} is zero, and the read methods
+no longer check if {\tt rs1} or {\tt rs2} are 0.
+
+In this variant, what happens if we try to read {\tt x0} before it is
+written?
+
+Compare the circuitry generated in the original and in the variant.
+Why might we choose one over the other?
 
 \Exercise
-\hm In {\tt mkRISCV\_RegFile} suppose we use {\tt mkRegFile(1,31)} instead of
+\hm In {\tt mkRISCV\_GPRs} suppose we use {\tt mkRegFile(1,31)} instead of
 {\tt mkRegFileFull}.  What needs to change to accommodate this?
 
 \Endexercise
@@ -631,7 +642,7 @@ an empty FIFO.
 
 % ================================================================
 
-\subsection{{\tt FIFOF\#(}\emph{t}{\tt )}, the FIFO interface}
+\subsection{BSV lib:{\tt FIFOF\#(}\emph{t}{\tt )}, the FIFO interface}
 
 \label{Sec_FIFOF_interface}
 
@@ -689,7 +700,7 @@ with another that has greater or less capacity.
 
 % ================================================================
 
-\subsection{{\tt mkFIFOF}, a FIFO module (constructor)}
+\subsection{BSV lib: {\tt mkFIFOF}, a FIFO module (constructor)}
 
 \index{BSV!Module!mkFIFOF@{\tt mkFIFOF} module (constructor)}
 
@@ -979,5 +990,165 @@ In Programming Language design this issue and solutions are called
 ``overloading''.
 
 \end{minipage}}
+
+
+% ****************************************************************
+
+\section{BSV: Polymorphic and Monomorphic Types}
+
+\label{Sec_Polymorphic_Types}
+
+\index{BSV!Polymorphic Types}
+\index{BSV!Polymorphic Types!Type variables (identifiers beginning with lower-case letter)}
+\index{BSV!Type variables!Identifiers beginning with lower-case letter, for polymorphism}
+
+\index{BSV!Monomorphic Types (types without type-variables)}
+
+The previous sections showed several \emph{polymorphic} types:
+
+{\small
+\begin{tightlist}
+ \item \verb|Reg #(t)|
+ \item \verb|RegFile #(ix_width, reg_width)|
+ \item \verb|RISCV_GPRs_IFC #(reg_width)|
+ \item \verb|FIFOF #(t)|
+ \item \verb|FIFOF_I #(t)|
+ \item \verb|FIFOF_O #(t)|
+\end{tightlist}
+}
+
+In each case, there is a \emph{type constructor} ({\tt Reg}, {\tt
+RegFile}, ..., {\tt FIFOF\_O}) applied to some arguments ({\tt t},
+{\tt ix\_width}, {\tt reg\_width}).  The general syntax is:
+
+\begin{tabbing}
+\hmm \emph{type-constructor} {\tt \#(}\emph{arg}, ..., \emph{arg}{\tt )}
+\end{tabbing}
+
+(When a type constructor has no arguments, we can omit ``{\tt \#()}''.)
+
+When the argument of a type-constructor is an identifiers beginning
+with a lower-case letter, this indicates that this is a \emph{type
+variable}, {\ie} it is place-holders for some specific type that will
+be instantiated later/elsewhere.
+
+A polymorphic type (a type containing one or more type-variables)
+represents all possible types one can obtain by instantiating the type
+variables with specific, concrete types.  A type with no
+type-variables is also called \emph{monomorphic}.
+
+Note that it is not just library types ({\tt Reg}, {\tt RegFile}, {\tt
+FIFOF}) that may be polymorphic.  In the previous sections, we defined
+new types \verb|RISCV_GPRs_IFC #(reg_width)|, \verb|FIFOF_I #(t)| and
+\verb|FIFOF_O #(t)| that are also polymorphic.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+The types {\tt Mem\_Req} and {\tt Mem\_Rsp}
+(Sections~\ref{Sec_Mem_Req} and \ref{Sec_Mem_Rsp}) are monomorphic.
+Write polymorphic versions of these types that are parameterized on
+{\tt xlen}.
+
+\Endexercise
+% ----------------
+
+% ================================================================
+
+\subsection{BSV: Polymorphic Modules and Synthesizability into Verilog}
+
+\label{Sec_Polymorphic_Types_and_Synthesizability}
+
+\index{BSV!synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
+
+In Section~\ref{Sec_Module_Decls} we mentioned without discussion that
+the ``{\tt (* synthesize *)}'' attribute preceding a {\tt module}
+declaration controls whether the \emph{bsc} compiler generates a
+Verilog module for this BSV module or whether it is inlined into its
+parent module wherever it is instantiated.
+
+Not all BSV modules can be compiled one-to-one into Verilog modules.
+Broadly speaking, polymorphic modules cannot be separately compiled
+into Verilog modules.  The reason is that polymorphism in BSV is very
+powerful and, beyond the expressive power of Verilog.
+
+This does not mean that we cannot use polymorphic modules in a BSV
+design; of course we can!  It just means that, at each instance of the
+module where we have instantiated it and fully specified the types
+(``monomorphized'' the types), the \emph{bsc} compiler at that place
+has enough information to generate Verilog for that instance.
+
+For example, consider the polymorphic {\tt mkRISCV\_GPRs} module
+Section~\ref{Sec_RISCV_regfile}.  We can directly instantiate this
+module in a CPU module:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+module mkCPU;
+   ...
+   RISCV_GPRs_IFC #(XLEN) gprs <- mkRISCV_GPRs;
+   ...
+endmoduile
+\end{Verbatim}
+}
+
+At this instantiation position, the \emph{bsc} compiler knows the
+concrete value ({\tt XLEN}) of the type-variable {\tt xlen}, and so
+can generate Verilog code for this {\tt mkRISCV\_GPRs} instance.  In
+the final Verilog code, there will not be any separately identifiable
+Verilog code for the register file, it would just be part of the {\tt
+mkCPU} module Verilog.
+
+If we really wanted to generate a separately identifiable Verilog
+module for the register file, we can write a monomorphic wrapper
+module:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+(* synthesize *)
+module mkRISCV_GPRs_V (RISCV_GPRs_IFC #(XLEN));
+   RISCV_GPRs_IFC #(XLEN) ifc <- mkRISCV_GPRs;
+   return ifc;
+endmoduile
+\end{Verbatim}
+}
+
+This module {\tt mkRISCV\_GPRs\_V} is monomorphic because the
+type-variable {\tt xlen} has been instantiated to the concrete type
+{\tt XLEN}, and so the ``{\tt (* synthesize *)}'' attribute will be
+honored by the \emph{bsc} compiler to produce a corresponding Verilog
+module.
+
+We can then replace our earlier instantiation of {\tt mkRISCV\_GPRs}
+in the CPU module with this monomorphic module:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+module mkCPU;
+   ...
+   RISCV_GPRs_IFC #(XLEN) gprs <- mkRISCV_GPRs_V;
+   ...
+endmoduile
+\end{Verbatim}
+}
+
+% ----------------
+\hdivider
+
+\Exercise
+
+\hm In {\tt mkRISCV\_GPRs\_V} replace the explicit type declaration
+of {\tt ifc} with the {\tt let} keyword.
+
+\Exercise
+
+\hm Write a monomorphic wrapper for the BSV library {\tt mkFIFOF}
+module that specializes it into a FIFO that only carries {\tt Bool}
+values.  Add an annotation so the wrapper becomes a separate Verilog
+module.  Compile it and study the generated Verilog.
+
+\Endexercise
 
 % ****************************************************************
