@@ -1,35 +1,66 @@
-= Free textbook to learn Bluespec BSV and RISC-V pipeline CPU design
+= Textbook and source code to learn the Bluespec BSV high-level hardware design language and RISC-V pipeline CPU design
 Rishiyur S. Nikhil, Bluespec, Inc. (c) 2024
-:revnumber: v1.0
-:revdate: 2024-01-20
+:revnumber: v1.01
+:revdate: 2024-02-07
 :sectnums:
-:toc:
-:toclevels: 3
-:toc-title: Contents
+:THIS_FILE: README
+// :toc:
+// :toclevels: 3
+// :toc-title: Contents
 :keywords: Bluespec, B-Lang, BSV, BH, RISC-V, Pipelined CPU, HDL, HLHDL, High Level Hardware Design Language, Fife, Drum
 
 // ================================================================
 
-image::Fig_Under_Construction.png[align="center", width=300]
+image::Fig_Under_Construction.png[align="left", width=100]
 
-NOTE: Latest draft of the book is in
-      link:Book_BLang_RISCV.pdf[`Book_BLang_RISCV.pdf`].  This book
-      and accompanying BSV code is under construction (February 7,
-      2024). Expected completion date: late February 2024.
+[NOTE]
+====
+The source for this document is `{THIS_FILE}.adoc` that can be read
+as-is in a text-editor or terminal window.  It can also be processed
+with the free, open-source `asciidoctor` tool into `{THIS_FILE}.html`
+and then viewed in any browser.
+====
 
-This is a free textbook with two kinds of audience:
+[NOTE]
+====
+The latest draft of the book is in
+link:Book_BLang_RISCV.pdf[`Book_BLang_RISCV.pdf`].  This book and
+accompanying BSV code is under construction (February 8, 2024). A
+reasonably complete draft is Expected by late February 2024.
+====
+
+// ================================================================
+
+== Introduction
+
+This is one of a pair of free and open-source repositories, addressing
+two kinds of audience:
 
 * Learn general principles of designing a RISC-V pipelined CPU (5+
   stages, mostly in-order).
 
 ** As a side-effect, learn digital design using the Bluespec BSV
-   high-level hardware design language.
+   High-Level Hardware Design Language (HLHDL).
 
 * Learn digital hardware design using the Bluespec BSV High-Level
-  Hardware Design Language.
+  Hardware Design Language (HLHDL).
 
 ** As a side-effect, learn how to design a pipelined RISC-V CPU, which
-   is used here as a running example.
+   is used as a running example.
+
+The two repositories are:
+
+* Textbook: https://github.com/rsnikhil/Book_BLang_RISCV[]
+* Source code for the two CPUs (Drum and Fife): https://github.com/bluespec/Fife[]
+
+The latter repository includes a `Build_and_Run_Guide` document in the
+`Doc/` directory that explains how to compile the Drum and Fife source
+codes into Verilog using the free and open-source tools. The generated
+Verilog can be run on Verilog simulators and on FPGAs.
+
+// ================================================================
+
+== About RISC-V and BSV
 
 RISC-V is an open-standard ISA (Instruction-Set Architecture).  ISA
 specification documents can be found at
@@ -42,12 +73,14 @@ Bluespec BSV is a free, open-source HLHDL (High-Level Hardware Design
 Language), a significant improvement in expressive power and
 simplicity compared to Verilog/SystemVerilog/VHDL.  Its free,
 open-source compiler is available at:
-link:https://github.com/B-Lang-org/bsc[].  An appendix in this book
+link:https://github.com/B-Lang-org/bsc[].  An appendix in the book
 explores "Why BSV?" in more detail.
 
-The book is accompanied by full source code for the RISC-V running
-example (in a separate repository; link to be provided soon).  Two
-versions of RISC-V are constructed:
+// ================================================================
+
+== About our pedagogic approach
+
+We construct two implementations of RISC-V, in this order:
 
 * *Drum*, an "FSM" implementation, which almost looks like a software
   RISC-V simulator written in C, except that it is fully synthesizable
@@ -58,30 +91,40 @@ versions of RISC-V are constructed:
   STOREs with a store-buffer.
 
 The two implementations share _all_ the functional parts of RISC-V
-code, so that *Fife* can focus purely on pipelining questions, since
-RISC-V specific semantics have already been covered with *Drum*.
+code, which are covered in the first part of the book, with *Drum*.
+By the time we reach the second part of the book, on *Fife*, we can
+focus purely on pipelining questions, since RISC-V-specific semantics
+have already been covered with *Drum*.
+
+The book interleaves RISC-V topics and BSV topics in a mutually
+reinforcing way, and describes the full design process.
 
 The book and the two implementations focus on the "RV32I" subset of
 the RISC-V Unprivileged ISA specification, plus a few features from
 the Privileged specification to handle illegal instructions and other
 traps, and interrupts.
 
-'''
-'''
+// ================================================================
 
-Beyond this book, BSV code is in preparation that "completes" Drum and
-Fife, making them Linux-capable:
+== Beyond this book and code
+
+We are also preparing extensions to this BSV code to "complete" Drum
+and Fife to make them Linux-capable:
 
 * Add Unprivileged Spec features: RV32I and RV64I, extensions M
   (integer multiply/divide), A (atomics), F & D (single- and
   double-precision floating point), and C (compressed),
 
-* Add Privileged Spec featuress: M, S, U privilige levels, Sv32 and
+* Add Privileged Spec features: M, S, U privilige levels, Sv32 and
   Sv39 virtual memory schemes, etc.
 
 * Add MMUs (with TLBs) and caches in the memory system.
 
-A possible "Book 2" will cover these topics.
-Please contact the author for status and details.
+* Add a CLINT (timers, timer interrupts, software interrupts)
+
+* Add a PLIC (Platform-level Interrupt Controller)
+
+A possible "Book 2" will cover these topics.  Please contact the
+author for any news on that front.
 
 // ================================================================
