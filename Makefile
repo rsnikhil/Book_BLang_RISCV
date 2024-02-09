@@ -24,8 +24,8 @@ SOURCES = \
 		ch060/ch_Core_Functions.tex \
 		ch070/ch_Modules_Interfaces.tex \
 		ch080/ch_FSMs_Drum_CPU.tex \
-		ch700_Pending/ch_Drum_Pending.tex \
-		ch710_Pending/ch_Fife_Pending.tex \
+		ch090/ch_Drum_Pending.tex \
+		ch100/ch_Fife_Pending.tex \
 		ch720_Pending/ch_Pending.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
