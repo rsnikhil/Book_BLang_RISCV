@@ -1,5 +1,4 @@
 FIGS += Fig_Instr_Exec.png
-FIGS += Fig_Instr_Exec_w_FIFOs.png
 FIGS += Fig_Instr_Exec_w_structs.png
 
 .PHONY: help

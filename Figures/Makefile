@@ -1,4 +1,6 @@
 FIGS += Fig_Fife_Retire.png
+FIGS += Fig_Instr_Exec_w_FIFOs.png
+FIGS += Fig_FIFO.png
 
 .PHONY: help
 help:
