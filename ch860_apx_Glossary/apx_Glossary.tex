@@ -128,6 +128,13 @@
   renaming, out-of-order execution, superscalarity, instruction
   fission and fusion, replicated execution units, store-buffers, ...
 
+\item[\bf MMIO] Memory-Mapped Input-Output.  In RISC-V, the CPU reads
+  and writes registers in a device using ordinary LOAD and STORE
+  instructions.  The memory system interprets the addresses to direct
+  such requests to a device.  Using LOADs and STOREs, the CPU can
+  control the device, send data to the device and retrieve data from
+  the device.
+
 \item[\bf OS] Operating System.  Can vary from small, embedded,
   real-time OSs such as FreeRTOS, to more capable embedded OSs like
   Zephyr, to secure micro-kernels like seL4, to full-featured OSs like

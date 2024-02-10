@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{RISC-V: the Fife pipelined CPU}
+\chapter{RISC-V: the Fife pipelined CPU: Principles}
 
-\markboth{Ch \arabic{chapter}: Pending (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Fife Principles (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -16,17 +16,17 @@
 
 \section{Introduction}
 
-In this chapter we turn our attention to Fife, the pipelined CPU.  We
-will reuse all the code already developed for Drum that implements
-basic RISC-V semantics.  Our focus here is purely on pipelining and
-solving the new problems raised by pipelining.
+In this chapter we turn our attention to Fife, the pipelined CPU.  Our
+focus here is purely on identifying new problems raised by pipelining,
+and proposing solutions.  In the next chapter we will look at BSV code
+to implement Fife.
 
 Figure~\ref{Fig_Instr_Exec_w_FIFOs} annotates the abstract execution
 algorithm in Figure~\ref{Fig_Instr_Exec} with some specifics for the
 pipelined implementation in Fife.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_FIFOs}}
-  \caption{\label{Fig_Instr_Exec_w_FIFOs}Pipelined interpretation of RISC-V instructions (Fig.~\ref{Fig_Instr_Exec} with new annotations)}
+  \caption{\label{Fig_Instr_Exec_w_FIFOs}Pipelined interpretation of RISC-V instructions (Fig.~\ref{Fig_Instr_Exec} with some annotations)}
 \end{figure}
 Unlike Drum, where each yellow box was one step in a sequential
 process, now we interpret each yellow box as containing its own
@@ -242,15 +242,31 @@ If \verb|rg_epoch| contains a \verb|Bit #(n)| value, how small can $n$ be?
 
 % ================================================================
 
-\subsection{Mispredicted instructions should not have any side-effects}
+\subsection{Terminology: Speculative Instructions and Commits}
+
+\index{RISCV!Commit the side-effects of an instruction}
+\index{RISCV!Speculative instruction}
+\index{RISCV!Speculation of instructions}
+
+Before an instruction has reached the Retire stage, there is always
+the possibility that an earlier instruction that is ahead of it in the
+pipeline will branch/jump to a PC that was not predicted, or will
+trap, making this instruction irrelevant.  Until this moment, we say
+that the instruction is still ``\emph{speculative}''.  When it reaches
+the Retire stage, we say that it's side-effects can be
+``\emph{committed}''.
+
+% ================================================================
+
+\subsection{Speculative instructions should not have any side-effects}
 
 It is not enough for the Retire stage just to discard mispredicted
 instructions.  Instructions have side-effects: they may modify
-registers and write to memory.  We must ensure that mispredicted
+registers and write to memory.  We must ensure that speculative
 instructions make no modifications that are visible to right-path
-instructions that follow.  The details of how this is accomplished
-will be seen in Section~\ref{Sec_Store_Buffers} and
-Section~\ref{Sec_Retire_Stage}.
+instructions that follow, until they reach the Retire stage.  The
+details of how this is accomplished will be seen in
+Section~\ref{Sec_Store_Buffers} and Section~\ref{Sec_Retire_Stage}.
 
 % ****************************************************************
 
@@ -340,9 +356,25 @@ consequences of a wrong order?
 \Endexercise
 % ----------------
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{Bypassing}
+\subsection{Releasing Scoredboard Reservations for Uncommitted Instructions}
+
+When the Retire stage discards an instruction due to mis-speculation,
+that instruction may be one which normally would have written a result
+value into register $x_j$ in the register file.  If so, when it passed
+through the Register-Read-and-Dispatch stage, it would have marked
+register $x_j$ as ``busy'' in the scoreboard.  Now, when we discard
+the instruction, even though we do not write any value into register
+$x_j$, we still need to release the ``busy'' reservation on $x_j$
+(otherwise, any succeeding instruction trying to read $x_j$ will get
+stuck in the Register-Read stage.  Said another way, the reservation
+in the scoreboard is a side-effect of this instruction that needs to
+be rolled back.
+
+% ================================================================
+
+\subsection{Bypassing}
 
 \index{RISCV!Bypassing}
 \index{RISCV!Short-circuiting (bypassing)}
@@ -411,6 +443,13 @@ complexity) would be:
 
 \label{Sec_Reorder_Tags}
 
+\index{RISCV!Tags!for proper instruction ordering}
+\index{RISCV!Tags!EXEC\_TAG\_DIRECT@{\tt EXEC\_TAG\_DIRECT}}
+\index{RISCV!Tags!EXEC\_TAG\_CONTROL@{\tt EXEC\_TAG\_CONTROL}}
+\index{RISCV!Tags!EXEC\_TAG\_IALU@{\tt EXEC\_TAG\_IALU}}
+\index{RISCV!Tags!EXEC\_TAG\_DMEM@{\tt EXEC\_TAG\_DMEM}}
+\index{RISCV!Instruction ordering!tags for}
+
 In Figure~\ref{Fig_Instr_Exec_w_FIFOs}, each yellow box in the Execute
 stage is an independent pipeline handling a certain subset of the
 instruction set.  For example, ``Execute Control'' handles BRANCH, JAL
@@ -431,7 +470,7 @@ for example multiplication/division may recognize the special case
 where an operand is 0 or 1 and return a result quickly.  A memory op
 may return quickly on a cache hit, and take more time on a cache miss.
 
-The Retire stage needs to gather the outpus from the Execute stages
+The Retire stage needs to gather the outputs from the Execute stages
 and retire them in the proper order.  But, because of varying latency,
 availability of data is not an indication of the proper order.
 
@@ -441,14 +480,16 @@ Figure~\ref{Fig_Instr_Exec_w_FIFOs} we see there is also a
 a tag on this path \emph{for every instruction}.  For example if the
 instruction is a BRANCH instruction, the Register-Read-and-Dispatch
 stage sends information into Execute Control, but it also sends a tag
-on the direct path to Retire indicating this, {\ie} that it has just
-dispatched an instruction into Execute Control.
+\verb|EXEC_TAG_CONTROL| on the direct path to Retire, indicating that
+it has just dispatched an instruction into Execute Control.
 
 Thus, the sequence of tags on the direct path tells Retire exactly the
-order in which to service the various Execute pipes.  For example, if
-Retire sees a DMEM tag on the direct path, it knows that it must next
-look for an output from the Exec Memory Ops pipe, even if outputs are
-already available on the Execute Control and/or Execute Integer pipes.
+order in which to service the various Execute pipes.  Retire always
+looks at tag on the direct path first.  For example, if Retire sees a
+\verb|EXEC_TAG_DMEM| tag on the direct path, it knows that it must
+next look for an output from the Exec Memory Ops pipe, even if outputs
+are already available on the Execute Control and/or Execute Integer
+pipes from later instructions.
 
 % ****************************************************************
 
@@ -456,51 +497,117 @@ already available on the Execute Control and/or Execute Integer pipes.
 
 \label{Sec_Store_Buffers}
 
-Instructions may attempt to write to memory. The {\tt store
-    buffer} holds these updates until we can deterimine whether the
-    instruction is a wrong-path instruction or not.  If it's a wrong
-    path instruction, we can discard the update, else commit it to
-    memory.
+\index{RISCV!Store Buffer}
 
-MMIO accesses may not be ``memory-like''.  A LOAD can have a
-  side effect; a STORE may have side-effects more than just writing a
-  value, such as starting a motor or launching a rocket!  Finally, a
-  STORE to address $A$ followed by a LOAD from address $A$ may not
-  return the same value.  For such accesses, the ``execute DMem''
-  stage must defer the access until later when we are sure it is not a
-  wrong-path instruction.
+Consider the Execute Memory Ops stage in
+Figure~\ref{Fig_Instr_Exec_w_FIFOs}, which issues LOAD and STORE
+requests to memory and collects their responses.  At this stage, the
+instruction is still speculative; it may be discarded when it reaches
+the Retire stage.  We must ensure that STORE instructions do not yet
+modify memory permanently.
 
-``Execute Memory Ops'' stage is always speculative (because of
-mispredictions, and because older instructions in other pipes may
-trap).
-
-\begin{tightlist}
-  \item Need for store-buffer and final commit/discard from Retire-stage
-  \item Mem-system performs store only in store-buffer
-  \item Retire stage sends commit/discard message to store-buffer.
-        Discuss: do we need 'discard' messages, or are 'commit' messages enough?
-\end{tightlist}
-
-What about MMIO?
-
-\begin{tightlist}
-  \item LOADs may have side-effects
-  \item LOADs may not be idempotent
-  \item STOREs may have side-effects in addition to value stored
-  \item LOAD may not return most-recently stored value
-\end{tightlist}
-
-So, these cannot be done speculatively, {\ie} in ``Execute Memory
-Ops'' stage.
+The mechanism for this purpose is the ``\emph{store buffer}'' shown
+Figure~\ref{Fig_Instr_Exec_w_FIFOs}.  This is a buffer in front of the
+memory system (between the CPU and the memory system).
 
 \begin{tightlist}
 
-  \item 'Execute Memory ops' stage defers the request by sending it
-    back as another kind of 'response'
+ \item The store buffer is itself a queue.
 
-  \item Retire step performs it once we know it is non-speculative.
+ \item When we execute a STORE instruction, the address, data and size
+       are appended to the STORE buffer queue.  When the instruction
+       finally reaches the Retire stage, the Retire stage sends a
+       final ``commit/discard'' message to the store-buffer.  If a
+       commit, the STORE at the head of the store-buffer is committed
+       to memory and we dequeue it from the store-buffer.  If a
+       discard, we just dequeue it from the store-buffer.
+
+ \item When we execute a LOAD instruction, we first check the
+       store-buffer if there have been any recent updates to the
+       address in question, and then go to the memory system behind it
+       if necessary.
+
 \end{tightlist}
 
+% ================================================================
+
+\subsection{What about LOADs and STOREs to non-memory-like devices (MMIO)?}
+
+\index{RISCV!MMIO (Memory-Mapped Input Output)}
+
+In RISC-V there are no separate instructions for input and output to
+devices.  Devices contain ``device registers'' which are placed at
+particular ``memory addresses'' and are accessed from the CPU just
+like memory, with LOAD and STORE instructions.  We say that the device
+registers are ``mapped'' to those addresses.  These accesses can
+control and configure the device, and move data between the CPU and
+the device.  Such a scheme is known as MMIO, for Memory-Mapped
+Input-Output.
+
+Device registers, although addressed like memory locations, may behave
+quite differently from memory, in several ways:
+
+\begin{itemize}
+
+  \item LOADs may have side-effects.  For example, a LOAD from a
+    memory location does not (observably) disturb anything, but a LOAD
+    from a device could switch on an LED, or increment a counter.
+
+  \item LOADs may not be idempotent.  For example, two successive
+    LOADs from a memory location return the same value, whereas two
+    successive LOADs from, say, a UART's ``receiver buffer register''
+    may return two successive (and different) characters from a
+    keyboard.
+
+  \item STOREs may have additional side-effects.  A STORE to a memory
+    location merely stores the value there.  A STORE to a device
+    register may display it on a screen, start a motor, release a
+    wheel brake, and so on.
+
+  \item In memory, a LOAD returns the value stored there by the most
+    recent STORE.  For a UART device, on the other hand, a STORE may
+    display a character on a screen whereas a subsequent LOAD from the
+    same address may return a character from the keyboard.
+
+\end{itemize}
+
+For these reasons, it is dangerous to perform any LOAD or STORE
+speculatively on non-memory devices.  The ``Execute Memory Ops'' stage
+does not even attempt the access; it simply defers such a request for
+future execution by the Retire stage.  The decision whether to defer a
+request or not is based on the address.
+
+Once the LOAD/STORE instruction has reached the Retire stage and we
+know for sure that it is not speculative, the Retire stage performs
+the memory operation: it sends the request to memory, collects the
+response, and retires the instruction.
+
+
+% ----------------
+\hdivider
+
+\Exercise
+
+When the Retire stage sends a ``commit/discard'' message, how do we
+know that it applies to the pending STORE at the head of the
+store-buffer queue?
+
+\Exercise
+
+For a speculative LOAD, its value may come from memory or from the
+store-buffer.  In what order should it scan these sources?
+
+\Exercise
+
+Does the Retire stage need to send both ``commit'' and ``discard''
+messages?  If requests are accompanied by an instruction-number, the
+Retire stage could only send ``commit'' messages accompanied by the
+instruction-number.  The store-buffer can discard all pending STOREs
+with earlier instruction numbers.
+
+Discuss the implications of such a design on the size of the store-buffer.
+
+\Endexercise
 
 % ****************************************************************
 
@@ -508,32 +615,33 @@ Ops'' stage.
 
 \label{Sec_Retire_Stage}
 
+Figure~\ref{Fig_Fife_Retire} summarizes the actions to be taken by the
+Retire stage.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Fife_Retire}}
   \caption{\label{Fig_Fife_Retire}Actions in the ``Retire'' stage of Fife}
 \end{figure}
 
-% ****************************************************************
+Any of the Execute pipes can produce a wrong-path instruction
+(accompanying epoch does not match current epoch).  In each such case,
+we discard the instruction, but if the instruction has taken a
+scoreboard reservation, we must also release that (``rel''
+annotations).  In the case of LOAD/STORE that was performed by the
+Exec Memory Ops stage, we must also send a ``discard'' message to the
+store-buffer.
 
-\section{Fife: CSRs}
+Any of the Execute pipes can produce an exception.  In each case we
+must redirect the Fetch stage to the trap-handler PC, but before we do
+that we must release scoreboard reservations, if any, and send a
+``discard'' message to the store-buffer, if necessary.
 
-\begin{tightlist}
-\item CSRRxx are read-modify-write operations
-\item CSRRxx access may not be memory-like (side-effecting reads, read
-      may not return last written value,
-\item ... (a bit like MMIO issues)
-\end{tightlist}
-Hard to pipeline, so execute in Retire stage, as FSM.
+If the output of the Execute pipes is ``OK'' (not wrong-path, not an
+exception), then we can retire the instruction.  Control instructions
+may redirect the Fetch stage.  Control, IALU and LOAD instructions may
+write a register value (and release its reservation).  STORE
+instructions must send a ``commit'' message to the store-buffer.
 
-CSRRxx instructions should be rare, so FSM exec does not affect overall performance.
-
-% ****************************************************************
-
-\section{Fife: Interrupts}
-
-Sample for interrupts in Retire stage, fix up CSRs and and redirect.
-
-Retire stage already has infra for CSR update and redirection, so this
-is a small incremental change.
+Finally, deferred LOAD/STORE instructions must be excuted, sending a
+request to memory, collecting its response and retiring it.
 
 % ****************************************************************
