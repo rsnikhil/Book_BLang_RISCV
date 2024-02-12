@@ -274,6 +274,9 @@ Section~\ref{Sec_Store_Buffers} and Section~\ref{Sec_Retire_Stage}.
 
 \label{Sec_Scoreboards}
 
+\index{RISC-V!Scoreboard, to manage register read/write hazards}
+\index{RISC-V!Hazards!Scoreboard for managing}
+
 Suppose instruction $i_1$ writes to register $x_7$, and the following
 instruction $i_2$ reads from register $x_7$.  Instruction $i_1$'s
 write to $x_7$ only happens in the Retire stage.  If $i_2$ were to
@@ -358,7 +361,7 @@ consequences of a wrong order?
 
 % ================================================================
 
-\subsection{Releasing Scoredboard Reservations for Uncommitted Instructions}
+\subsection{Releasing Scoreboard Reservations for Uncommitted Instructions}
 
 When the Retire stage discards an instruction due to mis-speculation,
 that instruction may be one which normally would have written a result

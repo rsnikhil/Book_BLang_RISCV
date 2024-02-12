@@ -364,9 +364,352 @@ interfaces to this module's interface.
 
 % ****************************************************************
 
-\section{Fife: the Register-Read and Dispatch stage}
+\section{Fife: RR-RW module (Register-Read, Dispatch, Register-Write)}
 
-\label{Sec_Fife_RR_stage}
+\label{Sec_Fife_RR_RW_module}
+
+The next module (``RR-RW'') contains the register file and the
+scoreboard, and performs several functions. In the forward flow
+(``Register-Read and Dispatch'' stage):
+
+\begin{tightlist}
+
+  \item stall (wait) if the instruction has rs1, rs2 or rd, and these
+        are busy according to the scoreboard;
+
+  \item read rs1 and rs2 registers (if needed) for the current instruction;
+
+  \item set the scoreboard for rd to 1, meaning ``busy'' (if the
+        instruction has an rd);
+
+  \item use the information from the Decode stage to dispatch to the
+        Execute pipes.  We always (for every instruction) send an
+        execution tag and additional information on the direct path to
+        the Retire stage.  We possibly send information into one of
+        the following Execute pipes:
+
+  \begin{tightlist}
+    \item to Execute Control stage, or
+    \item to Execute Control stage, or
+    \item to memory (a DMem request).
+  \end{tightlist}
+
+\end{tightlist}
+
+In the backward flow (``Register-Write stage''), it receives messages
+from the Retire stage to release scoreboard reservations (for
+instructions that have retired or aborted due to mispredictions or
+traps) and to write-back rd values of retired instructions.
+
+% ================================================================
+
+\subsection{BSV: Vectors for the Scoreboard}
+
+\label{Sec_Fife_Scoreboard}
+
+\index{BSV!vector@{\tt vector}!library data type}
+
+In Section~\ref{Sec_Scoreboards} we discussed the general principles
+of a scoreboard, and described it as an array of 1-bit values.  In BSV
+the following type is used to represent an array of $n$ items, each of
+which is of type $t$:
+
+\begin{tabbing}\small\tt
+\hmm Vector \#(n, t);
+\end{tabbing}
+
+Note: in order to use this type in any BSV code file, the file must
+import the \verb|Vector| library:
+
+\begin{tabbing}\small\tt
+\hmm import Vector :: *;
+\end{tabbing}
+
+So, we can define a \verb|Scoreboard| type as follows:
+\begin{tabbing}\small\tt
+\hmm typedef  Vector \#(32, Bit \#(1))  Scoreboard;
+\end{tabbing}
+
+\index{BSV!replicate@{\tt replicate} {\tt vector} library function to create a vector value}
+\index{BSV!vector@{\tt vector}!library {\tt replicate} function}
+
+The BSV Vector-library function:
+
+\begin{tabbing}\small\tt
+\hmm replicate (v)
+\end{tabbing}
+
+creates a value of type \verb|Vector #(n, t)| where $n$ is inferred
+from the context and \verb|v| has the type $t$.  All $n$ items in the
+value are equal to \verb|v|.  Thus, we can instantiate a scoreboard
+like this, where all the vector elements are initialized to 0:
+
+\begin{tabbing}\small\tt
+\hmm Reg \#(Scoreboard) rg\_scoreboard <- mkReg (replicate (0));
+\end{tabbing}
+
+\index{BSV!vector@{\tt vector}!of {\tt n} bits \emph{vs.} {\tt Bit\#(n)}}
+\index{BSV!vector@{\tt vector}!representation in bits}
+
+In hardware, a \verb|Vector#(32,Bit#(1))| value occupies exactly 32
+bits, {\ie} the size of the vector times the size of each element.
+So, why not use \verb|Bit #(32)| instead?  It's a matter of
+programming taste:
+
+\begin{tightlist}
+
+  \item The same syntax \verb|v[j]| works both for bit-selection from
+        \verb|Bit#(n)| and \verb|Vector#(n,Bit#(1))|.
+
+  \item With \verb|Bit#(n)|, a $j^{th}$ bit can also be selected using
+        shift-and-mask operations: \verb|((v >> j) & 1)|.
+
+  \item The $j^{th}$ bit of \verb|Vector#(n,Bit#(1))| can be updated
+        using simple assignment \\
+	\hmm \verb|v [j] = new_value;|
+
+  \item The $j^{th}$ bit of \verb|Bit#(n)| can be updated using shift
+        and mask operations: \\
+	\hmm \verb'(v | (1 << j))' to set the $j^{th}$ bit to 1, and \\
+	\hmm \verb|(v & (~ (1 << j)))| to resset the $j^{th}$ bit to 0
+
+\end{tightlist}
+
+We can convert a \verb|Vector #(32, Bit #(1))| value into a \verb|Bit#(32)| value with:
+
+\hmm \verb|pack (v)|
+
+and we can convert a \verb|Bit#(32)| value into a \verb|Vector #(32, Bit #(1))| value with:
+
+\hmm \verb|unpack (v)|
+
+% ================================================================
+
+\subsection{The RR-RW module}
+
+The RR-RW module code is shown below (except we elide the BEHAVIOR
+rules, which we will discuss shortly.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
+(* synthesize *)
+module mkRR_RW (RR_RW_IFC);
+   // Forward in
+   FIFOF #(D_to_RR) f_D_to_RR <- mkPipelineFIFOF;
+
+   // Forward out
+   FIFOF #(RR_to_Retire)  f_RR_to_Retire  <- mkBypassFIFOF;  // Direct
+   FIFOF #(RR_to_Control) f_RR_to_Control <- mkBypassFIFOF;  // Control pipe
+   FIFOF #(RR_to_EX)      f_RR_to_EX_IALU <- mkBypassFIFOF;  // Integer pipe
+   FIFOF #(Mem_Req)       f_DMem_S_req    <- mkBypassFIFOF;  // DMem pipe
+
+   // Backward in
+   FIFOF #(RW_from_Retire) f_RW_from_Retire <- mkPipelineFIFOF;
+
+   // The integer register file (GPRs)
+   RISCV_GPRs_IFC #(XLEN)  gprs <- mkRISCV_GPRs;
+
+   // Scoreboard for GPRs
+   Reg #(Scoreboard) rg_scoreboard <- mkReg (replicate (0));
+
+   // ================================================================
+   // BEHAVIOR
+
+   ... (to be discussed shortly) ...
+
+   // ================================================================
+   // INTERFACE
+
+   method Action init (Initial_Params initial_params);
+      ...
+   endmethod
+
+   // Forward in
+   interface fi_D_to_RR = to_FIFOF_I (f_D_to_RR);
+
+   // Forward out
+   interface fo_RR_to_Retire  = to_FIFOF_O (f_RR_to_Retire);
+   interface fo_RR_to_Control = to_FIFOF_O (f_RR_to_Control);
+   interface fo_RR_to_EX_IALU = to_FIFOF_O (f_RR_to_EX_IALU);
+   interface fo_DMem_S_req    = to_FIFOF_O (f_DMem_S_req);
+
+   // Backward in
+   interface fi_RW_from_Retire = to_FIFOF_I (f_RW_from_Retire);
+endmodule
+\end{Verbatim}
+}
+
+The first section instantiates FIFOs {\tt f\_XXX} for all the forward
+and backward flows, and instantiates the register file \verb|gprs| and
+the \verb|scoreboard|.
+
+The final INTERFACE section, after the \verb|init| method, simply
+lists the FIFO interfaces to this module's interface.
+
+The BEHAVIOR section contains two rules, one for the forward flow
+(Register-Read and Dispatch) and one for the backward flow
+(Register-Write).  The forward-flow rule is shown below:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
+   rule rl_RR_Dispatch;
+      let x = f_D_to_RR.first;
+
+      let instr   = x.instr;
+      let opclass = x.opclass;
+      let rs1     = instr_rs1 (instr);
+      let rs2     = instr_rs2 (instr);
+      let rd      = instr_rd  (instr);
+
+      let scoreboard = rg_scoreboard;
+      let busy_rs1   = (x.has_rs1 && scoreboard [rs1]);
+      let busy_rs2   = (x.has_rs2 && scoreboard [rs2]);
+      let busy_rd    = (x.has_rd  && scoreboard [rd]);
+      Bool stall     = (busy_rs1 || busy_rs2 || busy_rd);
+
+      if (stall) begin
+         // no action
+      end
+      else begin
+	 // Not stalled; proceed
+	 f_D_to_RR.deq;
+
+	 // Read GPRs
+	 let rs1_val = gprs.read_rs1 (rs1);
+	 let rs2_val = gprs.read_rs2 (rs2);
+
+	 // Dispatch to one of the next-stage pipes
+	 Result_Dispatch y <- fn_Dispatch (rg_flog, x, rs1_val, rs2_val);
+
+	 // Direct to Retire
+	 f_RR_to_Retire.enq (y.to_Retire);
+
+	 // Dispatch
+	 if (y.to_Retire.exec_tag == EXEC_TAG_RETIRE) begin
+	    // no further action
+	 end
+	 else begin
+	    // Update scoreboard for RD
+	    if (x.has_rd) begin
+	       scoreboard [rd] = 1;
+	       rg_scoreboard <= scoreboard;
+	    end
+
+	    // Forward info to appropriate Execute pipe
+	    if (y.to_Retire.exec_tag == EXEC_TAG_CONTROL)
+	       f_RR_to_Control.enq (y.to_Control);
+
+	    else if (y.to_Retire.exec_tag == EXEC_TAG_IALU)
+	       f_RR_to_EX_IALU.enq (y.to_EX);
+
+	    else if (y.to_Retire.exec_tag == EXEC_TAG_DMEM) begin
+	       Mem_Req mem_req <- fn_DMem_Req (rg_flog, y.to_EX);
+	       f_DMem_S_req.enq (mem_req);
+	    end
+	    else begin
+	       $display ("    -> IMPOSSIBLE");
+	       $finish (1);
+	    end
+	 end
+      end
+   endrule
+\end{Verbatim}
+}
+
+In line 2, we observe the first element in the \verb|f_D_to_RR| FIFO.
+Note, we observe it non-destructively, {\ie} \emph{we do not dequeue}
+it from the FIFO.  This is because, if we must stall, it needs to be
+available the next time the rule fires.
+
+The next several lines compute the stall condition by checking the
+scoreboard for whether rs1, rs2 or rd are busy (if the instruction has
+rs1, rs2 or rd, respectively).
+
+If we stall, the rule takes no action; everything will be retried the
+next time it fires.  If we do not stall, then we dequeue the
+\verb|f_D_to_RR| FIFO.  We read values of the rs1 and rs2 registers.
+Note, if the instruction does not have an rs1 or rs2, here we will be
+reading some random registers according to the bits that happen to be
+in the rs1 and rs2 bit-positions in the instruction.  This does not
+matter; in the Execute stage each instruction only \emph{uses} these
+values if the instruction has an rs1 and/or rs2.
+
+Next, we apply the function \verb|fn_Dispatch| (discussed in
+Section~\ref{Sec_RRD_function}, and the same one we use in Drum) to
+the inputs, which computes \verb|y|, containing the structs to be sent
+on the direct path (\verb|y.to_Retire|), to Execute Control
+(\verb|y.to_Control|), and to Execute Int and Execute DMem
+(\verb|y.toEX|).
+
+We enqueue \verb|y.to_Retire| on the direct flow (FIFO
+\verb|f_RR_to_Retire|).  If the execution tag is not
+\verb|EXEC_TAG_RETIRE|, we will be sending the instruction into the
+one of the Execute pipes (Execute Control, Execute Integer, or DMem).
+If the instruction has an rd, we mark it on the scoreboard, and send
+the instruction into the appropriate pipe.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+Consider this hypothetical scenario: suppose the \verb|stall|
+condition is false.  Then, we need to dequeue \verb|f_D_to_RR| and do
+one or more enqueues into \verb|f_RR_to_Retire| and
+\verb|f_RR_to_Control|, \verb|f_RR_to_EX_IALU| or
+\verb|f_DMem_S_req.enq|.  Is it possible that we perform the dequeue
+and then are unable to perform the enqueue(s) because the
+corresponding output FIFO happens to be full?
+
+\emph{Hint:} Remember the definition of rule atomicity where a rule
+only fires if the implicit conditions on \emph{all} the methods it
+invokes are true.
+
+\Exercise
+
+Write a boolean expression representing the overall firing condition
+for the rule.  Briefly: all FIFO-modifying actions (dequeue, enqueue)
+have implicit conditions, but for each FIFO, that condition is only
+relevant if the conditions on the surrounding if-then-else's select
+that action.
+
+\Exercise
+
+When debugging the implementation, it is useful to know if, due to
+some coding mistake, rule \verb|rl_RR_Dispatch| is stalled forever.
+For example, for some instruction with an rd, if the Retire stage did
+not send back the rd's scoreboard-release, that register will be
+forever ``busy''.
+
+Add a register to count consecutive stalls, initially 0.  In the rule,
+whenever we successfully dispatch an instruction, reset the counter to
+0.  Whenever we stall, increment the stall counter, and if the
+stall-counter reaches some chosen threshold value, prints debugging
+messages and executes \verb|$finish| to terminate simulation.
+
+\Endexercise
+
+Here is the code for rule \verb|rl_RW_from_Retire| For the backward
+flow.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
+   rule rl_RW_from_Retire;
+      let x <- pop_o (to_FIFOF_O (f_RW_from_Retire));
+
+      Scoreboard scoreboard = rg_scoreboard;
+      scoreboard [x.rd] = 0;
+      rg_scoreboard <= scoreboard;
+
+      if (x.commit)
+	 gprs.write_rd (x.rd, x.data);
+   endrule
+\end{Verbatim}
+}
+
+We pop the message \verb|x| from the \verb|f_RW_from_Retire| FIFO.  We
+perform its specified scoreboard-release for register rd.  If the rd
+value is to be committed, we write it into GPR [rd].
 
 % ****************************************************************
 
