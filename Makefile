@@ -27,6 +27,7 @@ SOURCES = \
 		ch090/ch_Drum_Pending.tex \
 		ch100/ch_Fife_Principles.tex \
 		ch110/ch_Fife_Code.tex \
+		ch120/ch_Fife_Pending.tex \
 		ch720_Pending/ch_Pending.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \

@@ -182,7 +182,7 @@ module mkFetch (Fetch_IFC);
    // INTERFACE
 
    method Action init (Initial_Params initial_params) if (! rg_running);
-      rg_flog    <= initial_params.flog;
+      ...
       rg_pc      <= initial_params.pc_reset_value;
       rg_running <= True;
    endmethod
@@ -331,7 +331,7 @@ module mkDecode (Decode_IFC);
    // INTERFACE
 
    method Action init (Initial_Params initial_params);
-      rg_flog <= initial_params.flog;
+      ...
    endmethod
 
    // Forward flows in
@@ -634,8 +634,8 @@ in the rs1 and rs2 bit-positions in the instruction.  This does not
 matter; in the Execute stage each instruction only \emph{uses} these
 values if the instruction has an rs1 and/or rs2.
 
-Next, we apply the function \verb|fn_Dispatch| (discussed in
-Section~\ref{Sec_RRD_function}, and the same one we use in Drum) to
+Next, we apply the function \verb|fn_Dispatch| (it was discussed in
+Section~\ref{Sec_RRD_function}, and is the same one we use in Drum) to
 the inputs, which computes \verb|y|, containing the structs to be sent
 on the direct path (\verb|y.to_Retire|), to Execute Control
 (\verb|y.to_Control|), and to Execute Int and Execute DMem
@@ -717,11 +717,97 @@ value is to be committed, we write it into GPR [rd].
 
 \label{Sec_Fife_Control_stage}
 
+The code for the Execute Control stage is shown below:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S4\_EX\_Control.bsv)]
+(* synthesize *)
+module mkEX_Control (EX_Control_IFC);
+   // Forward in
+   FIFOF #(RR_to_Control)      f_RR_to_Control      <- mkPipelineFIFOF;
+   // Forward out
+   FIFOF #(Control_to_Retire)  f_Control_to_Retire  <- mkBypassFIFOF;
+
+   // ================================================================
+   // BEHAVIOR
+
+   rule rl_Control;
+      let x <- pop_o (to_FIFOF_O (f_RR_to_Control));
+      let y <- fn_Control (rg_flog, x);
+      f_Control_to_Retire.enq (y);
+   endrule
+
+   // ================================================================
+   // INTERFACE
+
+   method Action init (Initial_Params initial_params);
+      ...
+   endmethod
+
+   // Forward in
+   interface fi_RR_to_Control     = to_FIFOF_I (f_RR_to_Control);
+   // Forward out
+   interface fo_Control_to_Retire = to_FIFOF_O (f_Control_to_Retire);
+endmodule
+\end{Verbatim}
+}
+
+After instantiating the forward flow input and output FIFOs, the rule
+\verb|rl_Control| simply applies the function \verb|fn_Control| to
+each input and enqueues the output.  This function was described in
+Section~\ref{Sec_Control_function}, and is the same one we use in
+Drum.  Finally, the interface, after the \verb|init| method, simply
+lifts the FIFO interfaces to the interface of this module.
+
 % ****************************************************************
 
 \section{Fife: the Execute Integer Ops stage}
 
 \label{Sec_Fife_IALU_stage}
+
+The code for the Execute Integer Ops stage is also very simple, and
+shown below:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S4\_EX\_Int.bsv)]
+(* synthesize *)
+module mkEX_Int (EX_Int_IFC);
+   // Forward in
+   FIFOF #(RR_to_EX)      f_RR_to_EX_IALU <- mkPipelineFIFOF;
+   // Forward out
+   FIFOF #(EX_to_Retire)  f_EX_to_Retire  <- mkBypassFIFOF;
+
+   // ================================================================
+   // BEHAVIOR
+
+   rule rl_EX_IALU;
+      let x <- pop_o (to_FIFOF_O (f_RR_to_EX_IALU));
+      let y <- fn_EX_IALU (rg_flog, x);
+      f_EX_to_Retire.enq (y);
+   endrule
+
+   // ================================================================
+   // INTERFACE
+
+   method Action init (Initial_Params initial_params);
+      ...
+   endmethod
+
+   // Forward in
+   interface fi_RR_to_EX_IALU = to_FIFOF_I (f_RR_to_EX_IALU);
+
+   // Forward out
+   interface fo_EX_IALU_to_Retire = to_FIFOF_O (f_EX_to_Retire);
+endmodule
+\end{Verbatim}
+}
+
+The structure is just like \verb|mkEX_Control|: forward-flow input and
+output FIFOs, with the rule transforming input to output through the
+function \verb|fn_EX_IALU|, which was discussed in
+Section~\ref{Sec_EXI_function} and is the same one we use in Drum.
+Finally, the interface, after the \verb|init| method, simply lifts the
+FIFO interfaces to the interface of this module.
 
 % ****************************************************************
 
@@ -729,37 +815,20 @@ value is to be committed, we write it into GPR [rd].
 
 \label{Sec_Fife_DMem_stage}
 
+There is no explicit code for an Execute Memory Ops stage.  The
+forward-path rule \verb|rl_RR_Dispatch| in the
+Register-Read-and-Dispatch stage, described in
+Section~\ref{Sec_Fife_RR_RW_module}, directly enqueues a memory
+request that goes out to memory.  The Retire stage, to be discussed in
+Section~\ref{Sec_Fife_Retire_stage}, consumes the corresponding memory
+response.
+
 % ****************************************************************
 
 \section{Fife: the Retire stage}
 
 \label{Sec_Fife_Retire_stage}
 
-% ****************************************************************
-
-\section{Fife: CSRs}
-
 To be written ...
-
-\begin{tightlist}
-\item CSRRxx are read-modify-write operations
-\item CSRRxx access may not be memory-like (side-effecting reads, read
-      may not return last written value,
-\item ... (a bit like MMIO issues)
-\end{tightlist}
-Hard to pipeline, so execute in Retire stage, as FSM.
-
-CSRRxx instructions should be rare, so FSM exec does not affect overall performance.
-
-% ****************************************************************
-
-\section{Fife: Interrupts}
-
-To be written ...
-
-Check for interrupts in Retire stage, fix up CSRs and and redirect.
-
-Retire stage already has infra for CSR update and redirection, so this
-is a small incremental change.
 
 % ****************************************************************

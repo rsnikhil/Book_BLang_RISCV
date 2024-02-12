@@ -2,15 +2,15 @@
 
 % ****************************************************************
 
-\chapter{RISC-V: Drum final topics: traps and interrupts}
+\chapter{RISC-V: Fife final topics: traps and interrupts}
 
-\markboth{Ch \arabic{chapter}: Drum Pending (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Fife Pending (DRAFT)}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
 \renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
 
-\label{ch_Drum_Pending}
+\label{ch_Fife_Pending}
 
 % ****************************************************************
 
@@ -39,14 +39,14 @@ This chapter is to be written.  The principal topics are:
 
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{ch030_RISCV_Design_Space/Figures/Fig_Instr_Exec}}
-  \caption{\label{Fig_Pending_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec})}
+  \caption{\label{Fig_Fife_Pending_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec})}
 \end{figure}
 
 \hdivider
 
 % ****************************************************************
 
-\section{Drum: Traps}
+\section{Fife: Traps}
 
 Basic overview of how RISC-V does trap-handling is already covered in Chapter~\ref{ch_ISA}.
 
@@ -57,7 +57,11 @@ Here:
  \item Adding trap-handling CSRs (Control and Status Registers)
      MCAUSE, MTVAL, MEPC, MTVEC, MCAUSE, MRET, minimal MSTATUS.
 
- \item Adding CSRRxx instructions to access CSRs
+ \item Adding CSRRxx instructions to access CSRs.  Hard to pipeline
+       because many CSRs are not memory-like (side-effects, WARL
+       fields), so execute entirely in Retire stage, as FSM.  This is
+       slow, but CSRRxx instructions should be rare, so FSM exec does
+       not affect overall performance.
 
  \item Adding trap-handling
 
@@ -65,9 +69,9 @@ Here:
 
 % ****************************************************************
 
-\section{Drum: Interrupts}
+\section{Fife: Interrupts}
 
-Interrupts in Drum:
+Interrupts in Fife:
 \begin{tightlist}
   \item General concepts: CSRs MIP and MIE; minimal MSTATUS with interrupt-enable bits
 
