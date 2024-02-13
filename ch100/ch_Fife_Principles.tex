@@ -266,7 +266,7 @@ registers and write to memory.  We must ensure that speculative
 instructions make no modifications that are visible to right-path
 instructions that follow, until they reach the Retire stage.  The
 details of how this is accomplished will be seen in
-Section~\ref{Sec_Store_Buffers} and Section~\ref{Sec_Retire_Stage}.
+Section~\ref{Sec_Store_Buffers} and Section~\ref{Sec_Fife_Retire_Principles}.
 
 % ****************************************************************
 
@@ -618,7 +618,7 @@ Discuss the implications of such a design on the size of the store-buffer.
 
 \section{The Retire Stage}
 
-\label{Sec_Retire_Stage}
+\label{Sec_Fife_Retire_Principles}
 
 Figure~\ref{Fig_Fife_Retire} summarizes the actions to be taken by the
 Retire stage.

@@ -2,7 +2,7 @@
 
 % ****************************************************************
 
-\chapter{Advanced topics, possibly in ``Book 2''?}
+\chapter{Advanced topics not covered in this book}
 
 \markboth{Ch \arabic{chapter}: Pending (DRAFT)}{\copyrightnotice}
 
@@ -10,30 +10,21 @@
 % \renewcommand{\thepage}{\arabic{page}}
 \renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
 
-\label{ch_Pending}
-
-% ****************************************************************
-
-This is a place-holder chapter with a TODO list of pending possible
-topics to be written.
-
-Goal: Linux capability, better performance.
-
-\hdivider
+\label{ch_Not_Covered}
 
 % ****************************************************************
 
 \section{Advanced branch prediction}
 
-Is a form of online machine-learning.
+Is a form of online machine-learning (past history is the ``training data'').
 
-Branch instruction hints.
+Branch instruction taken/not-taken hints.
+
+Hysteresis in prediction.
 
 Branch-Target buffers (BTBs)
 
 Return-Address Stacks (RASs)
-
-Hysteresis in prediction.
 
 % ****************************************************************
 
@@ -47,15 +38,15 @@ FENCE: flushing caches for for devices.
 
 Multi-level caches and cache hierarchies.
 
-Cache-coherence.
-
 Non-blocking caches.
+
+Cache-coherence.
 
 % ****************************************************************
 
 \section{Compressed instructions}
 
-Implementation: wholly in Decode stage.  Common shared between Fife and Drum.
+Implementation: wholly in Decode stage.  Can be shared between Fife and Drum.
 
 Affect of compressed instructions on Fetch.
 
@@ -67,36 +58,21 @@ Affect of non-32-bit alignment of compressed instructions.
 
 \section{AMO operations}
 
-Note: These (implementation-independent) explanations may already be
-done in Chapter~\ref{ch_ISA} on the RISC-V ISA:
-
-\begin{itemize}
-  \item Explanation of LR and SC instructions
-  \item Explanation of AMOxxx instructions
-  \item Implementation in the memory system
-\end{itemize}
+LR, SC, AMOxxx instructions and their implementation in the memory system.
 
 % ****************************************************************
 
-\section{Multiple Privilege levels}
+\section{Linux and server-class capability}
 
-Machine, Supervisor, User
+Multiple privilege levels: Machine, Supervisor, User
 
 Interrupt/trap delegation.
 
-Hypervisor
+Advanced: Hypervisor support
 
-% ****************************************************************
+Page Tables, TLBs, Virtual Memory.
 
-\section{Memory Protection with PMPs}
-
-Page Tables, TLBs
-
-% ****************************************************************
-
-\section{Virtual Memory}
-
-Page Tables, TLBs
+Memory Protection with PMPs.
 
 % ****************************************************************
 
