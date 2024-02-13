@@ -1,6 +1,7 @@
-FIGS += Fig_Fife_Retire.png
-FIGS += Fig_Instr_Exec_w_FIFOs.png
 FIGS += Fig_FIFO.png
+FIGS += Fig_What_is_an_ISA.png
+FIGS += Fig_Instr_Exec_w_FIFOs.png
+FIGS += Fig_Fife_Retire.png
 
 .PHONY: help
 help:
