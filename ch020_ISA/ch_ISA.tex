@@ -449,7 +449,7 @@ needed to decode an instruction.
 
 % ****************************************************************
 
-\section{Unprivileged ISA RV32I: How to read the prose specification}
+\section{Unprivileged ISA RV32I}
 
 \label{Sec_RV32I}
 
@@ -459,50 +459,296 @@ Figure~\ref{Fig_RV32I_labeled} reproduces the table on page 130 of the
 RISC-V Unprivileged ISA specification, which shows all RV32I
 instructions.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_RV32I_labeled}}
+  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_RV32I_labeled}}}
   \caption{\label{Fig_RV32I_labeled} RISC-V RV32I Instructions}
 \end{figure}
+On the right-side of the diagram we have labeled different classes of
+instructions.
+
 Note that there are just 40 instructions (again justifying the ``RISC'' name).
 
-How to read the ISA spec: examples LUI, AUIPC.
+% ================================================================
+
+\subsection{``Upper Immediate'' instructions LUI and AUIPC}
 
 Figure~\ref{Fig_LUI_AUIPC} reproduces the top of page 19 of the RISC-V
 Unprivileged ISA specification, which describes the semantics of the
-LUI and AUIPC instructions.
+LUI and AUIPC instructions in prose text.
 \begin{figure}[htbp]
-  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_LUI_AUIPC}}}
+  \centerline{\frame{\includegraphics[width=5in,angle=0]{Figures/Fig_LUI_AUIPC}}}
   \caption{\label{Fig_LUI_AUIPC} RISC-V LUI and AUIPC Instruction semantics}
 \end{figure}
 
-How to read the ISA spec: examples Conditional Branch, LOAD/STORE,
-Register-Register Arithmetic and Logic, Register-Immediate Arithmetic
-and Logic, Unconditional Jump.
+Figure~\ref{Fig_LUI} is a pictorial depiction of the semantics of an LUI instruction.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_LUI}}
+  \caption{\label{Fig_LUI} Execution semantics for LUI instructions}
+\end{figure}
+At the left of the figure is depiction of the general behavior of a
+CPU, namely to loop forever, at each iteration fetching the
+instruction that is in memory at the address specified by the PC
+register, and then executing that instruction.  For the LUI
+instruction, to the 20 bits [31:12] of the instruction (the
+``immediate'' value) we append twelve bits of constant 0 as
+least-significant bits to construct a 32-bit value.  This value is
+then written into register rd.
+
+Figure~\ref{Fig_AUIPC} is a pictorial depiction of the semantics of an AUIPC instruction.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_AUIPC}}
+  \caption{\label{Fig_AUIPC} Execution semantics for AUIPC instructions}
+\end{figure}
+As with LUI, to the 20 bits [31:12] of the instruction (the
+``immediate'' value) we append twelve bits of constant 0 as
+least-significant bits to construct a 32-bit value.  For AUIPC we add
+this value to the 32-bits of the PC, and the result is then written
+into register rd.
+
+% ================================================================
+
+\subsection{Conditional BRANCH instructions}
+
+Conditional branch instructions compare the values in registers rs1
+and rs2 for some condition: BEQ (equal), BNE (not-equal), BLT
+(less-than), BGE (greater-than-or-equal).  If the condition is:
+
+\begin{tightlist}
+
+  \item false (``branch not taken''):
+
+    \begin{tightlist}
+      \item The instruction is a no-op, it just falls through to the
+            next instruction (PC := PC+4).
+    \end{tightlist}
+
+  \item true (``branch taken''):
+
+    \begin{tightlist}
+      \item The 12 ``imm'' bits form a 13-bit value (see
+            Figure~\ref{Fig_B_imm}).
+
+      \item This 13-bit value is sign-extended to 32 bits and added to
+            the current PC to form a target address (``branch
+            target'').
+            
+      \item The PC is updated to contain the target address.
+    \end{tightlist}
+
+\end{tightlist}
+
+Because of sign-extension (+/-), the branch may be forwards or
+backwards relative to the current PC.
+
+For BLT and BGE, the comparison treats the two input 32-bit values as
+\emph{signed} values.  For BLTU and BGEU, they are treated as
+\emph{unsigned} values.
+
+% ================================================================
+
+\subsection{LOAD and STORE memory-access instructions}
+
+LOAD (LB, LH, LW, LBU, LHU) instructions move data from memory into a
+register.  STORE (SB, SH, SW) instructions move data from a register
+to memory.  In both cases, the address is formed by sign-extending the
+12-bit immediate value to 32 bits and adding it to the value from
+register rs1.  For LOAD instructions, the value loaded is placed into
+register rd.  For STORE instructions, the value in register rs2 is
+stored to memory, and there is no result value written into any
+register.
+
+As with most modern ISAs, RISC-V memory is byte-addressed, {\ie} each
+address refers to a specific byte in memory.  The size of the data to
+be loaded/stored is given by ``B'' (1 Byte), ``H'' (Halfword = 2
+bytes), or ``W'' (Word = 4 bytes) in the instruction name.
+
+The difference between LB and LBU is whether the 8 bits loaded (1
+byte) are sign-extended or zero-extended, respectively, to 32 bits
+when placed in the 32-bit rd. (And similarly for LH vs. LHU.)
+
+How to read the ISA spec: examples LOAD/STORE, Register-Register
+Arithmetic and Logic, Register-Immediate Arithmetic and Logic,
+Unconditional Jump.
+
+% ================================================================
+
+\subsection{Register-Register Arithmetic and Logic instructions}
+
+These instructions read registers rs1 and rs2, perform the specified
+arithmetic/logic operation on the two values, and store the result
+into register rd.
+
+SLT (``set if less than'') tests if register[rs1] < register[rs2], and
+writes 0 (false) or 1 (true) into the destination register, treating
+the inputs as 32-bit signed values.  SLTU treats inputs as unsigned
+values.
+
+SRL (``shift right logical'') shifts the value from register[rs1] to
+the right (towards the least-significant bits) by the amount in
+register[rs2].  Zeroes are shifted in from the left.
+
+In SRA (``shift right arithmetic''), the register[rs1][31] is shifted
+in from the left, {\ie} the 32-bit value is treated as a signed
+integer (bit 31 is the sign bit).
+
+In SLL (``shift left logical''), zeroes are shifted in from the right.
+
+In all three shifts, since there are only 32 bits in register[rs1],
+only the lower 5 bits of register[rs2] are relevant ({\ie} bits
+[4:0]); the rest are ignored.
+
+% ================================================================
+
+\subsection{Register-Immediate Arithmetic and Logic instructions}
+
+These instructions read register rs1, form a signed 32-bit value from
+the 12-bit ``imm'' bits, and perform the specified arithmetic/logic
+operation on the two values, and store the result into register rd.
+
+In SRLI (``shift right logical immediate''), SRAI (``shift right
+arithmetic immediate''), and SLLI (``shift left logical immediate''),
+the 5-bit \verb|shamt| field provides the ``shift amount''.
+
+% ================================================================
+
+\subsection{Unconditional Jump instructions}
+
+JAL (``jump and link'') forms a 21-bit value from the 20 ``imm'' bits
+(see Figure~\ref{Fig_J_imm}), sign-extends it to 32 bits, adds it to
+the current PC value and updates the PC with the result.
+
+JALR (``jump and link register'') forms a 12-bit value from the 12
+``imm'' bits, sign-extends it to 32 bits, adds that to the value in
+register[rs1], forces bit [0] to be 0, and updates the PC to that
+value
+
+Both JAL and JALR store the current PC + 4 (``return address'') into
+register[rd].
+
+These are most often used for subroutine calls and returns.
+Figure\ref{Fig_JAL_JALR} illustrates the protocol.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_JAL_JALR}}
+  \caption{\label{Fig_JAL_JALR} JAL and JALR for subroutine call and return}
+\end{figure}
+
+Suppose, inside function f1(), at address x, we have a {\tt JAL ra,f2}
+instruction representing a subroutine call to function f2().  The
+compiler/linker will place ``delta'' in the JAL instruction's
+``immediate'' field, where delta is the difference between x and the
+entry point of f2().  In RISC-V Assembly Language, ``ra'' (``return
+address'') is another name for register[1], which is used to hold
+return addresses as part of the standard software calling convention.
+The JAL instruction saves x+4 (the return address) in register ra, and
+sets the PC to x+delta, so that the next instruction fetched will be
+the entry point of f2().
+
+Inside f2(), at address y, suppose we have a {\tt JALR 0,ra,0}
+instruction representing the return to the caller.  It saves y+4 in
+register 0, but recall that writes to register 0 are always ignored.
+It reads the value in register ra, adds 0 to it and sets the PC to the
+result value, {\ie} the next instruction fetched will be from x+4.
+
+JAL is used for most subroutine calls which are to a manifestly known
+subroutines (so the compiler/linker can compute the ``delta'' for the
+immediate value).  JALR is used for subroutine calls where the
+``delta'' is not known to the compiler/linker, for example when
+calling through a table of function pointers.
+
+JALR is also used for subroutine calls and returns and conditional
+branches to ``distant'' target addresses.  Remember that BRANCH
+instructions only have a 13-bit signed offset from the current PC, and
+JAL only has a 21-bit signed offset.  For more distant jumps, we can
+construct a full 32-bit value in a register (using one or more LUI and
+AUIPC instructions, for example) and then use that as the jump rs1 in
+a JALR instruction.
 
 % ****************************************************************
 
-\section{What about illegal instructions?}
+\section{Traps due to illegal instructions or other exceptions}
 
-ECALL and EBREAK
+Most processors cannot afford to get ``stuck'' on an unrecognized
+instruction (illegal instruction).  This raises one of several
+possible ``exceptions'' or ``traps'' and they are all handled in the
+same way.  Other examples of exceptions are misaligned memory access
+(fetch or LOAD/STORE), or a memory-access to an unimplemented address
+(fetch or LOAD/STORE).
+
+Exceptions are treated like an ``unexpected call'' to a special
+subroutine called a ``trap/exception handler''.  The architectural
+state is extended with a few extra registers belonging to a class of
+registers called CSRs (Control and Status Registers).  These are shown
+in Figure~\ref{Fig_Trap_CSRs}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Trap_CSRs}}
+  \caption{\label{Fig_Trap_CSRs} CSRs for handling traps/exceptions}
+\end{figure}
+
+To ``return'' from a trap handler we add one more instruction: MRET.
+
+Figure~\ref{Fig_Trap_Return} illustrates the flow into the trap
+handler and back on an exception (ILLEGAL instruction is one possible
+cause of a trap).
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Trap_Return}}
+  \caption{\label{Fig_Trap_Return} Trap and return flow}
+\end{figure}
+
+When the exception is detected, the hardware saves the faulting PC in
+CSR MEPC, saves a cause-code in CSR MCAUSE and possibly one more piece
+of data in CSR MTVAL.  Then, it sets the PC to the value in MTVEC, so
+that we start executing the trap-handler code.
+
+The trap handler code can examine MCAUSE, MEPC and MTVAL to determine
+what it should do to handle the trap.  Finally, an MRET instruction
+reads MEPC and restores the PC accordingly, to resume the normal flow.
+Note, the trap handler may return to MEPC or to MEPC+4, depending on
+trap cause.
 
 % ================================================================
 
-\subsection{Assembly Language and Calling Conventions}
+\subsection{ECALL, EBREAK, FENCE, and Interrupts}
 
-% ================================================================
+RV32I instructions ECALL and EBREAK, and external interrupts are all
+treated just like traps/exceptions, just placing a suitable cause-code
+in CSR MCAUSE.  ECALL is usually used to move to a higher privilege
+level (User to Supervisor, or Supervisor to Machine).  EBREAK is
+usually used for debugging.
 
-\subsection{Standard Unprivileged ISA Extensions}
-
-M, A, FD, C
+In this book we gloss over the FENCE instruction, which is used to
+flush data to memory that may still be sitting in caches near the CPU,
+so that other devices or CPUs can see the data.  This is done inside
+the memory system, which is not a topic discussed in this book.
 
 % ================================================================
 
 \subsection{RV64I differences from RV32I}
 
-% ================================================================
+The Architectural State for RV64I is just like that for RV32I, except
+that the PC and 32 registers are now 64-bits wide instead of 32-bits
+wide.  Figure~\ref{Fig_RV64I} reproduces the table of RV64I
+instructions from page 131 of the Unprivileged Spec document.
+\begin{figure}[htbp]
+  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_RV64I}}}
+  \caption{\label{Fig_RV64I} RV64I instructions (in addition to RV32I)}
+\end{figure}
+RV64I starts with the same forty instructions as in RV32I, except that
+it replaces 3 of them---SLLI, SRLI and SRAI---with slight
+modifications: the ``shamt'' field is now 6 bits instead of 5, to
+accommodate 64-bit shifts.
 
-\subsection{Brief description of privileged ISA}
+In RV64I, the LW instruction loads 32-bits from memory, sign-extends
+it to 64 bits and stores it in the destination register.  RV64I adds
+the LWU instruction that does the same, except that it zero-extends
+the 32-bit value from memory.  RV64I also adds the LD instruction to
+load 64-bits from memory into a register.
 
-MSTATUS, MTVEC, MEPC, MTVAL, MCAUSE, ...
+RV64I adds the SD instruction to store a 64-bit value from a register
+into memory.
+
+In RV64I, ADDI, SLLI, SRLI, SRAI, ADD, SUB, SLL, SRL and SRA all
+operate on 64-bit values.  RV64I adds ADDIW, SLLIW, SRLIW, SRAIW,
+ADDW, SUBW, SLLW, SRLW and SRAW to operate on the lower 32-bits of
+64-bit register values.
 
 % ****************************************************************
 
@@ -520,14 +766,3 @@ public-review and ratification process for any new proposed
 extensions.
 
 % ****************************************************************
-
-
-{\large\bf DELETE}
-
-\begin{itemize}
-    \item RISC-V Gnu Tools and related documentation.
-          Please see Appendix \ref{apx_resources_gnu_tools} for links.
-
-    \item RISC-V textbooks.
-          Please see Appendix \ref{apx_resources_RISCV_textbooks} for links.
-\end{itemize}
