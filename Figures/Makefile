@@ -1,5 +1,9 @@
 FIGS += Fig_FIFO.png
 FIGS += Fig_What_is_an_ISA.png
+FIGS += Fig_ISA_Modularity.png
+FIGS += Fig_J_imm.png
+FIGS += Fig_B_imm.png
+FIGS += Fig_RV32I_labeled.png
 FIGS += Fig_Instr_Exec_w_FIFOs.png
 FIGS += Fig_Fife_Retire.png
 

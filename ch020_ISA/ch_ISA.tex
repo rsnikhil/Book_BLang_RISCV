@@ -15,6 +15,17 @@
 
 % ****************************************************************
 
+\section{Introduction}
+
+This entire chapter can safely be skipped by those already familiar
+with RISC-V concepts, or who learn it elsewhere (there are many
+alternate resources on the web).  This chapter contains only generic
+information about ISAs and the RISC-V ISA in particular.  It can be
+read as a general introduction to the RISC-V universe; none of this is
+specific to this book.
+
+% ****************************************************************
+
 \section{What is an ISA?}
 
 \index{RISC-V!ISA!Instruction Set Architecture}
@@ -191,6 +202,10 @@ expensive, in the thousands of dollars or more.
 
 The RISC-V ISA is owned by RISC-V International (``RVI''), a
 non-profit corporation based in Switzerland (\url{https://riscv.org}).
+As of Fall 2023, RVI claimed a growing membership, including over
+three thousand corporate, government, university, and individual
+members from over 70 countries.
+
 The ISA is ``open'' in that no prior permission or license from RVI is
 needed in order to produce and sell implementations of the ISA.  If a
 \emph{commercial} product is claimed publicly to implement the RISC-V
@@ -228,6 +243,15 @@ researchers to attempt \emph{innovations} in micro-architecture and
 design and production techniques, something which is not practically
 feasible with a proprietary ISA.
 
+The RISC-V ISA is unusually \emph{modular} (more details in
+Section~\ref{Sec_ISA_Overview}).  It consists of a \emph{very} small
+``base'' Integer ISA and a number of optional standard extensions
+(such as Integer Multiply/Divide, floating point, Atomics, and
+Compressed instructions), and a systematic way of substituting or
+adding new, non-standard, proprietary extensions.  This makes it
+easier for an entrepreneur to ``tune'' the ISA for their proprietary
+impliementation aimed at a target market with specific requirements..
+
 There is also a security dimension to RISC-V's attractiveness.  When a
 customer buys a silicon implementation of an ISA, they have to trust
 that neither the vendor nor the supply chain inserted any secret
@@ -245,29 +269,218 @@ competitive RISC-V designs are available in free and open-source form.
 
 \section{Overview of the RISC-V ISA}
 
-RISC-V: RV32 and RV64
+\label{Sec_ISA_Overview}
 
-RISC-V ISA Modularity: Base + Options
+% ----------------
+% \vspace{2ex}
 
-RISC-V ISA Spec Documents .. Sail formal spec
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+  More detailed information on the topics of this section can be found in:
+  \begin{tightlist}
+    \item RISC-V ISA specification documents.
+          Please see Appendix \ref{apx_resources_ISA_specs} for links.
 
-% ================================================================
+    \item Formal specification of the RISC-V ISA, written in the Sail language.
+          Please see Appendix \ref{apx_resources_ISA_specs} for links.
 
-\subsection{Unprivileged ISA RV32I}
+    \item RISC-V Assembly Language manuals
+          Please see Appendix \ref{apx_resources_asm_manuals} for links.
+\end{tightlist}
 
-Instruction encodings
+\end{minipage}}
 
-Immediate values
+\vspace{2ex}
+% ----------------
 
-RV32I forty instructions overview
+The RISC-V ISA is designed to be highly modular.
+Figure~\ref{Fig_ISA_Modularity} shows the major components.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_ISA_Modularity}}
+  \caption{\label{Fig_ISA_Modularity} Modularity of the RISC-V ISA}
+\end{figure}
+The foundations (\emph{base} integer ISA) are RV32I and RV64I, for
+implementations with 32-bit and 64-bit register widths, respectively.
+Technically these are two separate ISAs, but all but two of the RV32I
+instructions have identical counterparts in RV64I, so one can think of
+RV64I as a superset of RV32I, as suggested in the diagram.  RV32I has
+just 40 instructions.  RV64I slightly modifies two of them and adds a
+few more instructions.
 
-How to read the ISA spec: examples LUI, AUIPC, Conditional Branch,
-LOAD/STORE, Register-Register Arithmetic and Logic, Register-Immediate
-Arithmetic and Logic, Unconditional Jump.
+To the base ISA one can add several standard optional ISA extensions:
 
-% ================================================================
+\begin{itemize}
 
-\subsection{What about illegal instructions?}
+  \item M: a few instructions for integer multiplication and division.
+
+  \item A: a few instructions for atomic memory operations (atomic
+        read-modify-write of locations in memory).
+
+  \item F,D: several instructions for IEEE single- and
+        double-precision floating point operations.
+
+  \item C: several so-called ``compressed'' instructions, which are
+        only 16-bits wide, for applications where it is important for
+        the code size to be small.
+
+  \item Vector extension for vector arithmetic for scientific, AI and
+        high-performance computing.
+
+  \item Other extensions like SIMD (Single Instruction, Multiple
+        Data), Bit Manipulation, useful in image processing,
+        cryptography, {\etc}
+
+\end{itemize}
+
+The standard Privileged ISA is shown in the bottom half of the
+diagram.  This consists of three ``privilege'' levels U (User, low), S
+(Supervisor) and M (Machine, high), with increasing capabilities with
+respect what aspects of the architectural state are visible and
+updatable.
+
+The transition into the Privileged ISA only happens through a few
+carefully managed gateways.  Thus, the whole standard Privileged ISA
+can easily be substituted with some other, non-standard, Privileged
+ISA, should the implementor find that beneficial.
+
+Simple RISC-V implementations for very small embedded systems may
+implement only one privilege level (M).  Since there is only one
+privilege level, there are no relative protections---all code can
+access all architectural state.
+
+Slightly more secure RISC-V implementations for embedded systems may
+implement two privilege levels (M and U).  Now, code running at U
+privilege can be prevented from accessing (and damaging) certain parts
+of architectural state such as devices, regions of memory, {\etc}
+
+Most medium- to large-size systems implement all three privilege
+levels, M, S and U.  Typically, user code runs at U privilege;
+operating systems such as Linux run at S privilege, and low-level
+device-access codes run at the highest (M) privilege.  When S is
+implemented, code running at both U and S privilege levels can also
+use \emph{virtual memory}.
+
+% ****************************************************************
+
+\section{Instruction encodings}
+
+\label{Sec_Instruction_Encodings}
+
+All RISC-V instructions are encoded in 32 bits (except for the C
+extension, where they are encoded in 16 bits).  Although there are
+hundreds of instructions if we count RV32I, RV64I, M, A, F, D, C, and
+Privileged ISA, they are all encoded in just a few 32-bit formats,
+shown in the Unprivileged spec, page 130, reproduced here in
+Figure~\ref{Fig_Instr_Encodings}.
+\begin{figure}[htbp]
+  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Encodings}}}
+  \caption{\label{Fig_Instr_Encodings} RISC-V Instruction Encodings}
+\end{figure}
+The labels on the right-hand-side are suggestive of the class of
+instructions that use that coding:
+\begin{tightlist}
+  \item R: ``register class'': typically two register inputs
+  \item I: ``immediate class'': typically one register and one immediate input
+  \item S: ``store class'': for the STORE instructions SB, SH and SW
+  \item B: ``branch class'': for the conditional branch instructions
+  \item U: ``Upper Immediate class'': for LUI (Load Upper Immediate)
+        and AUIPC (Add Upper Immediate to PC)
+  \item J: ``Jump class'': for jump instructions JAL and JALR
+\end{tightlist}
+
+We use standard Verilog ``bit-slice'' notation to refer to bit-fields
+of the 32-bit instruction. Thus, instr[6:0] refers to the lower 7 bits
+(bits 0 through 6) of the 32-bit instruction.
+
+The overall ``operation code'' (opcode) of an instruction is a
+combination of 6-bit \verb|opcode| field in instr[6:0] and the funct3
+and funct7 fields at other positions in the instruction.
+
+If the instruction reads at least one register, the first one is
+specified in the rs1 field (``register source 1''); the 5 bits in
+instr[15-19] specify one of the 31 registers.  If the instruction
+reads two register, the second one is specified in the rs2 field; the
+5 bits in instr[24-20] specify one of the 31 registers.  If the
+instruction writes a register, it is specified in the rd field
+(``register destination''); the 5 bits in instr[11-7] specify one of
+the 31 registers.
+
+In RISC-V, reading register \verb|x0| always yields the value 0.  This
+is a useful convenience built into the ISA.  For example, there is an
+instruction to test if the rs1-value is less than the rs2-value.  If
+we specify \verb|x0| for rs2, then we effectively test if the rs1
+value is negative.
+
+Some instructions take input data from bits in the instruction itself;
+these are called ``immediate'' fields.  In
+Figure~\ref{Fig_Instr_Encodings} we can see that there are various
+encodings for the immediate fields.  Consider the J-type instruction.
+Figure~\ref{Fig_J_imm} shows how the 20 ``imm'' bits in the
+instruction are permuted, with a 0 bit appended to the right, to
+produce a 21-bit immediate value to be used in the computation.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_J_imm}}
+  \caption{\label{Fig_J_imm} Construction of 21-bit immediate from 20 ``imm'' bits in J-type instructions}
+\end{figure}
+
+Similarly, Figure~\ref{Fig_B_imm} shows how the 12 ``imm'' bits in the
+instruction are permuted, with a 0 bit appended to the right, to
+produce a 13-bit immediate value to be used in the computation.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_B_imm}}
+  \caption{\label{Fig_B_imm} Construction of 13-bit immediate from 12 ``imm'' bits in B-type instructions}
+\end{figure}
+
+In both of the above, the encoding takes advantage of the fact that
+Jump and Branch target PCs are always at least 2-byte aligned, and
+therefore we do not have to use up an instruction ``imm'' bit to
+represent the ``0'' least-significant bit.  The extra bit in the
+immediate value effectively doubles the ``distance'' that a jump or
+branch can span.\footnote{Actually in RV32I and RV64I PC targets are
+4-byte aligned. The 2-byte alignment here accomodates the optional C
+(Compressed) extension, where instructions may be only 2-byte
+aligned.}
+
+The fact that there are so few encoding formats justifies the ``RISC''
+in the ISA name: Reduced Instruction Set Computer.  Having fewer
+formats, with few or zero special cases, simplifies the hardware
+needed to decode an instruction.
+
+% ****************************************************************
+
+\section{Unprivileged ISA RV32I: How to read the prose specification}
+
+\label{Sec_RV32I}
+
+\index{RISC-V!ISA!RV32I base integer instructions}
+
+Figure~\ref{Fig_RV32I_labeled} reproduces the table on page 130 of the
+RISC-V Unprivileged ISA specification, which shows all RV32I
+instructions.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_RV32I_labeled}}
+  \caption{\label{Fig_RV32I_labeled} RISC-V RV32I Instructions}
+\end{figure}
+Note that there are just 40 instructions (again justifying the ``RISC'' name).
+
+How to read the ISA spec: examples LUI, AUIPC.
+
+Figure~\ref{Fig_LUI_AUIPC} reproduces the top of page 19 of the RISC-V
+Unprivileged ISA specification, which describes the semantics of the
+LUI and AUIPC instructions.
+\begin{figure}[htbp]
+  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_LUI_AUIPC}}}
+  \caption{\label{Fig_LUI_AUIPC} RISC-V LUI and AUIPC Instruction semantics}
+\end{figure}
+
+How to read the ISA spec: examples Conditional Branch, LOAD/STORE,
+Register-Register Arithmetic and Logic, Register-Immediate Arithmetic
+and Logic, Unconditional Jump.
+
+% ****************************************************************
+
+\section{What about illegal instructions?}
 
 ECALL and EBREAK
 
@@ -293,27 +506,28 @@ MSTATUS, MTVEC, MEPC, MTVAL, MCAUSE, ...
 
 % ****************************************************************
 
-\section{Resources}
+\section{Continued Evolution of the RISC-V ISA}
 
-This chapter contains only generic RISC-V information, not specific to
-this book.  This chapter can be safely skipped by those already
-familiar with these generic topics, or who choose to learn it
-elsewhere:
+\index{RISC-V!ISA!Evolution of}
+\index{RISC-V!ISA!Extensions to}
 
-\begin{itemize}
-
-\item RISC-V ISA specification documents.
-      Please see Appendix \ref{apx_resources_ISA_specs} for links.
-
-\item RISC-V Assembly Language manuals
-      Please see Appendix \ref{apx_resources_asm_manuals} for links.
-
-\item RISC-V Gnu Tools and related documentation.
-      Please see Appendix \ref{apx_resources_gnu_tools} for links.
-
-\item RISC-V textbooks.
-      Please see Appendix \ref{apx_resources_RISCV_textbooks} for links.
-
-\end{itemize}
+The RISC-V ISA is not frozen.  RISC-V International (RVI) runs an
+organized process for the continued maintenance and evolution of the
+ISA.  Special-interest groups drawn widely from RVI membership
+constitute various committees under the aegis of RVI to propose,
+develop, and specify new extensions to the ISA.  There is a formal
+public-review and ratification process for any new proposed
+extensions.
 
 % ****************************************************************
+
+
+{\large\bf DELETE}
+
+\begin{itemize}
+    \item RISC-V Gnu Tools and related documentation.
+          Please see Appendix \ref{apx_resources_gnu_tools} for links.
+
+    \item RISC-V textbooks.
+          Please see Appendix \ref{apx_resources_RISCV_textbooks} for links.
+\end{itemize}
