@@ -42,7 +42,15 @@ This chapter is to be written.  The principal topics are:
   \caption{\label{Fig_Pending_Simple_Instr_Exec}Simple interpretation of RISC-V instructions (same as Fig.~\ref{Fig_Instr_Exec})}
 \end{figure}
 
-\hdivider
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1}}
+  \caption{\label{Fig_Retire_Drum}Retire actions in Drum}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1_2}}
+  \caption{\label{Fig_Retire_Fife}Retire actions in Fife}
+\end{figure}
 
 % ****************************************************************
 
@@ -91,5 +99,42 @@ Interrupts in Drum:
 CSRs MTIME, MCYCLE, MINSTRET.
 
 Mention ``hpmcounter'' CSRs for other events.
+
+% ****************************************************************
+
+\section{TEMPORARY}
+
+Retire table
+
+\begin{center}
+ \begin{tabular}{|l|c||c|c|c|}
+  \hline
+   \multicolumn{2}{|c|}{Exection} & \multicolumn{3}{|c|}{Actions} \\
+   Flow kind           & outcome  & Rd   & Store-buf & Next  \\
+  \hline
+  \hline
+   Direct Exception    &          & ---  &   ---     & Trap  \\
+  \hline
+   Direct CSRRxx       &   ok     &  Y   &   ---     &  PC   \\
+                       &   exc    &  Y   &   ---     & Trap  \\
+  \hline
+   Direct MRET         &   ok     & ---  &   ---     &  PC   \\
+  \hline
+   Direct ECALL/EBREAK &   exc    & ---  &   ---     & Trap  \\
+  \hline
+   Control             &   ok     &  Y   &   ---     &  PC   \\
+                       &   exc    &  Y   &   ---     & Trap  \\
+  \hline
+   Int                 &   ok     &  Y   &   ---     &  PC   \\
+                       &   exc    &  Y   &   ---     & Trap  \\
+  \hline
+   DMem                & spec ok  &  Y   &   Y       &  PC   \\
+                       & spec exc &  Y   &   ---     & Trap  \\
+                       & deferred &      &           & FSM Req;Rsp;PC/Trap \\
+  \hline
+   Wrong-path          &          & ---  &   ---     & discard  \\
+  \hline
+ \end{tabular}
+\end{center}
 
 % ****************************************************************
