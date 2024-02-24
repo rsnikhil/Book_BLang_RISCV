@@ -1,12 +1,17 @@
+CODE_DIR = ~/Git/Fife
+
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "    p, pp, pip, pbipp:    p=pdf, i=index, b=bib"
-	@echo "    figs    Create png files from svg files"
-	@echo "    bib     Single run of bibtex"
-	@echo "    full    Multiple runs of bibtex and pdflatex"
-	@echo "    clean        Remove emacs backups and minor intermediates"
-	@echo "    full_clean   + remove LaTeX intermediate files backups and pdf"
+	@echo "    p, i, b, pip    p=pdf, i=index, b=bib"
+	@echo "    figs            Create png files from svg files"
+	@echo "    bib             Single run of bibtex"
+	@echo "    full            Multiple runs of bibtex and pdflatex"
+	@echo "    extract         Extracts code fragments from .bsv code in $(CODE_DIR)"
+	@echo "                    into local files to be \input into LaTeX"
+	@echo ""
+	@echo "    clean           Remove emacs backups and minor intermediates"
+	@echo "    full_clean      + remove LaTeX intermediate files backups and pdf"
 
 TOPFILE = Book_BLang_RISCV
 
@@ -33,9 +38,16 @@ SOURCES = \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch900_back/back.tex
 
-.PHONY: p
+.PHONY: p i p pp pip figs bib extract
+
 p: $(SOURCES)
 	pdflatex  $(TOPFILE)
+
+i: $(SOURCES)
+	makeindex $(TOPFILE)
+
+b: $(SOURCES)
+	bibtex  $(TOPFILE)
 
 .PHONY: pp
 pp: $(SOURCES)
@@ -48,14 +60,6 @@ pip: $(SOURCES)
 	makeindex $(TOPFILE)
 	pdflatex  $(TOPFILE)
 
-.PHONY: pip
-pbipp: $(SOURCES)
-	pdflatex  $(TOPFILE)
-	bibtex  $(TOPFILE)
-	makeindex $(TOPFILE)
-	pdflatex  $(TOPFILE)
-	pdflatex  $(TOPFILE)
-
 .PHONY: figs
 figs:
 	make -C ch010_intro/Figures
@@ -66,9 +70,9 @@ figs:
 bib:
 	bibtex  $(TOPFILE)
 
-.PHONY: index
-index:
-	makeindex $(TOPFILE)
+.PHONY: extract
+extract:
+	./Code_Extracts/Extract_latex_from_BSV.py  $(CODE_DIR)  Code_Extracts
 
 # ================================================================
 

@@ -1,0 +1,11 @@
+% tag is_legal_BRANCH from line 154, file Instr_Bits.bsv
+{\small
+\begin{Verbatim}[frame=single, numbers=left, firstnumber=155, label=src\_Common/Instr\_Bits.bsv]
+function Bool is_legal_BRANCH (Bit #(32) instr);
+   let funct3 = instr_funct3 (instr);
+   return ((instr_opcode (instr) == opcode_BRANCH)
+	   && (funct3 != 3'b010)
+	   && (funct3 != 3'b011));
+endfunction
+\end{Verbatim}
+}

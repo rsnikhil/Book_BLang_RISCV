@@ -77,7 +77,7 @@ learn the BSV concepts needed to code these ideas.
 
 % ****************************************************************
 
-\section{BSV: Bit Vectors}
+\section{Bit Vectors}
 
 \label{Sec_BSV_Bit_Vectors}
 
@@ -94,9 +94,11 @@ ultimately, any such value is represented in hardware as a bit-vector.
 
 The BSV statement:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val;
 \end{Verbatim}
+}
 
 declares the identifier \verb|pc_val| to have the type
 \verb|Bit#(32)|, {\ie} a bit-vector of 32 bits.
@@ -117,30 +119,42 @@ a \emph{slice} of a bit-vector using usual Verilog notation:
 
 \index{BSV!Bit Vectors!slices of}
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val;
    Bit #(12) page_offset = pc_val [11:0];
 \end{Verbatim}
+}
 
 In the second line, we extract 12 bits of \verb|pc_val| to get a
 bit-vector of size 12.  BSV is \emph{strongly typed} with respect to
 sizes, {\ie} it is very strict about matching sizes.  For example,
 this statement:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) page_offset = pc_val [10:0];
 \end{Verbatim}
+}
 
 will be reported as a type-error by the \emph{bsc} compiler because
 the slice-expression on the right-hand side has type \verb|Bit#(11)|
 which does not match the declared type \verb|Bit#(12)|.
+
+% ================================================================
+
+\subsection{Built-in Operators on Bit Vectors}
+
+\label{Bit_Vector_Ops}
 
 BSV bit-vectors can be compared for equality and inequality.  BSV
 bit-vectors are synonymous with unsigned integers, and so a number of
 other operations are also available on bit-vectors.  Examples:
 
 \index{BSV!Bit Vectors!operators on}
+\index{BSV!Operators on Bit Vectors}
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) x, a, b, c, d, e, f;
 
@@ -162,6 +176,7 @@ other operations are also available on bit-vectors.  Examples:
    // Shifts
    x = (a << 3) & (b >> 14);    // left- and right-shift
 \end{Verbatim}
+}
 
 Please see the \emph{BSV Language Reference Guide}~\cite{BLang2000},
 Section 10.3, ``Unary and binary operators'' for a full list of
@@ -179,6 +194,8 @@ match sizes.
 \index{BSV!Bit Vectors!{\tt zeroExtend}}
 
 Two functions are available to zero-extend and truncate bit-vectors.
+
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) a;
    Bit #(10) b;
@@ -189,6 +206,7 @@ Two functions are available to zero-extend and truncate bit-vectors.
    if (a == zeroExtend (b)) ...   // Ok
    if (truncate (a) < b) ...      // Ok
 \end{Verbatim}
+}
 
 The functions \verb|truncate()| and \verb|zeroExtend()| are
 \emph{polymorphic} in that they will truncate/extend by the
@@ -196,7 +214,111 @@ appropriate amount as demanded by the context.
 
 % ****************************************************************
 
-\section{BSV: Boolean values}
+\section{Integer types}
+
+\label{BSV_ints}
+
+\index{BSV!Integer types {\tt Bit}, {\tt Int}, {\tt UInt}, {\tt Integer}}
+\index{BSV!Bit@{\tt Bit}!Integer type}
+\index{BSV!Int@{\tt Int}!Integer type}
+\index{BSV!UInt@{\tt UInt}!Unsigned integer type}
+\index{BSV!UInt@{\tt Integer}!Unbounded (non-synthesizable) Integer type}
+
+BSV has four integer types, written as follows:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(n)        // bit-vectors, bounded to n bits
+   Int #(n)        // signed integers, bounded to n bits
+   UInt #(n)       // unsigned integers, bounded to n bits
+   Integer         // Mathematical integers (unbounded, no bit-width limit)
+\end{Verbatim}
+}
+
+The most common type used in processor design (and possibly in all
+hardware design) is \verb|Bit#(n)|.  \verb|UInt#(n)| can used to
+represent unsigned integers, $n$ bits wide.  But since essentially the
+same operators (\verb|+|, \verb|-|, \verb|&|, \verb'|', shifts, ...,
+see Section~\ref{Bit_Vector_Ops}) are defined on both these types,
+this author mostly uses \verb|Bit#(n)| for unsigned integers, and
+rarely uses \verb|UInt#(n)|.
+
+\verb|Int#(n)| is used whenever we need to represent negative numbers
+and perform signed operations.  These are represented in bits in
+hardware in ``2's complement'' representation (see
+\url{https://en.wikipedia.org/wiki/Two%27s_complement}).
+
+\verb|Integer| is used for true mathematical integers, {\ie} they are
+unbounded, ranging from minus infinity to plus infinity (in practice,
+limited by the amount of memory in your computer!).  Being unbounded,
+they cannot be represented in any fixed-size hardware.  \verb|Integer|
+is used only for compile-time integers, where we do not need to fix a
+bound.
+
+\index{BSV!Wraparound arithmetic for fixed-width integer types}
+
+Fixed-width integer types all ``wrap-around''.  For example, if we add
+1 to a \verb|Bit#(3)| value \verb|3'b_111|, the result will be
+\verb|3'b_000|; if we subtract 1 from a \verb|Bit#(3)| value
+\verb|3'b_000|, the result will be \verb|3'b_111|.
+
+\index{BSV!Identifiers!First letter lower- or upper-case}
+\index{BSV!Identifiers!Type: initial upper-case letter}
+\index{BSV!Identifiers!Enum constant: initial upper-case letter}
+\index{BSV!Identifiers!Ordinary: initial lower-case letter}
+
+Note that all four type names begin with an upper-case letter.  This
+is true of all types in BSV: type names and enumeration constants
+begin with an upper-case letter, other identifiers begin with a
+lower-case letter.
+
+% ****************************************************************
+
+\section{Hexadecimal and Binary Notation for literal integers}
+
+\label{BSV_hex_bin_literals}
+
+\index{BSV!Literals!Hexadecimal integer notation}
+\index{BSV!Literals!Binary integer notation}
+\index{BSV!Hexadecimal notation for integer literals}
+\index{BSV!Binary notation for integer literals}
+
+BSV uses the same notation as Verilog and SystemVerilog for
+hexadecimal and binary literal integers.  Some examples:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+3'b010            // Binary literal, 3 bits wide
+7'b_110_0011      // Binary literal, 7 bits wide
+5'h3              // Hex literal, 5 bits wide
+32'h3             // Hex literal, 5 bits wide
+32'h_efff_0f17    // Hex literal, 32 bits wide (an AUIPC instruction)
+'h23              // Hex literal, context determines width
+\end{Verbatim}
+}
+
+As these examples show, a hexadecimal or binary integer literal is
+introduced by an optional bit-width, then a ``tick'' (single-quote)
+character, and then the binary or hexadecimal digits for the number.
+The character ``{\verb|_|}'' may be used freely to space out groups of
+digits to improve readability for humans (the compiler ignores these
+spacers).
+
+The last line shows that we can omit the size prefix, in which case
+the size will be inferred by the compiler from the context. For
+example, if we had:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(32) pc_val = 'h_8000_0000;
+\end{Verbatim}
+}
+
+then the literal is inferred to be 32 bits wide.
+
+% ****************************************************************
+
+\section{Boolean values}
 
 \label{Sec_BSV_Boolean_values}
 
@@ -210,7 +332,7 @@ boolean operators \verb|&&| (Boolean/logical AND), \verb'||'
 
 % ================================================================
 
-\subsection{BSV: Caution: {\tt Bool} and {\tt Bit\#(1)} are different types}
+\subsection{Caution: {\tt Bool} and {\tt Bit\#(1)} are different types}
 
 BSV is unlike languages like C and Python which are very loose about
 what can be used as a boolean value.  For example in C, any non-zero
@@ -232,7 +354,7 @@ above, take \verb|Bit#(n)| arguments and produce \verb|Bool| results.
 
 % ================================================================
 
-\subsection{BSV: Example: recognizing legal RISC-V BRANCH instructions}
+\subsection{Example: recognizing legal RISC-V BRANCH instructions}
 
 The RISC-V ISA has a family of six conditional-branch instructions.
 Figure~\ref{Fig_Combo_BRANCH_instrs} is an excerpt from the Unprivileged ISA
@@ -253,6 +375,7 @@ Assuming \verb|instr| is a 32-bit instruction, we can write BSV code
 to compute whether \verb|instr| is or is not a legal BRANCH
 instruction:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(7) opcode_BRANCH = 7'b_110_0011;
 
@@ -262,6 +385,7 @@ instruction:
                  && (funct3 != 3'b010)
                  && (funct3 != 3'b011));
 \end{Verbatim}
+}
 
 Line 1 defines \verb|opcode_BRANCH| as a 7-bit constant whose binary
 value is 1100011.  The \verb|`7b| prefix indicates that the number
@@ -293,7 +417,7 @@ Some observations:
 
 % ================================================================
 
-\subsection{BSV: Combinational circuits and primitives}
+\subsection{Combinational circuits and primitives}
 
 \index{BSV!Combinational circuits}
 \index{BSV!Combinational primitives}
@@ -319,7 +443,7 @@ automatically by excellent so-called ``synthesis'' tools.
 
 % ----------------------------------------------------------------
 
-\subsubsection{BSV: Combinational circuits have no side-effects (are ``pure'')}
+\subsubsection{Combinational circuits have no side-effects (are ``pure'')}
 
 \index{BSV!Combinational circuits!purity}
 
@@ -338,7 +462,7 @@ output changes instantaneously in response.
 NOTE: \fbox{\small
 \begin{minipage}{5in}
 
-Circuits are physical artefacts and we cannot escape
+Circuits are physical artefacts and must follow the laws of
 physics. Electrical signals will take some finite time to propagate
 from inputs to outputs through wires and silicon. This propagation
 delay will place a limit on the ``clock speed'' at which we are able
@@ -347,91 +471,150 @@ this in detail later.
 
 \end{minipage}}
 
-
-% ================================================================
-
-\subsubsection{BSV: Data types identify combinational circuits}
-
-\index{BSV!Combinational circuits!data types}
-\index{BSV!Types!of combinational circuits}
-
-In BSV, the output type of any circuit that produces a value will have
-one of three forms (the latter two will be discussed in detail later):
-
-\begin{itemize}
-
-\item \emph{... some value type ...}: \verb|Bit#(n)|, \verb|Bool|, or
-types discussed later such as structs, enums, tagged unions, vectors,
-and so on.
-
-\item \verb|Action|
-
-\item \verb|ActionValue #(| \emph{... some value type ...} \verb|)|
-
-\end{itemize}
-
-Circuits whose output types are of the first form are
-\emph{guaranteed} by BSV's type-checking system to be pure
-combinational circuits---they cannot have any side-effects such as
-updating a register or memory location, enqueuing or dequeuing from a
-FIFO, outputting a value to a device or display, {\etc} Circuits with
-\verb|Action| and \verb|ActionValue#()| types, on the other hand, may
-have side-effects as part of the process of producing their output
-value.
-
-\index{BSV!Haskell similarity}
-
-BSV is unusual amongst programming languages in precisely tracking
-``pure'' (no side-effects) \emph{vs.} ``impure'' constructs through
-type-checking.  In this regard it is most similar to Haskell, where
-potentially impure expressions must have certain monadic types
-(typically in the ``IO monad'').  The importance of tracking purity
-will become clear when we discuss rule and method conditions and
-scheduling, later.
-
-
 % ****************************************************************
 
-\section{BSV: Functions}
+\section{Functions}
 
 \label{BSV_functions}
 
 \index{BSV!functions!definition}
 
-The fragment of code shown above can be packaged into a BSV function,
-specifying argument(s) with precise types and a precise result type:
+The fragments of code shown above can be packaged into BSV functions,
+specifying precise types for argument(s) and result:
 
-\begin{Verbatim}[frame=single, numbers=left]
-function Bool is_legal_BRANCH (Bit #(32) instr);
-   Bit #(7) opcode_BRANCH = 7'b_110_0011;
-
-   Bit #(7) opcode = instr [6:0];
-   Bit #(3) funct3 = instr [14:12];
-   Bool legal = ((opcode == opcode_BRANCH)
-                 && (funct3 != 3'b010)
-                 && (funct3 != 3'b011));
-   return legal;
-endfunction
-\end{Verbatim}
+\input{Code_Extracts/instr_Opcode.tex}
+\input{Code_Extracts/instr_funct3.tex}
+\input{Code_Extracts/is_Legal_BRANCH.tex}
 
 \index{BSV!functions!application}
 
 Functions are invoked using the ``application'' syntax commonly used
 in most programming languages:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) x, y;
 
    Bool result_x = is_legal_BRANCH (x);
    Bool result_y = is_legal_BRANCH (y);
 \end{Verbatim}
+}
 
-BSV function definition and application syntax is similar to
-SystemVerilog.
+BSV function definition and application syntax is essentially the same
+as in SystemVerilog.
+
+% ================================================================
+
+\subsection{Pure functions vs. functions with side-effects ({\tt Action}, {\tt ActionValue})}
+
+\index{BSV!Types!{\tt Action}}
+\index{BSV!Types!{\tt ActionValue}}
+\index{BSV!Action@{\tt Action} type of expression with side-effects}
+\index{BSV!ActionValue@{\tt ActionValue} type of experssion with side-effects}
+
+BSV has a system of data types and type-checking similar to Haskell in
+that it systematically distinguishes expressions which are ``pure''
+(guaranteed not to have any side-effects) from expressions that may
+have side-effects.
+
+The detailed reason for this distinction need not detain us
+now---suffice it to say here briefly that BSV's semantics are
+fundamentally based on a concept of ``rules''; that rules are
+condition-action pairs; that conditions \emph{must not} have side
+effects (change the state of any hardware); and that the compiler
+needs to guarantee this, {\ie} that conditions are pure boolean
+expressions.  These points will be discussed in more detail in
+Chapter~\ref{Sec_Rules}.
+
+One useful side-effect during debugging is the {\tt \$display()}
+statement.  Why is {\tt \$display()} considered a side-effect?  A pure
+expression does not modify any state, and therefore it can be
+optimized away by the compiler (evaluated zero times) if its result is
+never used.  The compiler can also duplicate a pure expression (so it
+is evaluated more than once) for reasons such as cost (cheaper to
+recompute a value at some location in the code than to communicate the
+value that was computed elsewhere).  Neither of these properties is
+true with {\tt \$display()}!  Thus, the compiler needs to know about
+the purity or otherwise of every expression.
+
+Keeping track of the purity or otherwise of an expression is not a
+local property.  An expression may invoke a function which, in turn,
+invokes another function, and so on.  The expression is pure only if
+there are no side effects anywhere in such a call chain (those
+functions may be defined in separate files, in libraries, and so on).
+BSV used a \emph{monadic} type sytem (the same as in Haskell) to
+systematically track purity/impurity of expressions.  Consider two
+function declarations:
+
+\index{BSV!Haskell, monadic types similarity}
+\index{BSV!Monadic types!Haskell similarity}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   function Bool f1 (...); ...
+
+   function ActionValue #(Bool) f2 (...); ...
+\end{Verbatim}
+}
+
+Both of these functions return a boolean value.  But an application
+{\tt f1(x)} is \emph{guaranteed} to be pure (by BSV's type system),
+whereas an application {\tt f2(x)} is assumed possibly to have a
+side-effect.  These functions also have different syntax for how they
+are invoked:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   let result1 = f1 (x);
+
+   let result2 <- f2 (x);
+\end{Verbatim}
+}
+
+The ``\verb|<-|'' syntax is/can only be used to invoke functions with
+\verb|ActionValue| type, and is also a good visual cue to indicate
+that the invocation is \emph{performing some action} (side-effect) and
+also returns a value.
+
+BSV also has an \verb|Action| type, which is just a convenience for
+the special case of an expression that has a side effect and does not
+return any interesting value.  You can think of \verb|Action| as a
+synonym for \verb|ActionValue #(void)|, where you can think of
+\verb|void| as ``uninteresting value''.  For example, you can think of
+\verb|$display()| as a built-in function of type \verb|Action|.
+
+% ================================================================
+
+\subsection{Combinational circuits $=$ ``doesn't have {\tt Action} or {\tt ActionValue} type''}
+
+\index{BSV!Combinational circuits!data types}
+\index{BSV!Types!of combinational circuits}
+
+Another pleasing consequence of BSV's type system is that we can
+identify precisely which expressions become combinational circuits.
+If the type of the expression is \emph{not} {\tt ActionValue\#($t$)}
+or {\tt Action}, then it \emph{must} be a combinational circuit, and
+\emph{vice versa}.
+
+% ================================================================
+
+\subsection{Using {\tt ActionValue} on pure functions for {\tt \$display} debugging}
+
+Sometimes when we write a complex pure function whose result type is
+$t$, we may deliberately write its result type as {\tt
+ActionValue\#($t$)} so that we can insert \verb|$display| statements
+for debugging inside the function body.  If we merely inserted
+\verb|$display| statements without changing the function type, the
+compiler will complain that the function does not type-check
+correctly.
+
+We use this ``trick'' frequently in Drum and Fife source codes, for
+tracing and debugging.  We will see many examples in the coming
+chapters.
 
 % ****************************************************************
 
-\section{BSV: A small testbench to test our code}
+\section{A small testbench to test our code}
 
 \label{BSV_small_testbench}
 
@@ -509,6 +692,7 @@ format, and prints the \verb|Bool| result of applying
 Suppose this code is in a file \verb|Top.bsv|.  We can now compile,
 link and execute the design (in simulation) as follows:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 # ---- Compile BSV source code
 $ bsc -u -sim Top.bsv
@@ -532,6 +716,7 @@ instr_BNE 009411e3 => True
 instr_ILL_op 009441e0 => False
 instr_ILL_f3 009421e3 => 0
 \end{Verbatim}
+}
 
 % ================================================================
 
@@ -552,6 +737,7 @@ specification document~\cite{RISCV_Unpriv_2019_12_13}.  It lists 40
 RV32I instructions.  Similar to \verb|is_legal_BRANCH()|, write BSV
 code for the following functions:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    function Bool is_legal_JAL (Bit #(32) instr);
       ... acccepts JAL
@@ -559,12 +745,16 @@ code for the following functions:
    function Bool is_legal_JALR (Bit #(32) instr);
       ... acccepts JALR
 
-   function Bool is_legal_IALU (Bit #(32) instr);
-      ... acccepts LUI, AUIPC, ADDI, SLTI, ..., OR, AND
+   function Bool is_legal_OP (Bit #(32) instr);
+      ... acccepts LUI, AUIPC, ADD, SLT, OR, AND, ...
+
+   function Bool is_legal_OP_IMM (Bit #(32) instr);
+      ... acccepts ADDI, SLTI, ..., ORI, ANDI, ...
 
    function Bool is_legal_Mem (Bit #(32) instr);
       ... acepts LB, LH, LW, LBU, LHU, SB, SH, SW
 \end{Verbatim}
+}
 
 Ignore FENCE, ECALL and EBREAK instructions; for the moment we'll
 treat them as illegal instructions.
@@ -579,32 +769,28 @@ Extend the testbench to test more 32-bit values with all the
 
 % ****************************************************************
 
-\section{BSV: {\tt enum} types}
+\section{{\tt enum} types}
 
 \label{BSV_enum_types}
 
 \index{BSV!enum@{\tt enum} types}
 
-In Figure~\ref{Fig_Instr_Exec}, in the Register-Read
-and Dispatch step, we need to know whether the incoming instruction is
-illegal, a control instruction (branch or jump), an integer
+In Figure~\ref{Fig_Instr_Exec}, the Register-Read and Dispatch step
+needs to know which of the four alternative downstream paths should be
+selected for executing the insruction.  In particular,
+we need to know whether the incoming instruction is a system
+instruction, a control instruction (branch or jump), an integer
 arithmetic/logic instruction, or a memory-accessing instruction.  We
-could think of coding these ``classes'' using numbers (0 for illegal,
-1 for control, 2 for IALU, 3 for Mem), but it is more readable, and
+could think of coding these ``classes'' using numbers (0 for system, 1
+for control, 2 for integer, 3 for Mem), but it is more readable, and
 cleaner, to use an ``enum'' type (similar to enum types in
 SystemVerilog and C):
 
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {OPCLASS_ILLEGAL,
-	      OPCLASS_CONTROL,    // BRANCH, JAL, JALR
-	      OPCLASS_IALU,
-	      OPCLASS_MEM }       // LOAD, STORE, AMO
-OpClass
-deriving (Bits, Eq, FShow);
-\end{Verbatim}
+\input{Code_Extracts/OpClass.tex}
 
-This defines a type \verb|OpClass| containing four constants,
-\verb|OPCLASS_ILLEGAL|, \verb|OPCLASS_CONTROL|, and so on.
+This defines a type \verb|OpClass| containing five constants (the last
+two (\verb|OPCLASS_MEM| and \verb|OPCLASS_FENCE|) both indicate the
+memory-access path.
 
 % ================================================================
 
@@ -615,8 +801,9 @@ This defines a type \verb|OpClass| containing four constants,
 \index{BSV!Typeclass!instance of}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
-will automatically represent them with the obvious codes 0, 1, 2 and 3
-in a minimal bit-width (\verb|Bit#(2)|).  For other codings, we would
+will automatically represent them with the obvious codes 0, 1, 2, 3
+and 4 in a minimal bit-width (\verb|Bit#(3)|).  If we wanted an
+alternative (non-default) coding for these constants, we would
 \emph{not} say ``\verb|deriving(Bits)|'', and we would provide an
 explicit mapping function into codes (see ``typeclass instances'',
 later).
@@ -629,10 +816,11 @@ later).
 
 Because we said ``\verb|deriving(Eq)|'', the \emph{bsc} compiler will
 automatically define the ``equality'' (and ``inequality'') functions
-for values of this new type, in the natural and obvious way.  For
-other definitions of equality/inequality, we would \emph{not} say
-``\verb|deriving(Eq)|'', and we would define equality/inequality as we
-wish (see ``typeclass instances'', later).
+for values of this new type, in the natural and obvious way (here,
+just compare the bit representations for equality).  For other
+definitions of equality/inequality, we would \emph{not} say
+``\verb|deriving(Eq)|'', and we would instead define
+equality/inequality explicitly (see ``typeclass instances'', later).
 
 % ================================================================
 
@@ -640,18 +828,44 @@ wish (see ``typeclass instances'', later).
 
 \index{BSV!deriving FShow@{\tt deriving FShow}}
 
-Given a value \emph{v} of type \verb|OpClass|, if we directly print it
-({\eg} in a \verb|$display()| statement), it will print its numeric
-code (0, 1, ...).  Because we said ``\verb|deriving(FShow)|'', the
-\emph{bsc} compiler will automatically define an ``\verb|fshow()|''
-function for this type: if we print \verb|fshow(|\emph{v}\verb|)|, it
-will print its symbolic name from the enum declaration instead ({\ie}
-it will print the labels \verb|OPCLASS_ILLEGAL|,
-\verb|OPCLASS_CONTROL|, and so on).
+Given a value \emph{opclass} of type \verb|OpClass|, if we directly
+print it, {\eg}:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   opclass = OPCLASS_MEM;
+   $display ("opclass = %d", opclass);
+\end{Verbatim}
+}
+
+the output will be ``3'', which is the numeric code the compiler
+assigns to the constant \verb|OPCLASS_MEM| given its position in the
+list of labels in the \verb|enum| definition shown in
+Section~\ref{BSV_enum_types} (starting at zero).
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   opclass = OPCLASS_MEM;
+   $display ("opclass = %d", opclass);
+\end{Verbatim}
+}
+
+Because we said ``\verb|deriving(FShow)|'' in the \verb|enum|
+declararion, the \emph{bsc} compiler will automatically define an
+``\verb|fshow()|'' function for this type: if we print as follows:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   opclass = OPCLASS_MEM;
+   $display ("opclass = ", fshow (opclass));
+\end{Verbatim}
+}
+
+the output will be ``OPCLASS\_MEM'', {\ie} the symbolic name.
 
 % ****************************************************************
 
-\section{BSV: Syntax of Identifiers}
+\section{Syntax of Identifiers}
 
 \label{BSV_Syntax_of_Identifiers}
 
@@ -662,7 +876,10 @@ as in many programming languages: any sequence of alphabets, digits
 and underscore characters, with the first letter always being an
 alphabet.
 
-\index{BSV!Identifer syntax!first letter lower or upper case}
+\index{BSV!Identifiers!First letter lower- or upper-case}
+\index{BSV!Identifiers!Type: initial upper-case letter}
+\index{BSV!Identifiers!Enum constant: initial upper-case letter}
+\index{BSV!Identifiers!Ordinary: initial lower-case letter}
 
 BSV follows the Haskell system where an identifier has a different
 roles depending on whether its first letter is lower-case or
@@ -671,12 +888,12 @@ either a value constant or a type constant.  All variables (value
 variables or type variables) begin with a lower-case letter.
 
 In the enum type-definition in Section~\ref{BSV_enum_types}, the
-identifiers \verb|OPCLASS_ILLEGAL|, \verb|OPCLASS_CONTROL|,
-\verb|OPCLASS_IALU|, \verb|OPCLASS_MEM| are all value constants (they
-all begin with an upper-case letter).  The identifier \verb|OpClass|
-(and identifiers seen earlier: \verb|Bool| and \verb|Bit|) are all
-type constants.  The identifiers \verb|Bits|, \verb|Eq|, and
-\verb|FShow| are all typeclass constants.
+identifiers \verb|OPCLASS_SYSTEM|, \verb|OPCLASS_CONTROL|,
+\verb|OPCLASS_INT| and \verb|OPCLASS_MEM| are all value constants
+(they all begin with an upper-case letter).  The identifier
+\verb|OpClass| (and identifiers seen earlier: \verb|Bool| and
+\verb|Bit|) are all type constants.  The identifiers \verb|Bits|,
+\verb|Eq|, and \verb|FShow| are all typeclass constants.
 
 Other variables seen earlier, like \verb|x|, \verb|y|, \verb|a|,
 \verb|b|, \verb|opcode|, and \verb|result_x| are all ordinary value
@@ -684,7 +901,7 @@ variables.
 
 % ****************************************************************
 
-\section{BSV: Syntax of comments}
+\section{Syntax of comments}
 
 \label{BSV_Syntax_of_comments}
 
@@ -715,7 +932,7 @@ SystemVerilog and C/C++:
 
 % ****************************************************************
 
-\section{BSV: if-then-else statements and hardware multiplexers}
+\section{if-then-else statements and hardware multiplexers}
 
 \label{BSV_Combo_Circuits_if_then_else}
 
@@ -743,9 +960,10 @@ types of the two arms of the conditional must be exactly the same, and
 this is also the type of the output of the output of the if-then-else.
 
 For example, here is a function that distinguishes CONTROL
-instructions from other instructions, returning an \verb|OpClass|
+instructions from integer instructions, returning an \verb|OpClass|
 (Section~\ref{BSV_enum_types}):
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 function OpClass instr_opclass (Bit #(32) instr);
    OpClass result;
@@ -754,23 +972,26 @@ function OpClass instr_opclass (Bit #(32) instr);
       || is_legal_JALR (instr))
       result = OPCLASS_CONTROL;
    else
-      result = OPCLASS_ILLEGAL;
+      result = OPCLASS_INT;
    return result;
 endfunction
 \end{Verbatim}
+}
 
 This can also be written using so-called ``conditional expressions''
 (using the same syntax as in SystemVerilog and C):
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 function OpClass instr_opclass (Bit #(32) instr);
    return ((is_legal_BRANCH (instr)
            || is_legal_JAL (instr)
 	   || is_legal_JALR (instr))
            ? OPCLASS_CONTROL
-	   : OPCLASS_ILLEGAL);
+	   : OPCLASS_INT);
 endfunction
 \end{Verbatim}
+}
 
 It's a matter of taste and style whether one uses if-then-else
 expressions or C-style conditional expressions.  It may also depend on
@@ -795,6 +1016,7 @@ If-then-elses and conditional expressions can of course be nested:
 
 \index{BSV!if-then-else!nested}
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
 function Bool instr_opclass (Bit #(32) instr);
    OpClass result;
@@ -802,15 +1024,17 @@ function Bool instr_opclass (Bit #(32) instr);
       || is_legal_JAL (instr)
       || is_legal_JALR (instr))
       result = OPCLASS_CONTROL;
-   else if (is_legal_IALU (instr))
-      result = OPCLASS_IALU;
+   else if (is_legal_OP (instr))
+      result = OPCLASS_INT;
+   else if (is_legal_OP_IMM (instr))
+      result = OPCLASS_INT;
    else if (is_legal_Mem (instr))
       result = OPCLASS_MEM;
-   else
-      result = OPCLASS_ILLEGAL;
+   ... and so on ...
    return result;
 endfunction
 \end{Verbatim}
+}
 
 This represents a cascade of multiplexers in hardware, as shown in
 Figure~\ref{Fig_Combo_Multiplexer_Cascade}
@@ -919,7 +1143,7 @@ testbench.
 
 % ****************************************************************
 
-\section{BSV: Sharing code for RV32 and RV64 {\via} parameterization}
+\section{Sharing code for RV32 and RV64 {\via} parameterization}
 
 \label{BSV_Paramterizing_XLEN}
 
@@ -949,7 +1173,7 @@ RV32 and RV64 implementations.
 
 % ================================================================
 
-\subsection{BSV: Numeric types}
+\subsection{Numeric types}
 
 \label{BSV_Numeric_types}
 
@@ -957,10 +1181,12 @@ We have mentioned the type \verb|Bit#(n)| frequently so far,
 representing bit-vectors of width \emph{n} bits.  All our examples
 showed a particular \emph{n}, such as:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) instr;
    Bit #(32) pc_val;
 \end{Verbatim}
+}
 
 The first declaration is fine for both RV32 and RV64, since
 instructions are 32-bits wide in both.  However, the second
@@ -989,7 +1215,7 @@ later.}
 
 % ================================================================
 
-\subsection{BSV: Type synonyms}
+\subsection{Type synonyms}
 
 \label{BSV_Type_synonyms}
 
@@ -999,6 +1225,7 @@ In BSV we can define a new symbolic name for an existing type, and
 then we can use that symbolic names in place of the existing
 type. Example, from RV32 code:
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    typedef 32 XLEN;      // new name for numeric type 32
 
@@ -1007,16 +1234,21 @@ type. Example, from RV32 code:
    Bit #(XLEN) rs2_val;  // Value read from register rs2 in register file
    Bit #(XLEN) rd_val;   // Value written to register rd in register file
 \end{Verbatim}
+}
 
 By changing the single definition in line 1 to:
+
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    typedef 64 XLEN;      // new name for numeric type 32
 \end{Verbatim}
+}
+
 the remaining code will work for RV64 as well.
 
 % ================================================================
 
-\subsection{BSV: The numeric value corresponding to a numeric type}
+\subsection{The numeric value corresponding to a numeric type}
 
 \label{BSV_value_of_numeric_type}
 
@@ -1029,16 +1261,14 @@ always safe to convert a numeric type into the corresponding numeric
 value, since these values are all known statically (at compile time).
 The built-in pseudo-function \verb|valueOf()| is provided for this:
 
-\begin{Verbatim}[frame=single, numbers=left]
-   Integer xlen = valueOf (XLEN);
-\end{Verbatim}
+\input{Code_Extracts/valueOf_XLEN.tex}
 
 Here, \verb|xlen| is an ordinary value variable whose integer value is
 the same as that expressed by the numeric type \verb|XLEN|.
 
 % ================================================================
 
-\subsection{BSV: Conditional compilation}
+\subsection{Conditional compilation}
 
 \label{BSV_Conditional_compilation}
 
@@ -1051,19 +1281,7 @@ facility, we can pass an argument to the compiler that has the effect
 of configuring the source code for RV32 or RV64 (the following code is
 from Fife/Drum's \verb|Arch.bsv| file:
 
-\begin{Verbatim}[frame=single, numbers=left]
-`ifdef RV32
-
-   typedef 32 XLEN;
-
-`elsif RV64
-
-   typedef 64 XLEN;
-
-`endif
-
-   Integer xlen = valueOf (XLEN);
-\end{Verbatim}
+\input{Code_Extracts/XLEN.tex}
 
 As in Verilog and SystemVerilog, pre-processor directives begin with a
 \verb|`| character (back-tick) (analogous to \verb|#ifdef| in the
@@ -1080,6 +1298,7 @@ Pre-processor macros allow us to conditionally compile different
 source text based on the macro definitions we supply to the compiler.
 We can also compile alternatives based on the value \verb|xlen|
 
+{\small
 \begin{Verbatim}[frame=single, numbers=left]
    if (xlen == 32) begin
       ... code that must execute if we are in RV32 mode ...
@@ -1088,6 +1307,7 @@ We can also compile alternatives based on the value \verb|xlen|
       ... code that must execute if we are in RV64 mode ...
    end
 \end{Verbatim}
+}
 
 Whenever possible, it is preferable to use the \verb|if(xlen==...)|
 form instead of the \verb|`ifdef| form for conditional compilation
