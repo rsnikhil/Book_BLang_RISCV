@@ -524,7 +524,7 @@ condition-action pairs; that conditions \emph{must not} have side
 effects (change the state of any hardware); and that the compiler
 needs to guarantee this, {\ie} that conditions are pure boolean
 expressions.  These points will be discussed in more detail in
-Chapter~\ref{Sec_Rules}.
+Chapter~\ref{ch_Rules}.
 
 One useful side-effect during debugging is the {\tt \$display()}
 statement.  Why is {\tt \$display()} considered a side-effect?  A pure
@@ -668,7 +668,7 @@ endmodule
 
 For the moment, don't try to understand all these boilerplate
 constructs in detail.  Briefly, \verb|mkAutoFSM| is like a sequential
-program (discussed in more detail in Section~\ref{ch_Drum_FSMs}).  It
+program (discussed in more detail in Section~\ref{ch_Drum_code}).  It
 performs a sequence of four actions.  In each action we define a
 32-bit instruction with standard Verilog bit-concatenation syntax.
 For example, \verb|instr_BEQ| is defined as a 32-bit value by

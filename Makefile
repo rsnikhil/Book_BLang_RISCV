@@ -28,12 +28,14 @@ SOURCES = \
 		ch050/ch_struct_mem_req_rsp.tex \
 		ch060/ch_Core_Functions.tex \
 		ch070/ch_Modules_Interfaces.tex \
-		ch080/ch_FSMs_Drum_CPU.tex \
-		ch090/ch_Drum_Pending.tex \
-		ch100/ch_Fife_Principles.tex \
-		ch110/ch_Fife_Code.tex \
-		ch120/ch_Fife_Pending.tex \
-		ch720_Pending/ch_Pending.tex \
+		ch080/ch_FSMs.tex \
+		ch090/ch_Drum_CPU.tex \
+		ch100/ch_Top_Packages.tex \
+		ch110/ch_Fife_Principles.tex \
+		ch120/ch_Fife_Code.tex \
+		ch130/ch_Rules.tex \
+		ch140/ch_BSV_Further_Study.tex \
+		ch150/ch_RISCV_Further_Study.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch900_back/back.tex
