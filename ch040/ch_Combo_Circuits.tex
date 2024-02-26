@@ -360,10 +360,10 @@ The RISC-V ISA has a family of six conditional-branch instructions.
 Figure~\ref{Fig_Combo_BRANCH_instrs} is an excerpt from the Unprivileged ISA
 specification document~\cite{RISCV_Unpriv_2019_12_13}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_BRANCH_instrs_1}}
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_BRANCH_instrs_2}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_BRANCH_instrs_1}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_BRANCH_instrs_2}}
   \vspace{2mm}
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_BRANCH_instrs_3}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_BRANCH_instrs_3}}
   \caption{\label{Fig_Combo_BRANCH_instrs}RISC-V conditional BRANCH instructions}
 \end{figure}
 The first line just gives us the names of the various slices of a
@@ -396,7 +396,7 @@ and finally lines 5-7 define the desired legality condition.
 
 Figure~\ref{Fig_Combo_Is_Legal_BRANCH} shows the hardware circuit described by the code.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_Is_Legal_BRANCH}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Is_Legal_BRANCH}}
   \caption{\label{Fig_Combo_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
 \end{figure}
 Some observations:
@@ -1001,7 +1001,7 @@ readability.
 Both these code fragments represent the same hardware, shown in
 Figure~\ref{Fig_Combo_Multiplexer}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_Multiplexer}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Multiplexer}}
   \caption{\label{Fig_Combo_Multiplexer}If-then-else is a multiplexer}
 \end{figure}
 The 32-bit \verb|instr| argument is fed into the circuits for
@@ -1039,7 +1039,7 @@ endfunction
 This represents a cascade of multiplexers in hardware, as shown in
 Figure~\ref{Fig_Combo_Multiplexer_Cascade}
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{ch040/Figures/Fig_Combo_Multiplexer_Cascade}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Multiplexer_Cascade}}
   \caption{\label{Fig_Combo_Multiplexer_Cascade}Nested if-then-elses become cascaded multiplexers}
 \end{figure}
 
