@@ -17,10 +17,12 @@
 \section{Introduction}
 
 In this chapter we discuss the core functions of
-Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
+Figure~\ref{Fig_Core_Simple_Instr_Exec}: \verb|fn_Fetch|,
+\verb|fn_Decode|, \verb|fn_Dispatch|, \verb|fn_EX_Control| and
+\verb|fn_EX_Int|.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
-  \caption{\label{Fig_Fetch_function_Simple_Instr_Exec}
+  \caption{\label{Fig_Core_Simple_Instr_Exec}
            Simple interpretation of RISC-V instructions}
 \end{figure}
 
@@ -43,8 +45,8 @@ as the address in a memory-request to IMem.  It has two outputs,
        have already seen the definitition of the \verb|Mem_Req| struct
        in Section~\ref{Sec_Mem_Req}.
 
- \item Some additional information ``\verb|F_to_D|'' passed on to the
-       Decode step.
+ \item Some additional information ``\verb|Fetch_to_Decode|'' passed
+       on to the Decode step.
 
 \end{tightlist}
 
@@ -81,8 +83,8 @@ trivial:
 
 Write a testbench for \verb|fn_Fetch()|, apply it to a number of
 32-bit values (PC values) and print the results using \verb|$display|
-and \verb|fshow|, and visually check that the \verb|F_to_D| and
-\verb|Mem_Req| outputs look correct.
+and \verb|fshow|, and visually check that the \verb|Fetch_to_Decode|
+and \verb|Mem_Req| outputs look correct.
 
 \Endexercise
 
@@ -928,7 +930,7 @@ this struct:
 \begin{Verbatim}[frame=single, numbers=left]
 typedef struct {
     Bit #(XLEN) next_pc;
-} F_from_Retire
+} Fetch_from_Retire
 deriving (Bits, FShow);
 \end{Verbatim}
 }
@@ -967,8 +969,8 @@ typedef struct {
    Bit #(XLEN)  cause;
    Bit #(XLEN)  exception_pc;
 
-   F_from_Retire   to_F;
-   RW_from_Retire  to_RW;
+   Fetch_from_Retire to_F;
+   RW_from_Retire    to_RW;
 } Result_Retire
 deriving (Bits, FShow);
 \end{Verbatim}
@@ -993,7 +995,7 @@ function Result_Retire
    Bool         exception    = False;
    Bit #(XLEN)  cause        = ?;
    Bit #(XLEN)  exception_pc = x_RR.pc;
-   let          y_to_F       = F_from_Retire {next_pc: ?};
+   let          y_to_F       = Fetch_from_Retire {next_pc: ?};
    let          y_to_RW      = RW_from_Retire {commit: False, rd: ?, data: ?};
 
    // Fill in fields according to the various incoming flows

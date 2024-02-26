@@ -31,6 +31,24 @@ png: $(FIGS)
 %.png: %.svg
 	inkscape --export-filename=$@  --export-area-drawing  -d 300 -y 0.0 $<
 
+LAYER_1 = 'select-all:layers; object-set-attribute:style, display:none; select-clear; select-by-id:layer1; object-set-attribute:style, display:inline'
+
+Fig_Instr_Exec.png: Fig_Instr_Exec.svg
+	inkscape --actions=$(LAYER_1) \
+		--export-filename=$@ --export-area-drawing  -d 300 -y 0.0 $<
+
+LAYERS_1_2 = 'select-all:layers; object-set-attribute:style, display:none; select-clear; select-by-id:layer1,layer2; object-set-attribute:style, display:inline'
+
+Fig_Instr_Exec_w_FIFOs.png: Fig_Instr_Exec.svg
+	inkscape --actions=$(LAYERS_1_2) \
+		--export-filename=$@ --export-area-drawing  -d 300 -y 0.0 $<
+
+LAYERS_1_3 = 'select-all:layers; object-set-attribute:style, display:none; select-clear; select-by-id:layer1,layer3; object-set-attribute:style, display:inline'
+
+Fig_Instr_Exec_w_structs.png: Fig_Instr_Exec.svg
+	inkscape --actions=$(LAYERS_1_3) \
+		--export-filename=$@ --export-area-drawing  -d 300 -y 0.0 $<
+
 # ================================================================
 
 .PHONY: clean

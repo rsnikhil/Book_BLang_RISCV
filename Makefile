@@ -65,9 +65,6 @@ pip: $(SOURCES)
 
 .PHONY: figs
 figs:
-	make -C ch010_intro/Figures
-	make -C ch030_RISCV_Design_Space/Figures
-	make -C ch040_Combo_Circuits/Figures
 	make -C Figures png
 
 .PHONY: bib

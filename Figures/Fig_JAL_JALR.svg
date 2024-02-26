@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.5816076"
-     inkscape:cx="400.13827"
-     inkscape:cy="480.32087"
+     inkscape:cx="392.58484"
+     inkscape:cy="486.51856"
      inkscape:window-width="2560"
      inkscape:window-height="1499"
-     inkscape:window-x="32"
-     inkscape:window-y="61"
+     inkscape:window-x="202"
+     inkscape:window-y="29"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -544,192 +544,193 @@
        y="80.6315" />
     <path
        style="fill:#000000;stroke:#000000;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#Arrow1Mstart);marker-end:url(#DartArrow)"
-       d="M 60.011934,102.75342 H 115.27724"
+       d="M 57.895266,102.75342 H 113.16056"
        id="path65" />
     <text
        xml:space="preserve"
        style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
-       x="23.211836"
+       x="21.095167"
        y="94.221596"
        id="text117"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;stroke-width:0.264583"
-         x="23.211836"
+         x="21.095167"
          y="94.221596"
          id="tspan117">Memory</tspan></text>
     <path
        style="fill:#d35f5f;stroke:#000000;stroke-width:0.3;stroke-dasharray:none"
-       d="M 29.283862,93.572282 H 189.12832"
+       d="M 27.167194,93.572282 H 187.01164"
        id="path164" />
     <path
        style="fill:#c87137;stroke:#c87137;stroke-width:0.899999;stroke-dasharray:none"
-       d="M 39.906949,93.611512 H 88.142156"
+       d="M 37.790281,93.611512 H 86.025488"
        id="path114" />
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="63.028763"
+       x="60.912094"
        y="90.484581"
        id="text128"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="63.028763"
+         x="60.912094"
          y="90.484581"
          id="tspan3">call f2()</tspan></text>
     <path
        style="fill:#c87137;stroke:#c87137;stroke-width:0.899999;stroke-dasharray:none"
-       d="m 116.67033,93.509022 h 43.93071"
+       d="m 114.55365,93.509022 h 43.93071"
        id="path5" />
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect2"
        width="14.613079"
        height="3.5985725"
-       x="148.01593"
+       x="145.89929"
        y="91.772995" />
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="148.60576"
+       x="146.48912"
        y="94.166046"
        id="text2"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="148.60576"
+         x="146.48912"
          y="94.166046"
-         id="tspan2">JALR 0,ra,0</tspan></text>
+         id="tspan2">JALR rd,ra,0</tspan></text>
     <rect
        style="fill:#ffffff;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect102"
        width="14.613079"
        height="3.5985725"
-       x="59.272629"
+       x="57.15596"
        y="91.772995" />
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="61.449982"
+       x="59.333313"
        y="94.185165"
        id="text102"><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="61.449982"
+         x="59.333313"
          y="94.185165"
          id="tspan102">JAL ra, f2</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="116.93948"
+       x="114.82281"
        y="96.30545"
        id="text8"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="116.93948"
+         x="114.82281"
          y="96.30545"
          id="tspan8">code for</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="116.93948"
-         y="98.97303"
+         x="114.82281"
+         y="98.973038"
          id="tspan12">function f2</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="40.58606"
+       x="38.469391"
        y="96.30545"
        id="text14"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="40.58606"
+         x="38.469391"
          y="96.30545"
          id="tspan13">code for</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="40.58606"
-         y="98.97303"
+         x="38.469391"
+         y="98.973038"
          id="tspan14">function f1</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="85.883545"
+       x="83.766876"
        y="101.81242"
        id="text17"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="85.883545"
+         x="83.766876"
          y="101.81242"
          id="tspan17">delta</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="60.26371"
+       x="58.147041"
        y="108.9028"
        id="text19"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="60.26371"
+         x="58.147041"
          y="108.9028"
          id="tspan18">Sets PC to x+delta (“call”)</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="60.26371"
+         x="58.147041"
          y="111.57039"
          id="tspan19">Saves x+4 in register [Ra]</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="148.14592"
+       x="146.02928"
        y="108.9028"
        id="text21"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="148.14592"
+         x="146.02928"
          y="108.9028"
          id="tspan21">Sets PC to register[ra]+0 = x+4</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="148.14592"
+         x="146.02928"
          y="111.57039"
-         id="tspan22">Saves y+4 in register[0] (ignored)</tspan></text>
+         id="tspan22">Saves y+4 in register[rd] (ignored if rd==0)</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="149.81184"
+       x="154.04512"
        y="90.484581"
        id="text23"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="149.81184"
+         x="154.04512"
          y="90.484581"
          id="tspan23">return</tspan></text>
     <path
        style="fill:none;stroke:#000000;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker2957)"
-       d="m 73.688741,91.726598 8.404002,-8.404002 h 57.803127 l 8.35276,8.352758"
-       id="path56" />
+       d="m 69.747699,91.726598 5.042782,-8.404002 h 34.684479 l 5.11893,9.6851"
+       id="path56"
+       sodipodi:nodetypes="cccc" />
     <path
        style="fill:none;stroke:#000000;stroke-width:0.2;stroke-dasharray:none;marker-end:url(#marker2957)"
-       d="m 162.66596,91.731722 -9.88194,-5.325913 H 84.815386 l -9.821698,5.293438"
+       d="m 154.29258,91.731722 -9.17764,-5.325913 H 81.990486 l -9.121699,5.293438"
        id="path66" />
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="59.554558"
+       x="57.437889"
        y="97.432816"
        id="text67"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="59.554558"
+         x="57.437889"
          y="97.432816"
          id="tspan67">x</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-       x="148.45432"
+       x="146.33768"
        y="97.432816"
        id="text68"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-         x="148.45432"
+         x="146.33768"
          y="97.432816"
          id="tspan68">y</tspan></text>
   </g>
