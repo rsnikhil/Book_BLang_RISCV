@@ -637,7 +637,7 @@ matter; in the Execute stage each instruction only \emph{uses} these
 values if the instruction has an rs1 and/or rs2.
 
 Next, we apply the function \verb|fn_Dispatch| (it was discussed in
-Section~\ref{Sec_RRD_function}, and is the same one we use in Drum) to
+Section~\ref{Sec_Dispatch_function}, and is the same one we use in Drum) to
 the inputs, which computes \verb|y|, containing the structs to be sent
 on the direct path (\verb|y.to_Retire|), to Execute Control
 (\verb|y.to_Control|), and to Execute Int and Execute DMem

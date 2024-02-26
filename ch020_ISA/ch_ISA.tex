@@ -662,9 +662,30 @@ construct a full 32-bit value in a register (using one or more LUI and
 AUIPC instructions, for example) and then use that as the jump rs1 in
 a JALR instruction.
 
+% ================================================================
+
+\subsection{FENCE}
+
+\label{Sec_FENCE}
+
+The FENCE instruction is intended for RISC-V implementations that
+contain caches in the memory system.  In such systems, data may not
+reach memory quickly or at all (is in the cache and is not evicted),
+and two items of data $x_1$ and $x_2$ may reach memory in a different
+order from the STORE instructions that wrote them (because the order
+in which their cache lines are written back to memory has no relation
+ship to the program STORE order).
+
+The FENCE instruction is often used to ``push'' data from the cache to
+memory, although technically the FENCE instruction only guarantees an
+``ordering'', {\ie} that if there are two STOREs $x_1$ and $x_2$
+before and after a FENCE, respectively, then $x_1$ will be visible
+before $x_2$ to any other agent in the system (another CPU, a DMA
+engine, an I/O device, {\etc}).
+
 % ****************************************************************
 
-\section{Traps due to illegal instructions and other exceptions}
+\section{Traps due to illegal instructions and other exceptions, and CSRs}
 
 \label{Sec_Traps}
 
@@ -849,29 +870,11 @@ As the text says, each CSR instruction:
 For details, please read the RISV-V Unprivileged ISA specification
 document, Chapter 9.
 
+% ****************************************************************
 
-% ================================================================
+\section{RV64I differences from RV32I}
 
-\subsection{FENCE}
-
-The FENCE instruction is intended for RISC-V implementations that
-contain caches in the memory system.  In such systems, data may not
-reach memory quickly or at all (is in the cache and is not evicted),
-and two items of data $x_1$ and $x_2$ may reach memory in a different
-order from the STORE instructions that wrote them (because the order
-in which their cache lines are written back to memory has no relation
-ship to the program STORE order).
-
-The FENCE instruction is often used to ``push'' data from the cache to
-memory, although technically the FENCE instruction only guarantees an
-``ordering'', {\ie} that if there are two STOREs $x_1$ and $x_2$
-before and after a FENCE, respectively, then $x_1$ will be visible
-before $x_2$ to any other agent in the system (another CPU, a DMA
-engine, an I/O device, {\etc}).
-
-% ================================================================
-
-\subsection{RV64I differences from RV32I}
+\label{Sec_RV64I}
 
 The Architectural State for RV64I is just like that for RV32I, except
 that the PC and 32 registers are now 64-bits wide instead of 32-bits

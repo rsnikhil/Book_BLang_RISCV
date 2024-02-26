@@ -201,210 +201,112 @@ check that the \verb|D_to_RR| outputs look correct.
 
 % ****************************************************************
 
-\section{Register Read and the Dispatch function (``RRD'')}
+\section{The Dispatch function following Register-Read}
 
-\label{Sec_RRD_function}
-
-\index{Register-Read and Dispatch function}
+\label{Sec_Dispatch_function}
 
 \index{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
 \index{Dispatch function ({\tt fn\_Dispatch})}
 
-In the Register-Read and Dispatch step, we read the \verb|rs1| and
-\verb|rs2| values from the Register File, and then use a Dispatch
-function to determine what needs to be passed to the the alternative
-following steps.
+In the Register-Read and Dispatch step (``RR''), we first read the
+\verb|rs1| and \verb|rs2| values from the Register File.  We will
+cover register files in Section~\ref{Sec_Register_files}, and
+register-reads when we discuss the Drum CPU itself, in
+Chapter~\ref{ch_Drum_code}.
 
-We will cover register files in Section~\ref{Sec_Register_files},
-and register-reads in Chapter~\ref{ch_Drum_code}.
-
-The core function for Dispatch step is called \verb|fn_Dispatch|, and
-is rather simple.  Its
-
-The argument for \verb|fn_RR| is a \verb|D_to_RR| struct from the
-Decode step, which was described in Section~\ref{Sec_struct_D_to_RR}.
-Before we look at its result type let us look at the ``flows'' through
-the subsequent steps.
-
-There are four possible ``flows'' after RR:
+With the \verb|rs1| and \verb|rs2| values, we use function
+\verb|fn_Dispatch| to determine what needs to be passed to the various
+alternative steps (``flows'') that follow.  Its argument is a
+\verb|Decode_to_RR| struct from the Decode step, which was discussed
+in Section~\ref{Sec_struct_D_to_RR}.  Before we look at the result
+type of \verb|fn_Dispatch|, let us look at the four possible flows in
+the subsequent steps:
 
 \begin{itemize}
 
-  \item Some information is sent directly from RR to Retire for
-    \emph{every} instruction.  This includes any error indication
-    (memory error during Fetch, or decode illegal instruction).
+  \item ``Direct'': Some information is sent directly from RR to
+        Retire for \emph{every} instruction.  Crucially, RR sends a
+        \emph{tag} that indicates which of the four flows is being
+        followed for the current instruction.
 
-    Equally important, RR sends a \emph{tag} to Retire indicating
-    which, if any, of the next three bits of information have also
-    been produced.
+        Additional direct information includes information from RR
+        (PC, whether an exception has already been seen in the Fetch
+        or Decode stages, \verb|has_rd|, \verb|writes_mem|, the
+        instruction, the fall-through PC and the \verb|rs1| value
+        (needed for CSRRx instructions).
 
-  \item If there is no error indication, then we also perform one of
-  the following three flows:
+       The direct flow is also used for all SYSTEM instructions,
+       including CSRRxx, ECALL, EBREAK, and MRET.
 
-  \begin{tightlist}
+  \item ``Control'': If the instruction is a BRANCH, JAL or JALR, we
+        produce information for the Execute Control flow.
 
-    \item If the instruction is a BRANCH, JAL or JALR, we produce
-      information to Execute Control.
+  \item ``Integer'': If the instruction is a LUI, AUIPC or integer
+        arithmetic or logic (IALU) operation, we produce information
+        for the Execute Integer flow.
 
-    \item If the instruction is a LUI, AUIPC or integer arithmetic or
-      logic (IALU) operation, we produce information to Execute Integer
-      Arithmetic and Logic Ops.
-
-    \item If the instruction is a LOAD or STORE, we produce information to
-      Execute Memory Ops.
-  \end{tightlist}
+  \item ``DMem'': If the instruction is a LOAD, STORE or FENCE, we
+        produce information for the Execute Memory flow.
 
 \end{itemize}
 
-The following type, \verb|Exec_Tag|, identifies which of the four
-flows is being performed for this instruction:
+The following enum type declaration defines four constants to identify
+the flow for this instruction:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {EXEC_TAG_RETIRE,     // to Retire only
-              EXEC_TAG_CONTROL,    // to Retire and Control
-              EXEC_TAG_IALU,       // to Retire and IALU
-              EXEC_TAG_DMEM        // to Retire and DMem
-} Exec_Tag
-deriving (Bits, Eq, FShow);
-\end{Verbatim}
-}
+\input{Code_Extracts/Exec_Tag.tex}
 
-The information sent to Retire directly is defined in the type
-\verb|RR_to_Retire|:
+The result type of \verb|fn_Dispatch| is \verb|Result_Dispatch|.  It
+is just a nested struct that contains four different struct types for
+the four flows (the struct types are labeled in
+Figure~\ref{Fig_Drum_Instr_Exec}).
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {
-                // Informs Retire about flow for this instruction
-                Exec_Tag     exec_tag;
+\input{Code_Extracts/Result_Dispatch.tex}
 
-                Bool         exception;
-                Bit #(XLEN)  cause;    // Fetch exception, decode illegal instr
-                Bit #(XLEN)  pc;
+The direct information is defined in the type \verb|RR_to_Retire|:
 
-                // If not exception
-                Bool         has_rd;
-                Bit #(5)     rd;
-                Bit #(XLEN)  fallthru_pc;
-
-} RR_to_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
+\input{Code_Extracts/RR_to_Retire.tex}
 
 The \verb|exec_tag| informs Retire about the flow for this
-instruction.  The {\tt exception} and {\tt cause} fields are carried
-through since it is the Retire step that handles traps.  Note, in
-addition to passing exceptions from RR to Retire, the Control or
-Execute steps could also raise exceptions.  The {\tt pc} field is
-needed in case Retire needs to handle a trap or interrupt, which saves
-the {\tt pc} before handling it.
+instruction.  The {\tt exception} and {\tt cause} fields from
+\verb|Decode_to_RR| are carried through, as-is, since it is the Retire
+step that handles all exceptions.  Note, in addition to passing
+exceptions from RR to Retire, the Control or Execute steps could also
+raise exceptions.  The {\tt pc} field is needed in case Retire needs
+to handle a trap or interrupt, which saves the {\tt pc} before
+handling it.
 
 The \verb|has_rd| and \verb|rd| fields are carried through to control
 whether Retire tries to write a value back to the register file nor
 not.  The \verb|fallthru_pc| is used for most instructions that
 complete successfully (without raising an exception).
 
-It's result type, \verb|Result_RR|, is just a nested struct that
-contains the three different struct types shown in
-Figure~\ref{Fig_Drum_Instr_Exec}:
+Returning our attention to the \verb|Result_Dispatch| struct type, the
+second component, of type \verb|RR_to_Control| and used for the
+Control flow, was described in Section~\ref{Sec_Control_function}. The
+third component, of type \verb|RR_to_EX| and used in the Integer flow,
+was described in Section~\ref{Sec_EXI_function}.  The fourth
+component, of type \verb|Mem_Req| and used in the DMem flow, was
+described in Section~\ref{Sec_Mem_Req}.
 
-The \verb|RR_to_Control| and \verb|RR_to_EX| types were described in
-Section~\ref{Sec_Control_function} and Section~\ref{Sec_EXI_function},
-respectively.
+The code for \verb|fn_Dispatch| is shown below.  Its arguments are the
+\verb|Decode_to_RR| struct from the Decode stage, and values from the
+source registers \verb|rs1| and \verb|rs2|.
 
-We can now describe the result of the \verb|fn_RR| function, which is
-simply a nested struct containing the previously described structs:
+\input{Code_Extracts/fn_Dispatch.tex}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {
-   RR_to_Retire   to_Retire;    // to Retire only
-   RR_to_Control  to_Control;   // to Retire and to Control
-   RR_to_EX       to_EX;        // to Retire and one of the execute pipes
-} Result_Dispatch
-deriving (FShow);
-\end{Verbatim}
-}
+Lines 7-14 compute \verb|exec_tag|, {\ie} the flow to be followed.
 
-The first component goes directly to the Retire step.  The second
-component goes to the Control step.  The third component is used for
-the Execute Integer Arithmetic Ops step and for the Execute DMem Ops
-steps.
 
-The code for \verb|fn_RR| is shown below.  It's arguments are the
-interface to the register file and the information from the Decode
-step:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function Result_Dispatch fn_Dispatch (D_to_RR              x,
-                                      Bit #(XLEN)          rs1_val,
-                                      Bit #(XLEN)          rs2_val);
-   // Compute tag to control merging at Retire
-   Exec_Tag exec_tag = EXEC_TAG_RETIRE;    // exceptions and OPCLASS_SYSTEM
-   if (! x.exception) begin
-      if (is_BRANCH (x.instr)
-         || is_JAL (x.instr)
-         || is_JALR (x.instr))             exec_tag = EXEC_TAG_CONTROL;
-      else if (x.opclass == OPCLASS_IALU)  exec_tag = EXEC_TAG_IALU;
-      else if (x.opclass == OPCLASS_MEM)   exec_tag = EXEC_TAG_DMEM;
-   end
-
-   // ----------------
-   // Info direct for Retire
-   let to_Retire = RR_to_Retire {exec_tag:     exec_tag,
-
-                                 exception:    x.exception,
-                                 cause:        x.cause,
-                                 pc:           x.pc,
-
-                                 has_rd:       x.has_rd,
-				 rd:           x.rd
-                                 fallthru_pc:  x.fallthru_pc};
-
-   // ----------------
-   // Info for Control
-   let to_Control = RR_to_Control {pc:           x.pc,
-                                   fallthru_pc:  x.fallthru_pc,
-                                   instr:        x.instr,
-                                   rs1_val:      rs1_val,
-                                   rs2_val:      rs2_val,
-                                   imm:          x.imm};
-
-   // ----------------
-   // Info for Execute pipes
-   let to_EX  = RR_to_EX {instr:   x.instr,
-                          rs1_val: rs1_val,
-                          rs2_val: rs2_val,
-                          imm:     x.imm};
-
-   // ----------------
-   let result = Result_Dispatch {to_Retire:  to_Retire,
-                                 to_Control: to_Control,
-                                 to_EX:      to_EX};
-   return result;
-endfunction
-\end{Verbatim}
-}
-
-Lines 2-9 read the \verb|rs1| and \verb|rs2| values from the register
-file.  Note that the \verb|rs1| and \verb|rs2| fields are not
-meaningful for all instructions; in those cases, these reads may be
-``wild'' reads from random registers.  This does not matter, because
-the values will only be used if they are needed.
 
 Lines 13-20 compute the \verb|exec_tag| based on the kind of
 insrruction.
 
-Lines 24-32, 36-41 and 45-48 construct the information for the Retire,
-Control, and IALU/DMem steps, respectively.  Like the register-read
-discussion above described above, the latter two are meaningful only
-for certain instructions, but we can construct them anyway; they will
-only be used if meaningful.
+Lines 16-29, 33-38, 42-46 and 49-61 construct the flow-specific struct
+values.  The latter three are meaningful only if \verb|exec_tag|
+indicates Control, Integer of DMem, respectively, but we can construct
+them anyway; they will only be used if those flows are chosen.
 
-Lines 51-54 construct the final result and return it.
+Lines 64-68 construct the final result and return it.
 
 % ****************************************************************
 
