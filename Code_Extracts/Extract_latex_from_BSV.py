@@ -89,80 +89,112 @@ def do_regular_file_function (orig_path, level, dirname, basename, dest_path):
     for j in range (level): prefix = "  " + prefix
     # sys.stdout.write ("{0}{1} ACTION:    {2}\n".format (prefix, level, filename))
 
-    linenum = 0
-    extracting = False
-    for line in fileinput.input (filename):
-        linenum = linenum + 1
-        if not extracting:
-            tag_begin = find_tag (filename, linenum, line, "\\blatex")
-            if tag_begin != None:
-                fd = open (os.path.join (dest_path, tag_begin + ".tex"), 'w')
-                header = ("tag {0} from line {1}, file {2}".
-                          format (tag_begin, linenum, basename))
-                sys.stdout.write ("Extracting: {0}\n".format (header))
-                fd.write ("% {0}\n".format (header))
-                extracting = True
-                state = 0            # still within leading blank lines
-                pending_blank_lines = 0
-        else:
-            tag_end = find_tag (filename, linenum, line, "\\elatex")
-            if tag_end != None:
-                if (tag_end.startswith ("...")):
-                    match_tag = (tag_end [3:] == tag_begin)
-                else:
-                    match_tag = (tag_end == tag_begin)
+    IDLE       = 0
+    EXTRACTING = 1
 
+    state      = IDLE
+    linenum    = 0
+    for line in fileinput.input (filename):
+        line = line.rstrip ()
+        linenum    = linenum + 1
+        blatex     = find_keyword (filename, linenum, line, "\\blatex")
+        belide     = find_keyword (filename, linenum, line, "\\belide")
+        eelide     = find_keyword (filename, linenum, line, "\\eelide")
+        elatex     = find_keyword (filename, linenum, line, "\\elatex")
+        blank_line = (line == "") or line.isspace()
+
+        if (state == IDLE):
+            if (blatex == None):
+                pass
+            else:
+                current_tag = blatex [1]
+                fd = open (os.path.join (dest_path, blatex [1] + ".tex"), 'w')
+                sys.stdout.write ("% from file '{0}' line {1} => {2}.tex\n".
+                                  format (basename, linenum, current_tag))
+                fd.write ("% from file '{0}' line {1}  tag {2}\n".
+                          format (basename, linenum, current_tag))
+                fd.write ("{\\small\n")
+                fd.write ("\\begin{Verbatim}")
+                fd.write ("[frame=single, numbers=left, label={0}: line {1} ...]\n"
+                          .format(rel_filename, linenum))
+                state         = EXTRACTING
+                eliding       = False
+                n_blank_lines = 0
+                if (blatex [0] != ""):
+                    fd.write ("{0}\n".format (blatex [0]))
+        else:
+            assert (state == EXTRACTING)
+            if eliding:
+                if (eelide != None): eliding = False
+            elif (belide != None):
+                eliding = True
+                indent  = ""
+                if belide [1].isdecimal ():
+                    indent_n = int (belide [1])
+                else:
+                    indent_n = 3
+                for j in range (indent_n):
+                    indent += " "
+                fd.write ("{0}...\n".format (indent))
+            elif (elatex != None):
+                # Finished extract
+                match_tag = (current_tag == elatex [1])
                 if not match_tag:
-                    sys.stdout.write ("WARNING: unmatched begin/end tags: {0} and {1}\n"
-                                      .format (tag_begin, tag_end))
-                if (tag_end.startswith ("...")):
-                    fd.write ("...more...\n")
+                    sys.stdout.write ("WARNING: unmatched tags: {0} and {1}\n".
+                                      format (current_tag, elatex [1]))
+                if (elatex [0] != ""):
+                    write_n_blank_lines (fd, n_blank_lines)
+                    fd.write ("{0}\n".format (elatex [0]))
                 fd.write ("\\end{Verbatim}\n")
                 fd.write ("}\n")
                 fd.close ()
-                extracting = False
+                state = IDLE
             else:
-                blank = (line == "") or line.isspace()
-                if blank:
-                    if state == 0:
-                        # leading blank line; skip
-                        pass
-                    else:
-                        # possible trailing blank line
-                        pending_blank_lines = pending_blank_lines + 1
+                if blank_line:
+                    n_blank_lines += 1
                 else:
-                    if state == 0:
-                        # First non-blank line
-                        state = 1
-                        fd.write ("{\\small\n")
-                        fd.write ("\\begin{Verbatim}")
-                        fd.write ("[frame=single, numbers=left, firstnumber={0}, label={1}]\n"
-                                  .format(linenum, rel_filename))
-                    for j in range (pending_blank_lines):
-                        fd.write ("\n")
-                    fd.write (line)
-                    pending_blank_lines = 0
+                    # Normal extracted line
+                    write_n_blank_lines (fd, n_blank_lines)
+                    fd.write ("{0}\n".format (line))
+                    n_blank_lines = 0
 
-    return
+# Finds \keyword or \keyword{tag} in line.  Returns: None or (line upto \keyword, tag)
 
-def find_tag (filename, linenum, line, tag):
-    j = line.find (tag)
-    if j == -1: return None
-    line1 = line [j + len (tag) : ]
-    if not line1.startswith ("{"):
-        sys.stdout.write ("WARNING: expecting '{' after {0}; ignoring\n".format (tag))
-        sys.stdout.write ("    File {0}, Line num {1}\n".format (filename, linenum))
-        sys.stdout.write ("    Line: '{0}'\n".format (line))
-        return None
-    line2 = line1 [1 : ]
-    j     = line2.find ("}")
-    if j == -1:
-        sys.stdout.write ("WARNING: expecting '{0}' after {1}{2}; ignoring\n".
-                          format ("}", tag, "{..."))
+def find_keyword (filename, linenum, line, keyword):
+    j1 = line.find (keyword)
+    if j1 == -1: return None
+
+    j2 = line.find ("//")
+    if j2 == -1:
+        sys.stdout.write ("WARNING: {0} is not in a comment?\n".format (keyword))
+        line_upto_keyword = line [:j1]
+    else:
+        line_upto_keyword = line [:j2]
+    line_upto_keyword = line_upto_keyword.rstrip()
+
+    # line2 is from just past the keyword and before the '{' if any
+    line2 = line [j1 + len (keyword) : ].lstrip()
+    if not line2.startswith ("{"):
+        return (line_upto_keyword, "")
+
+    # line2 is from just past '{'
+    line3 = line2 [1 : ].lstrip ()
+    j3    = line3.find ("}")
+    if j3 == -1:
+        sys.stdout.write ("WARNING: after {0}'{' there is no '}'; ignoring\n".format (keyword))
         sys.stdout.write ("    File {0}, Line num {1}\n".format (filename, linenum))
         sys.stdout.write ("    Line:{0}".format (line))
         return None
-    return line2 [:j]
+
+    tag = line3 [:j3].rstrip()
+
+    return (line_upto_keyword, tag)
+
+# Writes n blank lines that are now known not to be trailing blank lines
+
+def write_n_blank_lines (fd, n):
+    for j in range (n):
+        fd.write ("\n")
 
 # ================================================================
 # For non-interactive invocations, call main() and use its return value

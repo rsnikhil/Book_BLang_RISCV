@@ -664,60 +664,210 @@ a JALR instruction.
 
 % ****************************************************************
 
-\section{Traps due to illegal instructions or other exceptions}
+\section{Traps due to illegal instructions and other exceptions}
+
+\label{Sec_Traps}
 
 Most processors cannot afford to get ``stuck'' on an unrecognized
-instruction (illegal instruction).  This raises one of several
-possible ``exceptions'' or ``traps'' and they are all handled in the
-same way.  Other examples of exceptions are misaligned memory access
-(fetch or LOAD/STORE), or a memory-access to an unimplemented address
-(fetch or LOAD/STORE).
+instruction (illegal instruction).  An illegal instruction raises one
+of several possible ``exceptions''.  Other events that raise
+exceptions are misaligned memory access (in FETCH or LOAD/STORE), or a
+memory-access to an unimplemented address (in FETCH or LOAD/STORE),
+{\etc}.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+``Illegal'' just means: outside the currently implemented subset. For
+example (see Figure~\ref{Fig_ISA_Modularity}), a legal RISC-V
+instruction in, say, the M extension is considered illegal in an
+implementation that only implements the RV32I subset.
+
+\end{minipage}}
+
+\vspace{2ex}
+% ----------------
 
 Exceptions are treated like an ``unexpected call'' to a special
-subroutine called a ``trap/exception handler''.  The architectural
-state is extended with a few extra registers belonging to a class of
-registers called CSRs (Control and Status Registers).  These are shown
-in Figure~\ref{Fig_Trap_CSRs}.
+subroutine called a ``trap handler''.  The architectural state is
+extended with a few extra registers belonging to a class of registers
+called CSRs (Control and Status Registers), shown in
+Figure~\ref{Fig_Trap_CSRs}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Trap_CSRs}}
-  \caption{\label{Fig_Trap_CSRs} CSRs for handling traps/exceptions}
+  \caption{\label{Fig_Trap_CSRs} CSRs for handling traps}
 \end{figure}
 
-To ``return'' from a trap handler we add one more instruction: MRET.
-
-Figure~\ref{Fig_Trap_Return} illustrates the flow into the trap
-handler and back on an exception (ILLEGAL instruction is one possible
-cause of a trap).
+To ``return'' from a trap handler we need one more instruction: MRET,
+which is in the ``RISC-V Privilege M ISA'' (see
+Figure~\ref{Fig_ISA_Modularity}).  Figure~\ref{Fig_Trap_Return}
+illustrates the flow into the trap handler and back on an exception
+(an ILLEGAL instruction is one possible cause of the exception).
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Trap_Return}}
   \caption{\label{Fig_Trap_Return} Trap and return flow}
 \end{figure}
 
-When the exception is detected, the hardware saves the faulting PC in
-CSR MEPC, saves a cause-code in CSR MCAUSE and possibly one more piece
-of data in CSR MTVAL.  Then, it sets the PC to the value in MTVEC, so
-that we start executing the trap-handler code.
+When the exception is detected, the hardware saves the faulting PC
+(PCx in the figure) in CSR MEPC, saves a cause-code in CSR MCAUSE and
+possibly one more piece of data (depending on the type of exception)
+in CSR MTVAL.  Then, it sets the PC to the value in MTVEC, so that we
+start executing the trap-handler code.
+
+When the trap-hanlder has finished, it executes an MRET instruction
+which copies the value in MEPC into the PC, continuing execution at
+that location.
+
+Exception-cause codes relevant to this book (RV32I + exception
+handling) are shown in the table below (excerpted from Table 3.6 in
+the Privileged ISA Specfication document).
+
+\begin{center}
+ \begin{tabular}{|c|l|}
+  \hline
+  Exception-Cause code & Description \\
+  \hline
+  0 & Instruction address misaligned \\
+  1 & Instruction access fault \\
+  2 & Illegal instruction \\
+  3 & Breakpoint \\
+  4 & Load address misaligned \\
+  5 & Load access fault \\
+  6 & Store/AMO address misaligned \\
+  7 & Store/AMO access fault \\
+  ... & ... \\
+  11 & Environment call M-mode \\
+  ... & ... \\
+  \hline
+ \end{tabular}
+\end{center}
 
 The trap handler code can examine MCAUSE, MEPC and MTVAL to determine
-what it should do to handle the trap.  Finally, an MRET instruction
-reads MEPC and restores the PC accordingly, to resume the normal flow.
-Note, the trap handler may return to MEPC or to MEPC+4, depending on
-trap cause.
+what it should do to handle the trap.  Regarding MEPC, it may:
+\begin{itemize}
+
+ \item Leave MEPC untouched, so that, on MRET, we retry the
+       exceptional instruction.
+
+       \emph{Example}: the exception was a page-fault due to a FETCH
+       on an umapped page.  The trap handler may map the page, and
+       MRET to the faulting instruction to be retried (which,
+       hopefully, should not page-fault again).
+
+ \item Increment MEPC by 4, so that, on MRET, we resume at the next
+       instruction after the faulting instruction.
+
+       \emph{Example}: the faulting instruction is a legal RISC-V
+       instruction, but has deliberatly been left unimplemented ({\eg}
+       to save hardware cost).  The trap handler ``emulates'' the
+       instruction ({\ie} performs the required computation using
+       implemented instructions), and resumes the normal flow at the
+       next instruction.
+
+       \emph{Example}: the trap handler just records that this
+       instruction is illegal so that it can avoid it in subsequent
+       execution.
+
+ \item Change it to something else entirely, to abandon the current
+        ``normal'' flow and do something else.
+
+       \emph{Example}: in an Operating System, we save MEPC for future
+       resumption, and change it to give another process a chance to
+       execute.
+\end{itemize}
 
 % ================================================================
 
-\subsection{ECALL, EBREAK, FENCE, and Interrupts}
+\subsection{ECALL and EBREAK instructions, and Interrupts}
 
-RV32I instructions ECALL and EBREAK, and external interrupts are all
-treated just like traps/exceptions, just placing a suitable cause-code
-in CSR MCAUSE.  ECALL is usually used to move to a higher privilege
-level (User to Supervisor, or Supervisor to Machine).  EBREAK is
-usually used for debugging.
+RV32I instructions ECALL and EBREAK are handled just like other
+exceptions; in that sense, these are not ``unexpected'' conditions,
+but exceptions deliberately induced by the program.  The only notable
+feature is that they place certain exception-cause codes in the MCAUSE
+CSR (see ``Environment call M-mode'' and ``Breakpoint'', respectively,
+in the table above).
 
-In this book we gloss over the FENCE instruction, which is used to
-flush data to memory that may still be sitting in caches near the CPU,
-so that other devices or CPUs can see the data.  This is done inside
-the memory system, which is not a topic discussed in this book.
+In systems with operating systems, ECALL is used to move in a
+disciplined way from lower to higher privilege levels (from User mode
+to Supervisor mode, and from Supervisor Mode to Machine mode).
+
+Some RISC-V implementations contain a hardware ``Debug Module'', in
+which case EBREAK is treated differently (please see the RISC-V Debug
+Module specification document).  It is used as part of the
+implementation of the ``break'' command in debuggers like GDB, LLDB
+and OpenOCD.
+
+An external interrupt is also dispatched into the trap-handler just
+like exceptions, the only difference being the code placed in the
+MCAUSE register (see Table 3.6 in the Privileged ISA Specfication
+document for all the defined interrupt cause codes).
+
+% ================================================================
+
+\subsection{CSRRxx instructions}
+
+In Section~\ref{Sec_Traps} we described how various CSRs are read and
+written during trap-handling.  These reads and writes are performed
+\emph{by the hardware} as part of taking a trap or performing an MRET.
+
+But we also need a way to read and write CSRs \emph{programmatically},
+{\ie} from instructions in the program.  For example, before any trap
+is taken, some early part of the execution needs to write the
+trap-vector's PC into MTVEC.  During trap-handling, the trap-handler
+needs to read (and possibly write) MEPC, MCAUSE and MTVAL.
+
+Programmatic access to CSRs is provided by a family of six ``CSRRxx''
+instructions.  The following table is excerpted from the RISC-V
+Unprivileged ISA spec document (Chapter 9, on the ``Zicsr''
+extension).
+\begin{figure}[htbp]
+  \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_CSRRxx_spec}}}
+  \caption{\label{Fig_CSRRxx_spec} CSRRxx instructions (from Unprivileged Spec)}
+\end{figure}
+
+As the text says, each CSR instruction:
+
+\begin{tightlist}
+
+ \item reads a value $x$ from a general-purpose register (rs1) or
+       takes the rs1 field itself as a literal 5-bit value;
+
+ \item reads a value $y$ from a CSR (whose 12-bit address is given in
+       \verb|instr[31:20]|);
+
+ \item returns $y$ into a general-purpose register (rd);
+
+ \item and writes back a value into the CSR that is some function of
+       $x$ and $y$ (the details vary across the six CSRRxx
+       instructions).
+
+\end{tightlist}
+For details, please read the RISV-V Unprivileged ISA specification
+document, Chapter 9.
+
+
+% ================================================================
+
+\subsection{FENCE}
+
+The FENCE instruction is intended for RISC-V implementations that
+contain caches in the memory system.  In such systems, data may not
+reach memory quickly or at all (is in the cache and is not evicted),
+and two items of data $x_1$ and $x_2$ may reach memory in a different
+order from the STORE instructions that wrote them (because the order
+in which their cache lines are written back to memory has no relation
+ship to the program STORE order).
+
+The FENCE instruction is often used to ``push'' data from the cache to
+memory, although technically the FENCE instruction only guarantees an
+``ordering'', {\ie} that if there are two STOREs $x_1$ and $x_2$
+before and after a FENCE, respectively, then $x_1$ will be visible
+before $x_2$ to any other agent in the system (another CPU, a DMA
+engine, an I/O device, {\etc}).
 
 % ================================================================
 
@@ -752,17 +902,27 @@ ADDW, SUBW, SLLW, SRLW and SRAW to operate on the lower 32-bits of
 
 % ****************************************************************
 
-\section{Continued Evolution of the RISC-V ISA}
+\section{Continued Evolution of the RISC-V ISA (with your contribution?)}
 
 \index{RISC-V!ISA!Evolution of}
 \index{RISC-V!ISA!Extensions to}
 
-The RISC-V ISA is not frozen.  RISC-V International (RVI) runs an
-organized process for the continued maintenance and evolution of the
-ISA.  Special-interest groups drawn widely from RVI membership
-constitute various committees under the aegis of RVI to propose,
-develop, and specify new extensions to the ISA.  There is a formal
+The RISC-V ISA is not frozen.  As shown in
+Figure~\ref{Fig_ISA_Modularity}, the ISA has consciously been designed
+in a modular way and to be modularly extensible.  RISC-V International
+(RVI, \url{https://riscv.org}) runs an organized process for the
+continued maintenance and evolution of the ISA.  Special-interest
+groups drawn widely from RVI membership constitute various committees
+under the aegis of RVI to propose, develop, and specify new extensions
+to the ISA (for cryptography, for image and video manipulation, for
+high-performance computing, for AI, and so on).  There is a formal
 public-review and ratification process for any new proposed
 extensions.
+
+RVI has the usual corporate membership tiers seen in many consortiums
+but, unusually, it also has inexpensive memberships for individuals
+(students, hobbyists, ...)  and academic institutions.  So please feel
+free to join, in order to monitor the RISC-V ecosystem closely or,
+even better, to actively contribute to its future,
 
 % ****************************************************************

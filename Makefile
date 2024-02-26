@@ -9,6 +9,7 @@ help:
 	@echo "    full            Multiple runs of bibtex and pdflatex"
 	@echo "    extract         Extracts code fragments from .bsv code in $(CODE_DIR)"
 	@echo "                    into local files to be \input into LaTeX"
+	@echo "    figs            Regen .png from .svg in Figures/"
 	@echo ""
 	@echo "    clean           Remove emacs backups and minor intermediates"
 	@echo "    full_clean      + remove LaTeX intermediate files backups and pdf"
@@ -67,6 +68,7 @@ figs:
 	make -C ch010_intro/Figures
 	make -C ch030_RISCV_Design_Space/Figures
 	make -C ch040_Combo_Circuits/Figures
+	make -C Figures png
 
 .PHONY: bib
 bib:
