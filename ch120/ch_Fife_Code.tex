@@ -10,7 +10,7 @@
 % \renewcommand{\thepage}{\arabic{page}}
 \renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
 
-\label{ch_Fife_Code}
+\label{ch_Fife_code}
 
 % ****************************************************************
 
@@ -637,7 +637,7 @@ matter; in the Execute stage each instruction only \emph{uses} these
 values if the instruction has an rs1 and/or rs2.
 
 Next, we apply the function \verb|fn_Dispatch| (it was discussed in
-Section~\ref{Sec_Dispatch_function}, and is the same one we use in Drum) to
+Section~\ref{Sec_fn_Dispatch}, and is the same one we use in Drum) to
 the inputs, which computes \verb|y|, containing the structs to be sent
 on the direct path (\verb|y.to_Retire|), to Execute Control
 (\verb|y.to_Control|), and to Execute Int and Execute DMem
@@ -757,7 +757,7 @@ endmodule
 After instantiating the forward flow input and output FIFOs, the rule
 \verb|rl_Control| simply applies the function \verb|fn_Control| to
 each input and enqueues the output.  This function was described in
-Section~\ref{Sec_Control_function}, and is the same one we use in
+Section~\ref{Sec_fn_EX_Control}, and is the same one we use in
 Drum.  Finally, the interface, after the \verb|init| method, simply
 lifts the FIFO interfaces to the interface of this module.
 
@@ -807,7 +807,7 @@ endmodule
 The structure is just like \verb|mkEX_Control|: forward-flow input and
 output FIFOs, with the rule transforming input to output through the
 function \verb|fn_EX_IALU|, which was discussed in
-Section~\ref{Sec_EXI_function} and is the same one we use in Drum.
+Section~\ref{Sec_fn_EX_Int} and is the same one we use in Drum.
 Finally, the interface, after the \verb|init| method, simply lifts the
 FIFO interfaces to the interface of this module.
 

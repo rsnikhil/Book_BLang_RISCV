@@ -2,9 +2,10 @@
 
 % ****************************************************************
 
-\chapter{RISC-V: Core functions for RISC-V ISA execution}
+\chapter{RISC-V: Core functions for RISC-V ISA execution
+{\LARGE (used in Drum and Fife)}}
 
-\markboth{Ch \arabic{chapter}: Core functions}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: RISC-V: Core functions}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -28,7 +29,7 @@ Figure~\ref{Fig_Core_Simple_Instr_Exec}: \verb|fn_Fetch|,
 
 % ****************************************************************
 
-\section{The Fetch function}
+\section{The function {\tt fn\_Fetch}}
 
 \label{Sec_Fetch_function}
 
@@ -70,9 +71,50 @@ struct, {\ie} a struct containing the two component structs:
 \input{Code_Extracts/Result_F.tex}
 
 Finally, as mentioned earlier, the function \verb|fn_Fetch| is almost
-trivial:
+trivial: it merely fills in the two result structs based on argument
+values and returns them:
 
 \input{Code_Extracts/fn_Fetch.tex}
+
+As the comment at the top of the code excerpt says, \verb|fn_Fetch| is
+actually a pure function (no side-effects), and we could have written
+it as follows:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function Result_F
+         fn_Fetch (Bit #(XLEN)  pc,
+		   Bit #(XLEN)  predicted_pc,    // \belide{19}
+		   Epoch        epoch,
+		   File         flog,
+		   Bit #(64)    inum);           // \eelide
+      Result_F y = ?;
+      ...
+      return y;
+endfunction
+\end{Verbatim}
+}
+
+{\ie} the return-type is \verb|Result_F| instead of
+\verb|ActionValue#(Result_F)|, and we simply drop the
+``\verb|actionvalue|---\verb|endactionvalue|'' bracket
+keywords. Recall Section~\ref{Sec_Pure_vs_Side_Effect_functions} where
+we discussed pure {\vs} side-effecting functions, and their
+distinction in the type-system through the absence/presence of the
+\verb|ActionValue| type constructor.  Even though this is a pure
+function, by couching it as an \verb|ActionValue| type, we preserve
+the option of inserting a \verb|$display| (which \emph{is} a
+side-effect) for debugging purposes, should we need it in the future.
+
+In line 9 we declare variable \verb|y| of type \verb|Result_F|, with
+unspecified initial value (recall Section~\ref{Sec_Dont_Care_Values}
+where we discussed using ``\verb|?|'' to indicate an unspecified or
+don't-care value).  The two fields of \verb|y| are then updated in
+lines 11 and 14, respectively, and \verb|y| is finally returned as the
+result of the function.
+
+We also use ``\verb|?|'' in line 17 the \verb|data| field is only
+relevant in a STORE memory request, whereas this is a FETCH request.
 
 % ================================================================
 
@@ -90,15 +132,15 @@ and \verb|Mem_Req| outputs look correct.
 
 % ****************************************************************
 
-\section{The Decode function}
+\section{The {\tt fn\_Decode} function}
 
 \label{Sec_Decode_Function}
 
 \index{fn\_Decode@{\tt fn\_Decode} (Decode function)}
 \index{Decode function ({\tt fn\_Decode})}
 
-The core function for the Decode step is called \verb|fn_Decode|.
-It's arguments are an \verb|Fetch_to_Decode| struct from the Fetch
+The core function for the Decode step is called \verb|fn_Decode|.  Its
+arguments are a struct of type \verb|Fetch_to_Decode| from the Fetch
 step and a \verb|Mem_Rsp| memory response struct from memory.  Its
 output struct type, \verb|Decode_to_RR|, was described in
 Section~\ref{Sec_struct_D_to_RR}.  The code for \verb|fn_Decode| is
@@ -110,10 +152,10 @@ produces some summary information:
 \index{truncate@{\tt truncate}, operation to shrink bit-width}
 
 In line 6, we extract the instruction from the \verb|Mem_Rsp| memory
-response data from the Fetch operation, The \verb|truncate| operation
-is used to shrink the bit-vector width of \verb|rsp_IMem.data| (64
-bits) to the bit-vector width of \verb|instr| (32 bits).
-(Section~\ref{Sec_Mem_Req} discussed why we declared
+response \verb|data| from the Fetch operation. The \verb|truncate|
+operation is used to shrink the bit-vector width of
+\verb|rsp_IMem.data| (64 bits) to the bit-vector width of \verb|instr|
+(32 bits).  (Section~\ref{Sec_Mem_Req} discussed why we declared
 \verb|rsp_IMem.data| to be 64-bits wide).  The \verb|truncate|
 operation is polymorphic, accepting arguments of any bit-width that is
 at least as wide as the required output.  Note, \verb|truncate| keeps
@@ -121,9 +163,9 @@ least-significant bits and drops most-significant bits.
 
 In line 7 we extract the \verb|rd| (``destination register'') field
 from the instruction.  In line 9 we compute the fall-through PC, PC+4
-(with the caveat that if we want to support the ``C'' RISC-V ISA
-extension (``Compressed'' instructions), it may be PC+2, which
-information can be gleaned from the instruction encoding).
+(with the caveat that if extend the implementation to support the
+``C'' RISC-V ISA extension (``Compressed'' instructions), it may be
+PC+2, which information can be gleaned from the instruction encoding).
 
 In lines 11-26 we create a baseline \verb|Decode_to_RR| value which we
 will selectively modify in the if-then-else statements that follow.
@@ -203,26 +245,26 @@ check that the \verb|D_to_RR| outputs look correct.
 
 % ****************************************************************
 
-\section{The Dispatch function following Register-Read}
+\section{The {\tt fn\_Dispatch} function after reading input registers}
 
-\label{Sec_Dispatch_function}
+\label{Sec_fn_Dispatch}
 
 \index{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
 \index{Dispatch function ({\tt fn\_Dispatch})}
 
-In the Register-Read and Dispatch step (``RR''), we first read the
-\verb|rs1| and \verb|rs2| values from the Register File.  We will
-cover register files in Section~\ref{Sec_Register_files}, and
+In the Register-Read and Dispatch step (``RR'', ``RRD''), we first
+read the \verb|rs1| and \verb|rs2| values from the Register File.  We
+will cover register files in Section~\ref{Sec_Register_files}, and
 register-reads when we discuss the Drum CPU itself, in
 Chapter~\ref{ch_Drum_code}.
 
-With the \verb|rs1| and \verb|rs2| values, we use function
-\verb|fn_Dispatch| to determine what needs to be passed to the various
-alternative steps (``flows'') that follow.  Its argument is a
+With the \verb|rs1| and \verb|rs2| values in hand, we use function
+\verb|fn_Dispatch| to determine the information to be passed to the
+various alternative steps (``flows'') that follow.  Its argument is a
 \verb|Decode_to_RR| struct from the Decode step, which was discussed
 in Section~\ref{Sec_struct_D_to_RR}.  Before we look at the result
-type of \verb|fn_Dispatch|, let us look at the four possible flows in
-the subsequent steps:
+type of \verb|fn_Dispatch|, let us discuss the four possible
+subsequent flows:
 
 \begin{itemize}
 
@@ -259,36 +301,52 @@ the flow for this instruction:
 
 The result type of \verb|fn_Dispatch| is \verb|Result_Dispatch|.  It
 is just a nested struct that contains four different struct types for
-the four flows (the struct types are labeled in
-Figure~\ref{Fig_Drum_Instr_Exec}).
+the four flows (the struct types can be seen on arc labels in
+Figure~\ref{Fig_Core_Simple_Instr_Exec}).
 
 \input{Code_Extracts/Result_Dispatch.tex}
 
-The direct information is defined in the type \verb|RR_to_Retire|:
+The first component is the information sent directly to Retire:
 
 \input{Code_Extracts/RR_to_Retire.tex}
 
 The \verb|exec_tag| informs Retire about the flow for this
 instruction.  The {\tt exception} and {\tt cause} fields from
 \verb|Decode_to_RR| are carried through, as-is, since it is the Retire
-step that handles all exceptions.  Note, in addition to passing
-exceptions from RR to Retire, the Control or Execute steps could also
-raise exceptions.  The {\tt pc} field is needed in case Retire needs
+step that handles all exceptions.  Note, in addition to passing these
+exceptions in RR to Retire, the Control or Execute steps can also
+produce exceptions.  The {\tt pc} field is needed in case Retire needs
 to handle a trap or interrupt, which saves the {\tt pc} before
 handling it.
 
-The \verb|has_rd| and \verb|rd| fields are carried through to control
-whether Retire tries to write a value back to the register file nor
-not.  The \verb|fallthru_pc| is used for most instructions that
-complete successfully (without raising an exception).
+The \verb|has_rd| field is carried through to control whether Retire
+tries to write a value back to the register file nor not.  The
+\verb|fallthru_pc| is used for most instructions that complete
+successfully (without raising an exception).
 
-Returning our attention to the \verb|Result_Dispatch| struct type, the
-second component, of type \verb|RR_to_Control| and used for the
-Control flow, was described in Section~\ref{Sec_Control_function}. The
-third component, of type \verb|RR_to_EX| and used in the Integer flow,
-was described in Section~\ref{Sec_EXI_function}.  The fourth
-component, of type \verb|Mem_Req| and used in the DMem flow, was
-described in Section~\ref{Sec_Mem_Req}.
+The second component of \verb|Result_Dispatch| is the information sent
+to Execute Control (we will see how these fields are used in
+Section~\ref{Sec_fn_EX_Control} when we discuss \verb|fn_EX_Control|):
+
+\input{Code_Extracts/RR_to_EX_Control.tex}
+
+The third component of \verb|Result_Dispatch| is the information sent
+to Execute Int (we will see how these fields are used in
+Section~\ref{Sec_fn_EX_Int} when we discuss \verb|fn_EX_Int|):
+
+\input{Code_Extracts/RR_to_EX.tex}
+
+We choose to call it \verb|RR_to_EX| instead of \verb|RR_to_EX_Int|
+because the same struct type is likely to be used in future also for
+the other optional execution pipes shown in
+Figure~\ref{Fig_Core_Simple_Instr_Exec}: Integer Multiply Divide
+(``M'' ISA extension), floating point (``F'' and ``D'' ISA extensions)
+and Custom (non-standard ISA extensions).
+
+The third component of \verb|Result_Dispatch| is the information sent
+to Execute DMem, and is the same \verb|Mem_Req| struct we have already
+discussed in Section~\ref{Sec_Mem_Req}, and which is also an output
+component of \verb|fn_Fetch|.
 
 The code for \verb|fn_Dispatch| is shown below.  Its arguments are the
 \verb|Decode_to_RR| struct from the Decode stage, and values from the
@@ -298,162 +356,63 @@ source registers \verb|rs1| and \verb|rs2|.
 
 Lines 7-14 compute \verb|exec_tag|, {\ie} the flow to be followed.
 
-
-
-Lines 13-20 compute the \verb|exec_tag| based on the kind of
-insrruction.
-
 Lines 16-29, 33-38, 42-46 and 49-61 construct the flow-specific struct
 values.  The latter three are meaningful only if \verb|exec_tag|
-indicates Control, Integer of DMem, respectively, but we can construct
-them anyway; they will only be used if those flows are chosen.
+indicates Control, Integer of DMem, respectively, but there is no harm
+in constructing them, even if they may contain bogus data; they will
+only be used when their flows are chosen and ignored otherwise.
 
-Lines 64-68 construct the final result and return it.
+Lines 64-68 construct and return the final result with the four
+component structs.
 
 % ****************************************************************
 
-\section{The Execute Control function}
+\section{The {\tt fn\_EX\_Control} function}
 
-\label{Sec_Control_function}
+\label{Sec_fn_EX_Control}
 
-\index{fn\_Control@{\tt fn\_Control} (Execute Control function)}
-\index{Execute Control function ({\tt fn\_Control})}
+\index{fn\_EX\_Control@{\tt fn\_EX\_Control} (Execute Control function)}
+\index{Execute Control function ({\tt fn\_EX\_Control})}
 
-We will next discuss the ``execute'' functions (Control, IALU and
-DMem), which can also be characterized as pure value-to-value
-functions.
+This function is a simple one-input one-output function.  The input
+type \verb|RR_to_EX_Control| was described in
+Section~\ref{Sec_fn_Dispatch}, where it was an output type.  The
+output type of \verb|fn_EX_Control| is shown below:
 
-The input and output of \verb|fn_Control|, the Control function in
-Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, are values of the
-following types, respectively.  Each of the input fields is needed to
-compute one or more of the output fields.
+\input{Code_Extracts/EX_Control_to_Retire.tex}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {Bit #(XLEN)  pc;
-		Bit #(XLEN)  fallthru_pc;
-		Bit #(32)    instr;
-		Bit #(XLEN)  rs1_val;
-		Bit #(XLEN)  rs2_val;
-		Bit #(32)    imm;
-} RR_to_Control
-deriving (Bits, Eq, FShow);
+Here is the Execute Control function:
 
-typedef struct {Bool         exception;
-		Bit #(XLEN)  cause;        // Misaligned BRANCH/JAL/JALR target
+\input{Code_Extracts/fn_EX_Control.tex}
 
-		Bit #(XLEN)  next_pc;
-		Bool         data_valid;    // True for JAL/JALR; False for BRANCH
-		Bit #(XLEN)  data;          // Return-PC for JAL/JALR
-} Control_to_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
+The first ``\verb|if|'' clause handles BRANCH (conditional branch)
+instructions.  The \verb|case| expression computes the boolean value
+\verb|branch_taken|, {\ie} the decision whether to take the branch or
+not.  A case-clause is chosen based on the 3-bit \verb|funct3| field
+of the instruction that identifies the specific condition to be
+tested.\footnote{Unlike C/C++, where a case-clause ``falls through''
+to the next case-clause unless you have a {\tt break} statement, in
+BSV only one case-clause is executed, there is no fall-through.}  Note
+that for BLT and BGE, we use BSV library functions \verb|signedLT| and
+\verb|signedGE| that interpret \verb|rs1_val| and \verb|rs2_val| as
+2's-complement signed integers.
 
-Here is the Control function \verb|fn_Control|:
+Line 16 computes the target PC should the the branch be taken.  Line
+17 computes the next PC, which is either the target PC or the
+fall-through PC depending on whether or not the branch is taken.
+Finally, Line 18 checks, if the branch is taken, that the target PC is
+a properly aligned address (if not, we must raise an exception).
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function Control_to_Retire fn_Control (RR_to_Control  x);
-   let instr   = x.instr;
-   let rs1_val = x.rs1_val;
-   let rs2_val = x.rs2_val;
+The next ``\verb|else if|'' clause handles JAL (Jump and Link)
+instructions and the final ``\verb|else if|'' clause handles the JALR
+(Jump and Link Register) instructions.  They are both straightforward,
+unconditional calculations of a next PC, along with an alignment-check
+that the next PC is suitably aligned.  As per the Unprivileged ISA
+specification document, JALR also zeroes the least-significant bit of
+target PC.
 
-   Bit #(XLEN)  next_pc   = ?;
-   Bool         exception = False;    // Misaligned target_pc
-
-   if (is_BRANCH (instr)) begin
-      Bool branch_taken = case (instr_funct3 (instr))
-                             funct3_BEQ:  (rs1_val == rs2_val);
-                             funct3_BNE:  (rs1_val != rs2_val);
-                             funct3_BLT:  signedLT (rs1_val, rs2_val);
-                             funct3_BGE:  signedGE (rs1_val, rs2_val);
-                             funct3_BLTU: (rs1_val < rs2_val);
-                             funct3_BGEU: (rs1_val >= rs2_val);
-                          endcase;
-      Bit #(13) imm13 = x.imm [12:0];
-      let target_pc = x.pc + signExtend (imm13);
-      next_pc = (branch_taken ? target_pc : x.fallthru_pc);
-      exception = (branch_taken && (target_pc [1:0] != 0));
-   end
-   else if (is_JAL (instr)) begin
-      Bit #(21) imm21 = x.imm [20:0];
-      next_pc = x.pc + signExtend (imm21);
-      exception = (next_pc [1:0] != 0);
-   end
-   else if (is_JALR (instr)) begin
-      Bit #(12) imm12 = x.imm [11:0];
-      // zero out LSB in target PC
-      next_pc = ((rs1_val + signExtend (imm12)) & ~1);
-      exception = (next_pc [1:0] != 0);
-   end
-
-   Bool data_valid = ((instr_rd  (instr) != 0)
-                      && (is_JAL (instr) || is_JALR (instr)));
-   let y = Control_to_Retire {inum:       x.inum,
-                              pc:         x.pc,
-                              instr:      x.instr,
-                              exception:  exception,
-                              cause:      cause_INSTRUCTION_ADDRESS_MISALIGNED,
-                              next_pc:    next_pc,
-                              data_valid: data_valid,
-                              data:       x.fallthru_pc};
-   return y;
-endfunction
-\end{Verbatim}
-}
-
-Lines 9-22 handle BRANCH (conditional branch) instructions.  First the
-\verb|case| expression computes the boolean value \verb|branch_taken|,
-the decision whether to take the branch or not.  This is based on the
-3-bit \verb|funct3| field of the instruction that identifies the
-specific condition to be tested.  Note that for BLT and BGE, we use
-the \verb|signedLT| and \verb|signedGE| functions that interpret
-\verb|rs1_val| and \verb|rs2_val| as signed integers.
-
-Line 19 computes the target PC should the the branch be taken.  Line
-20 computes the next PC, which is either the target PC or the
-fall-through PC depending on whether the branch is taken or not.
-Finally, Line 21 checkes that if the branch is taken, that the target
-PC is a suitably aligned address.
-
-Lines 23-27 handle JAL (Jump and Link) instructions, and lines 28-33
-handle the JALR (Jump and Link Register) instructions.  They are both
-straightforward, unconditional calculations of a next PC, along with
-an alignment-check that the next PC is suitably aligned.
-
-Notice that the nested if-then-else has no final ``else'' clause.
-This is safe because of the checks already done in the Decode function
-\verb|Fn_D|, which guarantee that this function will only be invoked
-with inputs that are handled by one of the three clauses.
-
-Finally, lines 35 through 45 construct the final result and return it.
-
-\vspace*{2ex}
-
-NOTE:
-\fbox{\small
-\begin{minipage}{5in}
-
-{\bf RISC-V: misaligned branch/jump targets}
-
-\vspace{1ex}
-
-In {\tt fn\_Control}, the BRANCH, JAL and JALR clauses set the
-{\tt exception} field to true if the next PC is not aligned.  This is
-required by the RISC-V Spec (see ``Section 2.5 Control Transfer
-Instructions'' in \cite{RISCV_Unpriv_2019_12_13}).  If there is a
-misalignment error, we encounter it here on the control-transfer
-instruction.
-
-\vspace{1ex}
-
-If we do not check alignment here, we will encounter a misalignment
-error on the next Fetch, at the next-PC address.  The choice of
-catching this earlier, at the control-transfer instruction itself, is
-a design choice by the RISC-V ISA architects.
-
-\end{minipage}}
+The final section constructs the \verb|EX_Control_to_Retire| struct
+result and returns it.
 
 \vspace*{2ex}
 
@@ -462,17 +421,34 @@ a design choice by the RISC-V ISA architects.
 % ----------------
 \Exercise
 
-Prove (informally) that the three-way if-then-else in
-\verb|Fn_Control| will catch all cases, {\ie} that we never need a
-final ``else'' clause.  This requires reviewing the Decode function
-\verb|fn_Decode|, and tracking the flow of information through the
-Register-Read-and-Dispatch step (including the Dispatch function
-\verb|fn_Dispatch)| into \verb|fn_Control|.
+In {\tt fn\_EX\_Control}, the BRANCH, JAL and JALR clauses set the
+{\tt exception} field to true if the next PC is not aligned.
+
+\begin{enumerate}
+
+  \item What would happen if we did not set the exception field here?
+
+  \item See ``Section 2.5 Control Transfer Instructions'' in the
+      Unprivileged ISA specification document
+      \cite{RISCV_Unpriv_2019_12_13}) for a discussion of why we set
+      it here.
+
+\end{enumerate}
 
 % ----------------
 \Exercise
 
-In \verb|Fn_Control|, can we change the final ``if'' condition line:
+Prove (informally) that the three-way if-then-else shown above in
+\verb|Fn_EX_Control| will catch all cases, {\ie} that we never need a
+final ``\verb|else|'' clause.  This requires reviewing
+\verb|fn_Decode| and tracking the flow of information through the
+Register-Read-and-Dispatch step (including \verb|fn_Dispatch)|, into
+\verb|fn_Control|.
+
+% ----------------
+\Exercise
+
+In \verb|Fn_EX_Control|, can we change the final ``\verb|else if|'':
 
 {\small
 \begin{Verbatim}[frame=single]
@@ -480,7 +456,8 @@ In \verb|Fn_Control|, can we change the final ``if'' condition line:
 \end{Verbatim}
 }
 
-into a simple ``else'' clause ({\ie} omit the the \verb|is_JALR| check)?
+into a simple ``\verb|else|'', {\ie} omit the the \verb|is_JALR|
+check?
 
 {\small
 \begin{Verbatim}[frame=single]
@@ -493,173 +470,96 @@ What might be the hardware implication of such a change?
 % ----------------
 \Exercise
 
-In line 35 in {\tt fn\_Control}, we are testing {\tt (instr\_rd
-(instr) != 0)}.  But we tested this in computing the boolean {\tt
-has\_rd} in {\tt fn\_Decode}, the Decode function.  Discuss the hardware
-tradeoffs in just passing that boolean value along in the structs to
-this point, instead of recomputing it here.
+In the final section of {\tt fn\_EX\_Control}, why do we have:
+\verb|data: x.fallthrough_pc|? \\
+\emph{Hint}: review the semantics of JAL and JALR instructions.
+
+What if this is a BRANCH instruction?
+
+What if this is a JAL or JALR instruction with \verb|rd| = 0?
 
 \Endexercise
 
 % ****************************************************************
 
-\section{The Execute Integer Ops function}
+\section{The {\tt fn\_EX\_Int} function}
 
-\label{Sec_EXI_function}
+\label{Sec_fn_EX_Int}
 
-\index{fn\_EX\_IALU@{\tt fn\_IALU} (Execute Integer Ops function)}
-\index{Execute Integer Ops function ({\tt fn\_EX\_IALU})}
+\index{fn\_EX\_Int@{\tt fn\_EX\_Int} (Execute Integer function)}
+\index{Execute Integer function ({\tt fn\_EX\_Int})}
 
-The input and output of \verb|fn_EX_IALU|, the ``Execute Integer Ops''
-function in Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, are values
-of the following types, respectively.  Each of the input fields is
-needed to compute one or more of the output fields.
+This function is a simple one-input one-output function.  The input
+type \verb|RR_to_EX| was described in Section~\ref{Sec_fn_Dispatch},
+where it was an output type.  The output type of \verb|fn_EX_Int| is
+shown below:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {Bit #(XLEN)  pc;
-		Bit #(32)    instr;
-		Bit #(XLEN)  rs1_val;
-		Bit #(XLEN)  rs2_val;
-		Bit #(32)    imm;
-} RR_to_EX
-deriving (Bits, FShow);
+\input{Code_Extracts/EX_to_Retire.tex}
 
-typedef struct {Bool         exception;
-		Bit #(XLEN)  cause;
+We choose to call it \verb|EX_to_Retire| instead of
+\verb|EX_Int_to_Retire| because the same struct type is likely to be
+used in future also for the other optional execution pipes shown in
+Figure~\ref{Fig_Core_Simple_Instr_Exec}: Integer Multiply Divide
+(``M'' ISA extension), floating point (``F'' and ``D'' ISA extensions)
+and Custom (non-standard ISA extensions).
 
-		Bool         data_valid;
-		Bit #(XLEN)  data;
-} EX_to_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
+Here is the Execute Integer function:
 
-Here is the Execute Integer Ops function \verb|fn_EX_IALU|:
+\input{Code_Extracts/fn_EX_Int.tex}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function EX_to_Retire fn_EX_IALU (RR_to_EX x);
-   let instr = x.instr;
+The first ``\verb|if|'' handles LUI instructions (Load Upper
+Immediate).  The following ``\verb|else if|'' handles AUIPC
+instructions (Add Upper Immediate to PC). The final ``\verb|else|''
+handles all the remaining Integer ops by invoking an ``ALU'' function:
 
-   let y = EX_to_Retire {inum:       x.inum,
-                         pc:         x.pc,
-                         instr:      instr,
-                         exception:  False,
-                         cause:      ?,
-                         data_valid: True,
-                         data:       ?};
+\input{Code_Extracts/fn_IALU.tex}
 
-   if (is_LUI (instr))
-      y.data = (zeroExtend (instr_imm_U (instr)) << 12);
-   else if (is_AUIPC (instr)) begin
-      Bit #(XLEN) offset = signExtend ({ instr_imm_U (instr), 12'b0 });
-      y.data = x.pc + offset;
-   end
-   else begin
-      let result <- fn_IALU (logf, instr, x.rs1_val, x.rs2_val, x.imm);
-      y.data = result;
-   end
-   return y;
-endfunction
-\end{Verbatim}
-}
+The reason we create a separate \verb|fn_IALU| function, instead of
+inlining it into \verb|Fn_EX_Int| is because \verb|fn_IALU| is not
+very RISC-V specific, and may be useful in other contexts that have
+nothing to do with RISC-V, Drum or FIfe.
 
-Lines 12-13 handle LUI instructions (Load Upper Immediate).  Lines
-14-17 handle AUIPC instructions (Add Upper Immediate to PC).  Lines
-18-21 invoke {\tt fn\_IALU} to perform all the remaining Integer ops,
-and this is shown in the code below.
+In lines 11-13, we define signed-integer versions {\tt iv1}, {\tt iv2}
+and \verb|i_imm| of the unsigned integer values {\tt v1}, {\tt v2},
+and {\tt imm}, respectively, using the standard BSV \verb|unpack|
+function.  There is no hardware cost to this, these declarations are
+simply declarations to ``view'' the same bits differently (as
+2's-complement coded integers).  The difference arises later, when we
+apply certain operators to these values.  For example, lines 24-25
+compute the SLT (Set Less Than (signed)) and SLTU (Set Less Than
+Unsigned) operations.  SLT uses the signed values {\tt iv1} and {\tt
+iv2}, whereas SLTU uses the unsigned values {\tt v1} and {\v2}.
+Between the \emph{bsc} compiler and the Verilog back-end, different
+code will be generated for the ``{\tt <}'' operator to perform the
+correct kind of comparison.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function Bit #(XLEN) fn_IALU (Bit #(32)    instr,
-                              Bit #(XLEN)  v1,
-                              Bit #(XLEN)  v2,
-                              Bit #(32)    imm);
-   Bit #(7)    opcode = instr_opcode (instr);
-   Bit #(3)    funct3 = instr_funct3 (instr);
-   Int #(XLEN) iv1    = unpack (v1);
-   Int #(XLEN) iv2    = unpack (v2);
-   Int #(XLEN) i_imm  = unpack (signExtend (instr_imm_I (instr)));
-
-   Bit #(XLEN) y_OP     = 0;
-   if (opcode == opcode_OP) begin
-      Bit #(5) shamt = v2 [4:0];
-      case (funct3)
-         funct3_ADD:  y_OP = pack ((instr [30] == 1'b0)
-	                           ? (iv1 + iv2)
-				   : (iv1 - iv2));
-         funct3_SLL:  y_OP = v1 << shamt;
-         funct3_SLT:  y_OP = ((iv1 < iv2) ? 1 : 0);
-         funct3_SLTU: y_OP = ((v1  < v2)  ? 1 : 0);
-         funct3_XOR:  y_OP = v1 ^ v2;
-         funct3_SRL:  y_OP = v1 >> shamt;
-         funct3_SRA:  y_OP = pack (iv1 >> shamt);
-         funct3_OR:   y_OP = v1 | v2;
-         funct3_AND:  y_OP = v1 & v2;
-      endcase
-   end
-
-   Bit #(XLEN) y_OP_IMM = 0;
-   if (opcode == opcode_OP_IMM) begin
-      Bit #(5) shamt = imm [4:0];
-      case (funct3)
-         funct3_ADDI:  y_OP_IMM = pack (iv1 + i_imm);
-         funct3_SLTI:  y_OP_IMM = ((iv1 < i_imm) ? 1 : 0);
-         funct3_SLTIU: y_OP_IMM = ((v1  < imm)   ? 1 : 0);
-         funct3_XORI:  y_OP_IMM = v1 ^ imm;
-         funct3_ORI:   y_OP_IMM = v1 | imm;
-         funct3_ANDI:  y_OP_IMM = v1 & imm;
-         funct3_SLLI:  y_OP_IMM = v1 << shamt;
-         funct3_SRLI:  y_OP_IMM = v1 >> shamt;
-         funct3_SRAI:  y_OP_IMM = pack (iv1 >> shamt);
-      endcase
-   end
-
-   return (y_OP | y_OP_IMM);
-endfunction
-\end{Verbatim}
-}
-
-In lines 7-8, we define signed-integer versions {\tt iv1}, {\tt iv2}
-of the unsigned integer values {\tt v1} and {\tt v2}, respectively.
-There is no hardware cost to this definition, it's simply a
-declaration to ``view'' the same bits differently (as 2's-complement
-coded integers).  The difference arises later, when we apply certain
-operators to these values.  For example, lines 19-20 compute the SLT
-(Set Less Than (signed)) and SLTU (Set Less Than Unsigned) operations.
-The SLT op uses the signed values {\tt iv1} and {\tt iv2}, whereas
-SLTU uses the unsigned values {\tt v1} and {\v2}.  Between the
-\emph{bsc} compiler and the Verilog back-end, different code will be
-generated for the ``{\tt <}'' operator to perform the correct kind of
-comparison.
-
-Line 13 extracts a 5-bit ``shift amount'' from the {\tt rs2} value for
-the shift operators SLL, SRL and SRA.  Line 31 extract a 5-bit ``shift
+Line 18 extracts a 5-bit ``shift amount'' from the {\tt rs2} value for
+the shift operators SLL, SRL and SRA.  Line 39 extract a 5-bit ``shift
 amount'' from the {\tt imm} value for the shift operators SLLI, SRLI
-and SRAI.  SRL (Shift Right Logical) and SRA (Shift Right Arithmetic)
-differ in whether they treat the argument as a signed or unsigned
-value, the difference being whether the new bits shifted in at the
-most-significant bit side are zero (SRL) or replicate the
-most-significant bit (SRA).  SRLI and SRAI exhibit a similar
-difference.
+and SRAI.
 
-In lines 23 (SRA) and 41 (SRAI) we finally apply the ``{\tt pack}''
+SRL (Shift Right Logical) and SRA (Shift Right Arithmetic) differ in
+whether they treat the argument as a signed or unsigned value, the
+difference being whether the new bits shifted into the
+most-significant bit are zero (SRL) or replicate the most-significant
+bit (SRA).  SRLI and SRAI exhibit a similar difference.
+
+In lines 28 (SRA) and 49 (SRAI) we finally apply the ``{\tt pack}''
 operator to produce the result. This is because the expression
 ``\verb|(iv1 >> shamt)|'' has type {\tt Int\#(XLEN)} whereas the
 result needs to be of type {\tt Bit\#(XLEN)}.  The ``{\tt pack}''
 operator performs this type-change for us.
 
-Lines 11-27 define the {\tt y\_OP} result when the opcode is {\tt
-opcode\_OP} {\ie} {\tt 7'b\_011\_0011}, {\ie} the ``3-address''
+Lines 19-32 define the \verb|y_OP| result when the opcode is
+\verb|opcode_OP| {\ie} {\tt 7'b\_011\_0011}, {\ie} the ``3-address''
 operators where the inputs come from {\tt rs1} and {\tt rs2}.
-It defaults to 0 when it is not an {\tt op\_OP}.
+\verb|y_OP| defaults to 0 when it is not an {\tt op\_OP}.
 
-Lines 29-43 define the {\tt y\_OP\_IMM} result when the opcode is {\tt
+Lines 40-49 define the \verb|y_OP_IMM| result when the opcode is {\tt
 opcode\_OP\_IMM} {\ie} {\tt 7'b\_001\_0011}, {\ie} the ``2-address''
 operators where one input come from {\tt rs1} and the other input
-comes from an immediate value in the instruction.
-It defaults to 0 when it is not an {\tt op\_OP\_IMM}.
+comes from an immediate value in the instruction.  \verb|y_OP_IMM|
+defaults to 0 when it is not an \verb|op_OP_IMM|.
 
 Finally, line 45 combines these results using the ``OR'' function.  We
 rely on the fact that exactly one of \verb|y_OP| and \verb|y_OP_IMM|
@@ -728,338 +628,18 @@ instructions, where the shift-amount can be 6-bits wide instead of
 
 % ****************************************************************
 
-\section{The Execute DMem function}
-
-\label{Sec_DMem_function}
-
-\index{fn\_DMem@{\tt fn\_DMem} (Execute DMem function)}
-\index{Execute DMem function ({\tt fn\_DMem})}
-
-The types of the input and output of the ``Execute Memory Ops''
-function in Figure~\ref{Fig_Simple_Instr_Exec_w_structs} are the same
-as for ``Execute Integer Ops'', {\ie} {\tt RR\_to\_EX} and {\tt
-EX\_to\_Retire}, which were described in Section~\ref{Sec_EXI_function}.
-
-Figure~\ref{Fig_fn_DMem} shows that the ``Execute Memory Ops''
-function can be split into two phases,
-\begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_fn_DMem}}
-  \caption{\label{Fig_fn_DMem}The Execute Memory Ops function is split into two phases.}
-\end{figure}
-just like we did for Fetch.  The first phase generates a memory
-request, and the second phase processes the memory response.  As with
-Fetch, there is no guarantee how ``soon'' the response will come.
-
-Here is the function for the first phase, computing a memory request:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function Mem_Req fn_DMem_Req (RR_to_EX  x);
-   Bool is_LD = is_LOAD  (x.instr);
-   Bool is_ST = is_STORE (x.instr);
-
-   // Mem effective-address calculation
-   Int #(XLEN) ibase   = unpack (x.rs1_val);                  // Signed
-   Int #(XLEN) ioffset = unpack (signExtend (x.imm [11:0]));  // Signed
-   Bit #(XLEN) eaddr   = pack (ibase + ioffset);
-
-   Mem_Req_Size mrq_size = unpack (x.instr [13:12]);  // B, H, W or D
-   Mem_Req_Type mrq_type = (is_LD ? funct5_LOAD : funct5_STORE);
-
-   let y = Mem_Req {inum:     x.inum,
-                    pc:       x.pc,
-                    instr:    x.instr,
-                    req_type: mrq_type,
-                    size:     mrq_size,
-                    addr:     zeroExtend (eaddr),
-                    data :    zeroExtend (x.rs2_val)};
-   return y;
-endfunction
-\end{Verbatim}
-}
-
-Lines 6-8 compute the so-called ``Effective Address'' of a LOAD/STORE,
-by performing a \emph{signed} addition of the {\tt rs1} and immediate
-values.
-
-Line 10 defines the memory-request size (1, 2, 4 or 8 bytes), which in
-RISC-V terminology are referred to as Bytes (B), Halfwords (H), Words
-(W) and Doublewords (D), respectively).  The {\tt Mem\_Req\_Size} type
-is defined in the file {\tt Mem\_Req\_Rsp.bsv} as follows:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {MEM_1B, MEM_2B, MEM_4B} Mem_Req_Size
-deriving (Eq, FShow, Bits);
-\end{Verbatim}
-}
-
-Line 10 relies on the fact that these will be coded as 2'b00, 2'b01
-and 2'b10, which is exactly the coding found in {\tt instr[13:12]}, so
-we can simply ``{\tt unpack}'' the bits to the type {\tt
-Mem\_Req\_Size} without any further manipulation.
-
-% ----------------
-\hdivider
-
-\Exercise
-
-In Line 10, what if {\tt instr[13:12]} had the value 2'b11?  This is a
-legal instruction in the RV64I ISA, for LOADs and STOREs of 8-byte
-values, but illegal in RV32I.  Should we check that here?
-
-\emph{Hint:} study the {\tt is\_legal\_LOAD()} {\tt
-is\_legal\_STORE()} functions used in the Decode function {\tt
-fn\_Decode()} to see if we will ever encounter an illegal value here.
-
-\Exercise
-
-Write a different version of Line 10 that does not rely on the
-one-to-one coding equivalence of {\tt instr[13:12]} and the bit coding
-of {\tt Mem\_Req\_Size}.
-
-\emph{Hint:} The solution will be a nested if-then-else, or a {\tt
-case} expression.
-
-\Endexercise
-% ----------------
-
-Here is the function for the second phase, accepting a memory response
-as argument and computing the struct to be sent to the Retire step.
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function EX_to_Retire fn_DMem_Rsp (Mem_Rsp x);
-   Bool exception = ((x.rsp_type == MEM_RSP_ERR)
-                     || (x.rsp_type == MEM_RSP_MISALIGNED));
-   Bit #(XLEN)  cause = ((x.rsp_type == MEM_RSP_MISALIGNED)
-       		      	 ? (is_LOAD (x.instr)
-			    ? cause_LOAD_ADDRESS_MISALIGNED
-			    : cause_STORE_AMO_ADDRESS_MISALIGNED)
-			 : (is_LOAD (x.instr)
-                            ? cause_LOAD_ACCESS_FAULT
-                            : cause_STORE_AMO_ACCESS_FAULT));
-
-   let y = EX_to_Retire {exception:  exception,
-                         cause:      cause,
-
-                         data_valid: (! is_STORE (x.instr)),
-                         data:       truncate (x.data)};
-   return y;
-endfunction
-\end{Verbatim}
-}
-
-Lines 2-10 convert the memory-systems ``exception'' codes ({\tt
-MEM\_RSP\_ERR} and {\tt MEM\_RSP\_MISALIGNED}) into RISC-V {\tt cause}
-codes ({\tt cause\_...}).)
-
-Lines 12-16 constructs the required {\tt EX\_to\_Retire} result and
-line 17 returns it.
-
-Line 15 uses {\tt (!~is\_STORE())} to indicate whether the {\tt data}
-field is valid or not, {\ie} if it is not a STORE, it must be a LOAD,
-returning data.  Note that the code may set {\tt data\_valid} to true
-when there is an exception in a LOAD, but in that case the {\tt
-data\_valid} value does not matter.
-
-% ----------------
-\hdivider
-
-\Exercise
-
-When implementing the ``A'' RISC-V ISA Extension (Atomic Memory Ops),
-the repertoire of memory operations widens from LOAD and STORE to
-include LR (Load-Reserved), SC (Store-Conditional) and a variety of
-AMOxxx ops such as AMOADD, AMOSWAP, and so on.
-Will line 15's {\tt (!~is\_STORE())} remain adequate, in that case?
-
-\Endexercise
-% ----------------
-
-% ****************************************************************
-
-\section{The Retire function}
-
-\label{Sec_Retire_function}
-
-\index{fn\_Retire@{\tt fn\_Retire} (Retire function)}
-\index{Retire function ({\tt fn\_Retire})}
-
-As seen in Figure~\ref{Fig_Fetch_function_Simple_Instr_Exec} the
-Retire function takes an input of type \verb|RR_to_Retire| from
-Register-Read-and-Dispatch (RRD).  This input exists for every
-instruction.  Depending on the kind of instruction, it may also
-receive an input:
-
-\begin{tightlist}
-
-  \item from Control (of type \verb|Control_to_Retire|), discussed in
-    Section~\ref{Sec_Control_function},
-
-  \item from Execute Integer Arithmetic and Logic Ops (EXI, of type
-    \verb|EX_to_Retire|), discussed in Section~\ref{Sec_EXI_function},
-    or
-
-  \item from Execute Memory Ops (DMem, also of type
-    \verb|EX_to_Retire|).
-
-\end{tightlist}
-
-One of the outputs of the Retire function, also called the
-\emph{redirection} output, is an indication of the next PC from which
-Fetch should resume.  This could be:
-
-\begin{tightlist}
-
-  \item the fall-through PC (the most common case); or
-
-  \item the target PC of a taken BRANCH, or of JAL/JALR; or
-
-  \item the PC of the trap-vector, in case the current instruction had
-    an exception; or
-
-  \item the PC of the interrupt handler, in case there is an
-    interrupt pending and we choose to handle it now.
-\end{tightlist}
-
-This redirection information from the Retire function is carried in
-this struct:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {
-    Bit #(XLEN) next_pc;
-} Fetch_from_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
-
-Note, in Fife, the Fetch unit would have predicted the next PC and
-already fetched an instruction from that predicted address.  If it
-predicted correctly, the Fetch unit does not need to be redirected
-from the Retire unit, and we can just discard this information.  We'll
-discuss this in more detail when we discuss Fife in later chapters.
-
-A second output from Retire is an indication of a value to be written
-back to the GPRs, for those instructions that have an \verb|rd|
-destination field and which have completed successfully (without an
-exception).
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {Bool        commit;    // True: write rd
-                Bit #(5)    rd;
-                Bit #(XLEN) data;
-} RW_from_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
-
-The \verb|commit| field tells us whether to write a register or not.
-If true, the other two fields specify the register and the value to be
-written.
-
-Now we can describe the overall output of Retire, \verb|Result_Retire|:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-typedef struct {
-   Bool         exception;
-   Bit #(XLEN)  cause;
-   Bit #(XLEN)  exception_pc;
-
-   Fetch_from_Retire to_F;
-   RW_from_Retire    to_RW;
-} Result_Retire
-deriving (Bits, FShow);
-\end{Verbatim}
-}
-
-If there was an exception in this instruction, \verb|exception| is
-true, \verb|cause| specifies the kind of exception, and
-\verb|exception_pc| is the PC of this instruction, to be saved as
-information for the exception handler.  If \verb|exception| is false,
-then \verb|to_F| specifies the redirection, and \verb|to_RW| specifies
-the optional register-write.
-
-We can now see the Retire function, \verb|fn_Retire|:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-function Result_Retire
-         fn_Retire (RR_to_Retire         x_RR,
-                    Control_to_Retire    x_Control,
-                    EX_to_Retire         x_EX);
-
-   Bool         exception    = False;
-   Bit #(XLEN)  cause        = ?;
-   Bit #(XLEN)  exception_pc = x_RR.pc;
-   let          y_to_F       = Fetch_from_Retire {next_pc: ?};
-   let          y_to_RW      = RW_from_Retire {commit: False, rd: ?, data: ?};
-
-   // Fill in fields according to the various incoming flows
-   if (x_RR.exec_tag == EXEC_TAG_RETIRE) begin
-      if (x_RR.exception) begin
-         exception = True;
-         cause     = x_RR.cause;
-      end
-      else
-         y_to_F.next_pc = x_RR.fallthru_pc;
-   end
-   else if (x_RR.exec_tag == EXEC_TAG_CONTROL) begin
-      if (x_Control.exception) begin
-         exception = True;
-         cause     = x_Control.cause;
-      end
-      else begin
-         y_to_F.next_pc = x_Control.next_pc;
-         y_to_RW.commit = x_Control.data_valid;
-         y_to_RW.rd     = instr_rd (x_RR.instr);
-         y_to_RW.data   = x_Control.data;
-      end
-   end
-   else begin // exec_tag == EXEC_TAG_IALU/EXEC_TAG_DMEM
-      if (x_EX.exception) begin
-         exception = True;
-         cause     = x_EX.cause;
-      end
-      else begin
-         y_to_F.next_pc = x_RR.fallthru_pc;
-         y_to_RW.commit = x_EX.data_valid;
-         y_to_RW.rd     = instr_rd (x_RR.instr);
-         y_to_RW.data   = x_EX.data;
-      end
-   end
-
-   // Construct and return final result
-   let y = Result_Retire {exception:    exception,
-                          cause:        cause,
-                          exception_pc: exception_pc,
-                          to_F:         y_to_F,
-                          to_RW:        y_to_RW};
-   return y;
-endfunction
-\end{Verbatim}
-}
-
-The meat of the code is lines 13-44, which is a big if-then-else that
-examines the incoming \verb|x_RR.exec_tag| and the various exception
-fields \verb|x_RR.exception|, \verb|x_Control.exception| and
-\verb|x_EX.exception| to decide how to fill in the output struct
-fields.
-
-% ----------------
-\hdivider
-
-\Exercise
-
-In line 33 (the final \verb|else| clause) we have a comment asserting
-that \verb|exec_tag| must be \verb|EXEC_TAG_IALU| or
-\verb|EXEC_TAG_DMEM|.  Prove this assertion by reasoning forward from
-the Register-Read-and-Dispatch function \verb|fn_RR|.
-
-\Endexercise
-% ----------------
+\section{No separate functions for Execute DMem and Retire}
+
+We don't need any separate functions for the Execute DMem step in
+Figure~\ref{Fig_Core_Simple_Instr_Exec} because \verb|fn_Dispatch| has
+created a \verb|Mem_Req| struct that we can send directly to memory.
+Similarly, the memory returns a \verb|Mem_Rsp| that is sent directly
+to the Retire step.
+
+The code for the Retire step is discussed in detail separatly in
+Chapter~\ref{ch_Drum_code} for Drum and Chapter~\ref{ch_Fife_code} for
+Fife.  Although functionally the same, the codes are structurally
+sufficiently different that it is not worth attempting to abstract any
+common functionality into a shared function.
 
 % ****************************************************************
