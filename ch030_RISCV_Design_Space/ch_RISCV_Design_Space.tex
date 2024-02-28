@@ -178,8 +178,7 @@ RV64.
 Interpreting a program involves the repetition of a few simple
 steps,\footnote{We prefer the word ``step'' here instead of ``stage'',
 which we will reserve to refer to stages in a hardware pipeline such
-as Fife.}  illustrated in
-Figure~\ref{Fig_Instr_Exec}:
+as Fife.}  illustrated in Figure~\ref{Fig_Instr_Exec}:
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec}}
   \caption{\label{Fig_Instr_Exec}Simple interpretation of RISC-V instructions}
@@ -226,6 +225,59 @@ instruction.
 
 Thus we repeat these steps forever, instruction after instruction,
 starting each time at the Fetch step.
+
+% ================================================================
+
+\subsection{Memory latency and split-phase memory transactions}
+
+\index{RISCV!Split-phase memory transaction}
+\index{RISCV!Memory access!viewed as a pipeline/queue}
+\index{RISCV!Memory access!one or more clock ticks}
+\index{RISCV!Memory access!cache hit/miss}
+\index{RISCV!Memory access!latency}
+
+In Figure~\ref{Fig_Instr_Exec}, note that the memory accesses,
+Fetch$\longrightarrow$Memory$\longrightarrow$Decode and Execute
+DMem$\longrightarrow$Memory$\longrightarrow$Execute DMem, are each
+shown with two arrows, one going to and another returning from memory.
+This is because, in any computer system, memory access is never
+``instantaneous''.  A request is sent to memory in one ``clock tick''
+and the response is returned no earlier than the next clock tick.  We
+also say: memory-access always has some \emph{latency}.
+
+In fact it may take several clock ticks, and a varying number of clock
+ticks.  Memory accesses can go through \emph{cache} systems, which can
+return data quickly on a ``hit'' and take several cycles on a
+``miss''.  Memory accesses can go to locations in I/O devices, which
+may be much ``further away'' in the memory subsystem, again possibly
+taking many cycles.  Further, whether it takes one tick or several is
+not predictable---it can depend on the address of the request, and on
+past history of accesses which may leave caches in various states.  It
+can also depend on technology replacement: next year's memory system
+may be faster than today's.
+
+Thus,
+
+\begin{tightlist}
+
+ \item it is best to think of the path to memory (requests) and back
+       (responses) as a \emph{pipeline} or \emph{queue} (FIFO) of
+       unspecified length.  The arrows in Figure~\ref{Fig_Instr_Exec}
+       are decorated with small FIFO icons to emphasize this
+       view.\footnote{Advancd memory systems may not even be
+       FIFO-like; the CPU may receive responses in a different order
+       from the original requests, in the interests of returning a
+       response as soon the data is available, rather than waiting for
+       its turn.  In this book we will assume FIFO-like, in-order
+       memory-accesses.}
+
+ \item Our CPU should not depend on any particular memory latency,
+       {\ie} it should be robust to changes and variations in latency.
+
+\end{tightlist}
+
+We also say that all memory transactions are \emph{split-phase}: a
+request, followed later by a response (perhaps significantly later).
 
 % ****************************************************************
 

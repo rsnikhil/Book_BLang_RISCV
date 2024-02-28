@@ -186,9 +186,28 @@ formal specification languages for concurrent programming (including
 Term Rewriting Systems, Unity, TLA+, and Event-B).  BSV is not just
 for CPU design; like Verilog and SystemVerilog, it is a ``universal''
 language for any digital design, whether related to CPUs or not.
+Appendix~\ref{apx_Why_BSV} has a more detailed justification of our
+choice of BSV over other hardware design languages like Verilog,
+SystemVerilog, VHDL or Chisel.
+
+% ================================================================
+
+\subsection{Drum and Fife source codes}
 
 The full source codes (BSV) for Drum and Fife are included with this
-book.
+book.  Excerpts of that code are taken, as-is, for inclusion in this
+book.  Excerpts look like this:
+
+\input{Code_Extracts/CPU_IFC.tex}
+
+The label on the top border of the box indicates file
+(\verb|src_Common/CPU_IFC.bsv|) from which this has been extracted,
+and the starting line number (27) in the file.  The ``\verb|...|''
+indicates we have \emph{elided} some lines from the source file which
+are not directly relevant to the current discussion.
+
+We recommend, as you read the book, that you also keep open a
+text-editor, in which you can simultaneously view the actual sources.
 
 % ================================================================
 
