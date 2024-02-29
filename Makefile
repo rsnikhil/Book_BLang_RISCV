@@ -29,6 +29,7 @@ SOURCES = \
 		ch050/ch_struct_mem_req_rsp.tex \
 		ch060/ch_Core_Functions.tex \
 		ch070/ch_Modules_Interfaces.tex \
+		ch075/ch_GPRs_CSRs.tex \
 		ch080/ch_FSMs.tex \
 		ch090/ch_Drum_CPU.tex \
 		ch100/ch_Top_Packages.tex \

@@ -16,71 +16,27 @@
 
 \section{Introduction}
 
-So far, we have only been discussing pure combinational functions, for
-which there is no concept of time.  Combinational functions are just
-pure mathematical functions, ``instantaneously'' transforming input
-values to output values.  However, a CPU, as shown in
-Figure~\ref{Fig_Drum_Instr_Exec}
+In this chapter we use code Drum's behavior, illustrated in
+Figure~\ref{Fig_Drum_Instr_Exec}, using BSV's \verb|StmtFSM|
+construct.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
   \caption{\label{Fig_Drum_Instr_Exec}
            Simple interpretation of RISC-V instructions
 	   (same as Fig.~\ref{Fig_Fetch_function_Simple_Instr_Exec})}
 \end{figure}
-represents a \emph{processs}, a behavior that evolves over time.  For
-example the Drum CPU executes one full instruction after another, and
-the black arrows in the diagram represent an infinite loop. For each
-instruction, first it performs a Fetch operation, which sends a
-request to memory. Some time later, the memory sends back a response,
-which is then processed by the Decode step, Register-Read-and-Dispatch
-step and then one of the Execute steps.  The Execute Memory Ops step
-sends a request to memory. Some time later, the memory sends back a
-response, which is processed in the Retire step.  Finally, it it loops
-back to the Fetch step, and the process repeats for the next
-instruction.
-
-The simplest temporal process in hardware is the FSM (Finite State
-Machine).  Figure~\ref{Fig_Drum_Instr_Exec} can be interpreted as an
-FSM: each yellow rectangle is a state, and the process transitions
-from state to state, thereby executing RISC-V instructions.  This is
-exactly what the Drum CPU does.  In this chapter, after first
-discussing FSMs in BSV, we discuss the Drum CPU and its FSM
-implementation.  By the end of this chapter, we will have a complete
-Drum CPU that is capabable of executing RV32I RISC-V programs.
 
 % ****************************************************************
 
-\section{RISC-V: The interface for the Drum and Fife CPU modules}
+\section{RISC-V: The interface for the Drum CPU module}
 
 \label{Sec_Drum_CPU_interface}
 
-Armed with {\tt StmtFSM} we can now complete our description of the
-Drum RISC-V CPU, a BSV module.  Before we look at the module, we start
-with its interface.  A clean, common interface will allows us later
-transparently to substitute the Fife CPU module in place of the Drum
-CPU module, and re-use the same test-benches {\etc}
-
 \index{Drum!CPU interface}
-\index{Fife!CPU interface}
 
-(Please re-read Section~\ref{Sec_Harvard_architecture} for the
-discussion on Harvard architectures, which have separate data channels
-for memory-access for instructions (Fetch, IMem) and memory-access for
-data (LOAD/STORE, DMem)).
+The Drum CPU interface is shown below.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-interface CPU_IFC;
-   method Action init (Initial_Params initial_params);
-
-   interface FIFOF_O #(Mem_Req) fo_IMem_req;
-   interface FIFOF_I #(Mem_Rsp) fi_IMem_rsp;
-
-   interface FIFOF_O #(Mem_Req) fo_DMem_req;
-   interface FIFOF_I #(Mem_Rsp) fi_DMem_rsp;
-endinterface
-\end{Verbatim}
-}
+\input{Code_Extracts/CPU_IFC.tex}
 
 The interface is simple:
 
@@ -108,6 +64,14 @@ The interface is simple:
 
 \end{tightlist}
 
+(Please re-read Section~\ref{Sec_Harvard_architecture} for the
+discussion on Harvard architectures, which have separate memory-access
+channels for instructions (Fetch, IMem) and for data (LOAD/STORE,
+DMem)).
+
+Later we will see that Fife shares this interface, so that the Fife
+and Drum CPUs are easily interchangeable in any system or testbench.
+
 % ****************************************************************
 
 \section{RISC-V: The Drum CPU module}
@@ -119,99 +83,93 @@ The interface is simple:
 \index{Drum!Skeleton module}
 \index{Fife!Skeleton module}
 
-Here is the Drum CPU module, except for the BEHAVIOUR section, which
-we have elided.  We will fill in the missing piece (a {\tt StmtFSM})
-in a following subsection.
+The STATE and INTERFACE sections of the Drum CPU module are shown
+below (we will discuss the elided BEHAVIOR section shortly).
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-(* synthesize *)
-module mkCPU (CPU_IFC);
-   // ================================================================
-   // STATE
+\input{Code_Extracts/Drum_mkCPU_STATE.tex}
 
-   // Don't run until initialized
-   Reg #(Bool) rg_running <- mkReg (False);
+\hm \emph{(... BEHAVIOR elided, to be discussed shortly ...)}
 
-   // The integer register file
-   RISCV_RegFile_IFC  gprs <- mkRISCV_RegFile;
+\input{Code_Extracts/Drum_mkCPU_IFC.tex}
 
-   // The Program Counter
-   Reg #(Bit #(XLEN)) rg_pc   <- mkReg (0);
+The STATE section first instantiates a register \verb|rg_running|,
+initially False, that will be set to True by the \verb|init| method
+that initializes the PC to a specific initial value.  The FSM will
+wait for this before starting the first instruction-fetch.
 
-   // Inter-step registers
-   Reg #(F_to_D)             rg_F_to_D            <- mkRegU;
-   Reg #(D_to_RR)            rg_D_to_RR           <- mkRegU;
-   Reg #(RR_to_Retire)       rg_RR_to_Retire      <- mkRegU;
+Then, \verb|mkCPU| instantiates aa register for the PC, and then the
+GPRs module (desribed in Section~\ref{Sec_RISCV_regfile}) and the CSRs
+modules (described in Section~\ref{Sec_RISCV_CSRs}).  Then, it
+instantiates a set of registers to hold values between temporal FSM
+steps (with struct types shown in Figure~\ref{Fig_Drum_Instr_Exec}).
+For example, the Fetch step will write a value into
+\verb|rg_Fetch_to_Decode| which will be read later by the Decode step.
+Then, it instantiates four FIFOFs for IMem requests (outgoing) and
+responses (incoming), and for DMem requests (outgoing) and responses
+(incoming). As mentioned before, we do not make any assumption about
+the \emph{latency} of memory requests, {\ie} how long it takes the
+external memory subsystem to consume a request from one of the request
+FIFOs and enqueue a response into the corresponding response FIFO.
+Finally, it instantiates the four registers needed for trap-handling,
+described in Section~\ref{Sec_Traps}.
 
-   Reg #(RR_to_Control)      rg_RR_to_Control     <- mkRegU;
-   Reg #(Control_to_Retire)  rg_Control_to_Retire <- mkRegU;
+In this display we have elided the BEHAVIOR section to show just that
+we will define the behavior in a \verb|Stmt|, and then use
+\verb|mkAutoFSM| (see Section~\ref{Sec_AutoFSM}) to instantiate it
+into an FSM and run it.  The first action of the FSM is to wait for
+\verb|rg_running| to become true.  We will describe the \verb|Stmt| in
+more detail shortly.
 
-   Reg #(RR_to_EX)           rg_RR_to_EX          <- mkRegU;
-   Reg #(EX_to_Retire)       rg_EX_to_Retire      <- mkRegU;
+In the INTERFACE section, the \verb|init| method initializes the PC
+and sets \verb|rg_running| to true, releasing the BEHAVIOR section to
+start executing.
 
-   // Paths to and from memory
-   FIFOF #(Mem_Req) f_IMem_req  <- mkFIFOF;
-   FIFOF #(Mem_Rsp) f_IMem_rsp  <- mkFIFOF;
-
-   FIFOF #(Mem_Req) f_DMem_req  <- mkFIFOF;
-   FIFOF #(Mem_Rsp) f_DMem_rsp  <- mkFIFOF;
-
-   // ================================================================
-   // BEHAVIOR
-
-   ... // This section will code the dynamic "behavior" of the module
-   ... // and will be discussed shortly
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      rg_pc      <= initial_params.pc_reset_value;
-      rg_running <= True;
-   endmethod
-
-   interface fo_IMem_req = to_FIFOF_O (f_IMem_req);
-   interface fi_IMem_rsp = to_FIFOF_I (f_IMem_rsp);
-
-   interface fo_DMem_NS_req = to_FIFOF_O (f_DMem_req);
-   interface fi_DMem_NS_rsp = to_FIFOF_I (f_DMem_rsp);
-endmodule
-
-\end{Verbatim}
-}
-
-In line 7 we instantiate a register that signals to the BEHAVIOR
-section when everything has been initialized and we are ready to start
-running.
-
-In line 10 we instantiate the register file using the module
-\verb|mkRISCV_RegFile| that was shown in
-Section~\ref{Sec_RISCV_regfile}.  In line 13 we instantiates a
-register that will serve as our Program Counter.
-
-Lines 12-21 instantiate registers that will hold values between
-temporal steps of the FSM.  For example, the Fetch step will write a
-value into \verb|rg_F_to_D| which will be read later by the Decode
-step.  Not all registers will always contain meaningful values, but
-that's OK, each step will read only read from relevant registers at
-relevant points in time.
-
-Lines 24-28 contain four FIFOs for IMem requests (outgoing) and
-responses (incoming) and DMem requests (outgoing) and responses
-(incoming) respectively.  As mentioned before, we do not make any
-assumption about the \emph{latency} of memory requests, {\ie} how long
-it takes the external memory subsystem to consume a request from one
-of the request FIFOs and enqueue a response into the corresponding
-response FIFO.
-
-In the INTERFACE section, the \verb|init| method lines 42-45
-initializes the PC, and sets \verb|rg_running| to true, releasing the
-BEHAVIOR section to start executing.
-
-In lines 39-43 we are using the interface transformers discussed in
+In the interface we are using the interface transformers discussed in
 Section~\ref{Sec_interface_transfomers} that produce Semi-FIFO
 ``views'' of FIFOs.
+
+% ================================================================
+
+\subsection{Help-functions for the Drum CPU module behavior}
+
+\label{Sec_Drum_FSM_help_fns}
+
+Before we look at the FSM implementing Drum behavior, we first have
+some \verb|Action| functions that encapsulate some common actions
+performed in several states in the FSM.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+In BSV, function definitions do not have to be at the top-level of a
+file, in fact they can be defined at any nested level.  Here, we
+define these inside a module.
+
+\end{minipage}}
+% ----------------
+
+The following function writes an rd-value into the the GPRs, in those
+cases where the instruction has an rd (\verb|fn_Decode|, described in
+Section~\ref{Sec_Decode_Function}, computed \verb|has_rd| for each
+kind of instruction):
+
+\input{Code_Extracts/Drum_CPU_upd_rd.tex}
+
+The following function saves values into registers \verb|rg_epc|,
+\verb|rg_cause| and \verb|rg_tval|, when a trap is detected.  These
+will later be written into the corresponding CSR registers during
+trap-handling.
+
+\input{Code_Extracts/Drum_CPU_setup_exc.tex}
+
+This function is the last action during an instruction's execution,
+updating the PC and the instruction number:
+
+\input{Code_Extracts/Drum_CPU_redirect.tex}
 
 % ================================================================
 
@@ -222,130 +180,134 @@ Section~\ref{Sec_interface_transfomers} that produce Semi-FIFO
 \index{RISC-V!Drum CPU module behavior}
 \index{Drum!CPU module behavior}
 
-Here we fill in the BEHAVIOR section that was elided in the previous
-display.  First we defines a \verb|Stmt| that specifies the execution
-of a single instruction (Fetch through Retire):
+The Drum CPU module BEHAVIOR for executing a single instruction is
+specified using an \verb|FSM|.  This starts with the the Fetch action:
+
+\input{Code_Extracts/Drum_CPU_Fetch.tex}
+
+This applies \verb|fn_Fetch()| (Section~\ref{Sec_fn_Fetch}) to the PC,
+stores the \verb|to_D| part of the result in register
+\verb|rg_Fetch_to_Decode|, and sends the \verb|mem_req| part of the
+result to the Instruction Memory.
+
+The next action in the FSM is the Decode step:
+
+\input{Code_Extracts/Drum_CPU_Decode.tex}
+
+We pop the response from IMem (bind \verb|mem_rsp| to the value at
+head of the FIFO, and also remove it from the FIFO), then apply
+\verb|fn_Decode()| (Section~\ref{Sec_fn_Decode}) to the
+\verb|Fetch_to_Decode| value from the Fetch step and the IMem
+response, and store the result in register \verb|rg_Decode_to_RR|.
+
+Recall that each \verb|Action| is instantaneous, and the FSMs sequence
+actions.  In the code so far, the Fetch action takes place in one
+instant, and the Decode action takes place at a later instant. The
+Decode action is not ``enabled'' until an IMem response is available
+in the \verb|f_IMem_Rsp| FIFO; it will simply wait until a response is
+available.  Thus, the time interval between the Fetch instant and the
+Decode instant is unpredictable; it depends on when the IMem result
+becomes available (see dicussion in Section~\ref{Sec_mem_latency} on
+unpredictable memory latency).
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+Looking ahead to a topic we'll discuss in more detail in
+Chapter~\ref{ch_Rules}, the FIFO methods ``{\tt .first}'' and ``{\tt
+.deq}'', which are used by ``{\tt pop}'' above, have so-called
+\emph{implicit conditions}, {\ie} the methods are only ``enabled''
+when the FIFO is non-empty.  The Decode action in the FSM is
+translated by the \emph{bsc} compiler into a BSV \emph{rule}.  A rule
+does not ``fire'' until all the implicit conditions in its
+method-calls are enabled.
+
+\end{minipage}}
+% ----------------
+
+The next FSM action is the Register-Read and Dispatch step:
+
+\input{Code_Extracts/Drum_CPU_RRD.tex}
+
+Using the information in \verb|rg_Decode_to_RR| created in the Decode
+step, we read the two registers \verb|rs1| and \verb|rs2|.  We apply
+the function \verb|fn_Dispatch| (Section~\ref{Sec_fn_Dispatch}) and
+store the result in register \verb|rg_Dispatch|.
+
+Note that we blindly read both registers \verb|rs1| and \verb|rs2|,
+even though many instructions do not have one or both of these fields.
+In those situations we'll be reading bogus/irrelevant values, but it
+does not matter---in the Execute step we will only use these values in
+instructions that need them. Recall that while in a software
+programming language this may seem to be unnecessary work, here both
+register-read expressions represent real hardware that exists, whether
+they are needed for a particular instruction or not.
+
+After the Dispatch FSM step, we move on to the Exectute and Retire FSM
+steps.  Figure~\ref{Fig_Retire_Drum} shows the details of the four
+``flows'' that may follow.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1}}
+  \caption{\label{Fig_Retire_Drum}Execute and Retire actions in Drum}
+\end{figure}
+Each of the flows can have an exception or a normal (OK) result.  The
+Direct flow may need to execute a SYSTEM instruction (ECALL, EBREAK,
+MRET and CSRRxx).  Executing a CSRRxx instruction may also have an
+exception or normal result.  For each flow, the colored ovals show
+what actions may need to be performed; these correspond exactly to the
+three help-functions discussed in Section~\ref{Sec_Drum_FSM_help_fns}.
+
+The FSM code follows the structure shown in the diagram.  The
+Execute-and-Retire steps of the FSM follow this broad structure:
 
 {\small
-\begin{Verbatim}[frame=single, numbers=left]
-   Stmt exec_one_instr =
-   seq
-      // Fetch
-      action
-	 let y <- fn_F (rg_inum, rg_pc, 0, 0);
-	 rg_F_to_D <= y.to_D;
-	 f_IMem_req.enq (y.mem_req);
-	 rg_inum <= rg_inum + 1;
-      endaction
-      // Decode
-      action
-	 let mem_rsp <- pop_o (to_FIFOF_O (f_IMem_rsp));
-	 let y       <- fn_D (rg_F_to_D, mem_rsp);
-	 rg_D_to_RR <= y;
-      endaction
-      // Register-Read and Dispatch
-      action
-	 // Read GPRs
-	 // Ok that read_1 and read_2 may return junk values
-	 //         since not all instrs have rs1/rs2.
-	 let x       = rg_D_to_RR;
-	 let rs1_val = gprs.read_1 (instr_rs1 (x.instr));
-	 let rs2_val = gprs.read_2 (instr_rs2 (x.instr));
-
-	 Result_Dispatch y <- fn_Dispatch (rg_flog, x, rs1_val, rs2_val);
-
-	 rg_RR_to_Retire  <= y.to_Retire;
-	 rg_RR_to_Control <= y.to_Control;
-	 rg_RR_to_EX      <= y.to_EX;
-      endaction
-      // Dispatch to one of the "execute" steps
-      if (rg_RR_to_Retire.exec_tag == EXEC_TAG_RETIRE)
-	 // No-op
-	 action
-	 endaction
-      else if (rg_RR_to_Retire.exec_tag == EXEC_TAG_CONTROL)
-	 // Control
-	 action
-	    let y <- fn_Control (rg_flog, rg_RR_to_Control);
-	    rg_Control_to_Retire <= y;
-	 endaction
-      else if (rg_RR_to_Retire.exec_tag == EXEC_TAG_IALU)
-	 // IALU
-	 action
-	    let y <- fn_EX_IALU (rg_flog, rg_RR_to_EX);
-	    rg_EX_to_Retire <= y;
-	 endaction
-      else if (rg_RR_to_Retire.exec_tag == EXEC_TAG_DMEM)
-	 // DMem
-	 seq
-	    action
-	       Mem_Req y <- fn_DMem_Req (rg_flog, rg_RR_to_EX);
-	       f_DMem_req.enq (y);
-	    endaction
-	    action
-	       let mem_rsp <- pop_o (to_FIFOF_O (f_DMem_rsp));
-	       let y       <- fn_DMem_Rsp (rg_flog, mem_rsp);
-	       rg_EX_to_Retire <= y;
-	    endaction
-	 endseq
-      else
-	 action
-	    // This should be impossible
-	    $finish (1);
-	 endaction
-      // Retire
-      action
-	 let y <- fn_Retire (rg_flog,
-			     rg_RR_to_Retire,
-			     rg_Control_to_Retire,
-			     rg_EX_to_Retire);
-	 if (y.exception) begin
-            // Exception-handling not yet implemented
-	    $finish (1);
-	 end
-	 else begin
-	    // Update PC
-	    rg_pc   <= y.to_F.next_pc;
-	    // Update Rd if has rd-result
-	    if (y.to_RW.commit)
-	       gprs.write (y.to_RW.rd, y.to_RW.data);
-	 end
-      endaction
-   endseq;
+\begin{Verbatim}[frame=single, numbers=left, label=Broad sructure of Drum Execute and Retire]
+      if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_DIRECT)
+          ...
+      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_CONTROL)
+          ...
+      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_INT)
+          ...
+      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_DMEM)
 \end{Verbatim}
 }
 
-The code is very easy to read, in fact not too different from reading
-C/C++ code.  The outer-level corresponds exactly to a left-to-right
-reading of Figure~\ref{Fig_Drum_Instr_Exec}:
+Next we go through each of the four flows (the elided arms in the
+above if-then-else).
 
-\begin{tightlist}
-  \item an action for Fetch;
-  \item an action for Decode;
-  \item an action for Register-read-and-dispatch
-  \item a nested if-then else performing one of the dispatched flows:
-    \begin{tightlist}
-      \item a no-op action (in case of direct information from RR to Retire), or
-      \item an action for Control; or
-      \item an action for IALU; or
-      \item a nested \verb|seq| sequence of actions for DMem
-        \begin{tightlist}
-          \item an action to send a DMem request to memory;
-          \item an action to receive a DMem response from memory
-        \end{tightlist}
-    \end{tightlist}
-  \item an action for Retire
-\end{tightlist}
+Direct.
 
-Then, we instantiate a \verb|StmtFSM| module that first waits until it
-is allowed to run, and then loops forever, executing one instruction
-at a time:
+\input{Code_Extracts/Drum_CPU_Direct.tex}
+
+Execute Control
+
+\input{Code_Extracts/Drum_CPU_Control.tex}
+
+Execute Integer
+
+\input{Code_Extracts/Drum_CPU_Int.tex}
+
+Execute DMem
+
+\input{Code_Extracts/Drum_CPU_DMem.tex}
+
+Exceptions
+
+\input{Code_Extracts/Drum_CPU_exc.tex}
+
+
+
+
+Finally, we instantiate a \verb|StmtFSM| module that first waits until
+it is allowed to run, and then loops forever, executing one
+instruction at a time:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-import StmtFSM :: *;
-
-(* synthesize *)
 module mkCPU (CPU_IFC);
 
    ...
@@ -379,13 +341,6 @@ statement in the Drum CPU? (Try it in simulation!)
 
 \Endexercise
 % ----------------
-
-Retire actions in Drum
-
-\begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1}}
-  \caption{\label{Fig_Retire_Drum}Retire actions in Drum}
-\end{figure}
 
 % ****************************************************************
 

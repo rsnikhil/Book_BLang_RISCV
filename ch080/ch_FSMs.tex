@@ -16,6 +16,9 @@
 
 \section{Introduction}
 
+\index{BSV!FSMs}
+\index{BSV!Finite State Machines}
+
 So far, we have only been discussing pure combinational functions, for
 which there is no concept of time.  Combinational functions are just
 pure mathematical functions, ``instantaneously'' transforming input
@@ -28,9 +31,9 @@ Figure~\ref{Fig_FSMs_Simple_Instr_Exec}
 	   (same as Fig.~\ref{Fig_Fetch_function_Simple_Instr_Exec})}
 \end{figure}
 represents a \emph{processs}, a behavior that evolves over time.  For
-example the Drum CPU executes one full instruction after another, and
-the black arrows in the diagram represent an infinite loop. For each
-instruction, first it performs a Fetch operation, which sends a
+example the Drum CPU executes one full instruction after another,
+repeating forever the flow along the black arrows in the diagram. For
+each instruction, first it performs a Fetch operation, which sends a
 request to memory. Some time later, the memory sends back a response,
 which is then processed by the Decode step, Register-Read-and-Dispatch
 step and then one of the Execute steps.  The Execute Memory Ops step
@@ -39,63 +42,47 @@ response, which is processed in the Retire step.  Finally, it it loops
 back to the Fetch step, and the process repeats for the next
 instruction.
 
-The simplest temporal process in hardware is the FSM (Finite State
-Machine).  Figure~\ref{Fig_FSMs_Simple_Instr_Exec} can be interpreted as an
-FSM: each yellow rectangle is a state, and the process transitions
-from state to state, thereby executing RISC-V instructions.  This is
-exactly what the Drum CPU does.  In this chapter, after first
-discussing FSMs in BSV, we discuss the Drum CPU and its FSM
-implementation.  By the end of this chapter, we will have a complete
-Drum CPU that is capabable of executing RV32I RISC-V programs.
-
-% ****************************************************************
-
-\section{BSV: Finite State Machines (FSMs)}
-
-\label{Sec_FSMs_FSMs}
-
-\index{BSV!FSMs}
-\index{BSV!Finite State Machines}
-
-Finite state machines (FSMs) are a classical concept in digital
-hardware design, representing a hardware \emph{process}.  An FSM is an
-artefact that can, at any time, be in one of a number of possible
-\emph{states}.  One state is often distinguised as the \emph{start}
-state, the initial state of the FSM.  From each state, an FSM can
-\emph{transition} to another state; the choice of destination state
-may depend on predicates on the current state and on external inputs
-to the FSM.
-
-One classical notation for FSMs is the ``bubble-and-arrow'' diagram: a
-bubble represent a state, and arrows between bubbles represent
-transitions between states.  Thus, an FSM is a specification of a
-process that, over time, moves from state to to state.  The process
-can loop infinitely, with transitions back to earlier states.
-
-In classical notation, arrows may be annotated with \emph{c/o} labels
-(conditions and outputs).  The condition on an arrow indicates under
-what conditions this transition is taken, usually a (pure) boolean
-predicate on the current state and external inputs.  A state may have
-arrows to multiple next-states, with mutually exclusive conditions,
-thus expressing an if-then-else situation.\footnote{If the conditions
-are not mutually exclusive, we have a so-called
-\emph{non-deterministic} FSM, where the next-state is chosen
-non-deterministically from all true conditions on outgoing arrows.  In
-hardware design and in this book we are only concerned with
-deterministic FSMs, where the outgoing conditions will be mutually
-exclusive and we always have a deterministic, unique next-state.}  The
-outputs on an arrow represent external outputs driven by the FSM
-starting with that transition and until the next transition.  An arrow
-without a condition is an unconditional transition to the next-state.
-An arrow may also omit an output.
+The simplest temporal process in hardware systems, perhaps the most
+classical, is the \emph{FSM} (Finite State Machine).  A classical
+notation for an FSM are so-called ``bubble-and-arrow'' diagrams: each
+bubble represents a distinct \emph{state} of the system, and the
+arrows connecting bubbles represent \emph{transitions} between states.
+Transitions are typically enabled by some predicate condition on the
+current state, and/or availability of some particular input from the
+environment.  A transition moves the system to another state, and may
+output something as well to the environment.  In bubble-and-arrow
+diagrams, each arrow is often labeled with the condition that enables
+the transition and any outputs produced by the transition.
 
 \index{Drum!as an FSM}
 
-For Drum, we will interpret Figure~\ref{Fig_FSMs_Simple_Instr_Exec} as a
-bubble-and-arrow diagram for an FSM.  Each of the yellow ``bubbles''
-is a state, and the black arrows represent state-transitions.  We will
-not annotate the arrows with labels, leaving the reader to refer to
-the BSV code.
+Figure~\ref{Fig_FSMs_Simple_Instr_Exec} can be interpreted as a
+bubble-and-arrow FSM diagram: each yellow rectangle (bubble) is a
+state, and the process transitions from state to state, thereby
+executing RISC-V instructions.  This is exactly what the Drum CPU
+does.  Arros labels in our figure not conditions and actions, rather
+the information (a struct) that is produced by one state and consumed
+by another.
+
+In this chapter we describe some special constructs for FSMs in BSV.
+In the following chapters we will discuss using these constructs to
+code the Drum CPU.
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+In the literature one may read about FSMs where, from a state, we
+could have a choice of transitions to different destination states.
+These are called \emph{non-deterministic} FSMs.  In our designs we are
+only concerned with deterministic FSMs where the conditions alway
+identify a unique possible next state.
+
+\end{minipage}}
+% ----------------
 
 % ================================================================
 
@@ -110,43 +97,114 @@ state.\footnote{Even in non-deterministic FSMs, though there may be
 several possible next-states, exactly one next-state is
 non-deterministically chosen.}
 
-Most non-trivial digital hardware systems are actually
-\emph{concurrent FSMs}, {\ie} multiple classical FSMs running
-concurrently and independently and interacting with each other.
-Different BSV module instances are separate FSMs, each running their
-own process(es).  These separate FSMs may communicate with each other
-{\via} shared state (registers, fifos, register files, {\etc}).
+Any digital system (including an entire computer) can theoretically be
+viewed as a single (possibly giant!) FSM.  The current-state is the
+current collective state of every register bit and every memory bit in
+the system.  State transitions depend on the current state and any
+external inputs.  Although theoretically correct, this is an
+impractical, non-scalable, and not very useful way of viewing complex
+digital systems.
+
+Most non-trivial digital hardware systems are better viewed as
+composed of multiple \emph{concurrent, communicating FSMs}, {\ie}
+multiple classical FSMs running concurrently and independently and
+communicating with each other (an output from one FSM may be an input
+to another FSM).  Different BSV module instances are separate FSMs,
+each running their own process(es).  These separate FSMs may
+communicate with each other {\via} shared state (registers, fifos,
+register files, {\etc}).  This is a more \emph{modular} and
+\emph{scalable} way to think about complex digital systems.
+
+\index{Drum!as a set of concurrent FSMs}
+
+Even though Drum CPU execution is a sequential FSM, the overall system
+can be viewed as a pair of concurrent FSMs: Drum and the Memory
+System.  Each has its own internal FSM and behavior, and they
+communicate memory requests and responses back and forth.
 
 \index{Fife!as a set of concurrent FSMs}
 
-For Fife, we will interpret Figure~\ref{Fig_FSMs_Simple_Instr_Exec} as a set
-of concurrent FSMs.  Each of the yellow boxes in the figure will be a
-separate module containing zero or more concurrent FSMs, and the black
-arrows represent communication between FSMs.
+For Fife, we will interpret \emph{each} yellow box in
+Figure~\ref{Fig_FSMs_Simple_Instr_Exec} as its own FSM.  They all run
+concurrently (and concurrently with the memory system), and
+communicate various struct values (labels in
+Figure~\ref{Fig_FSMs_Simple_Instr_Exec}) between the FSMs.
 
 % ****************************************************************
 
-\section{BSV: {\tt StmtFSM}}
+\section{Rules and StmtFSM in BSV}
 
-\label{Sec_FSMs_StmtFSM}
+\label{Sec_Rules_StmtFSM}
+\label{Sec_StmtFSM}
+
+The fundamental behavioral/temporal primitive in BSV is the
+\emph{rule} but we will postpone a detailed discussion of rules until
+Chapter~\ref{ch_Rules}.  BSV's \verb|StmtFSM| is a higher-level
+notation that captures the idea of certain \emph{structured}
+processes.  \verb|StmtFSM| is ultimately implemented (by the
+\emph{bsc} compiler) with rules, so it does not add any fundamental
+semantic power to the language.
+
+% ----------------
+\vspace{2ex}
+
+\begin{minipage}{1in}
+HISTORICAL \\
+NOTE:
+\end{minipage}
+\fbox{\small
+\begin{minipage}{5in}
+
+In a software program execution, the fundamental temporal ``flow''
+primitive is from one instruction to the next, or a BRANCH or JUMP.
+However, in most programming languages, we work at a much higher-level
+of abstraction, using using such linguistic structures as
+if-then-else, while-loops, for-loops, function calls and returns,
+{\etc}.  Ultimately all these constructs are implemented (by a
+compiler) in terms of the primitives, instruction
+sequences/BRANCH/JUMP, and in that sense they do not add any
+fundamental new semantic power to programming.  However, these
+structured constructs are useful for humans: for readability, for
+guiding our thinking, and for reasoning about the correctness of
+programs.
+
+\vspace{1ex}
+
+Early programmers, {\eg} using first versions of the Fortran
+programming language, worked directly with statement sequences (the
+analog of instruction sequences) and ``GOTO'' statements (the analog
+of BRANCH/JUMP), and their programs were a mess of control transfers
+without any structure, sometimes called ``spaghetti code''.
+
+\vspace{1ex}
+
+In the 1960s, Edsgar Dijkstra, a Dutch computer scientist (later to
+win the ACM Turing Award), recognized the importance of clear
+\emph{structure} in composing programs.  In 1968 he wrote a famous
+letter to the editor of the Communications of the ACM journal
+(Association for Computing Machinery) titled ``Go To Statement
+Considered Harmful'', a searing indictment of unstructured code.
+
+\vspace{1ex}
+
+The idea of constructing programs cleanly with nestable (composable)
+structures (if-then-else, while-loops {\etc}), so called ``structured
+programming'', grew out of that thinking; it is something we take for
+granted today.
+
+\end{minipage}}
+% ----------------
 
 \index{BSV!StmtFSM@{\tt StmtFSM}}
 
-The central BSV construct for temporal behavior (processes) is the
-``\verb|rule|''.  Collections of rules can express any sequential or
-concurrent FSM.  However, because Drum is a simple, structured
-sequential process, we can use a simpler, higher-level BSV notation
-called ``\verb|StmtFSM|'' (which, in turn, is just converted into
-rules by the \emph{bsc} compiler).
+\verb|StmtFSM| is a sub-language within BSV for structured FSMs.  It
+takes some basic, ``instantaneous'' actions, from which it builds
+sequential processes that sequence these actions using conditionals
+and loops.
 
-\verb|StmtFSM| is a sub-language within BSV which is suitable for
-expressing \emph{structured} sequential processes.\footnote{{\tt
-StmtFSM} can also express structured fork-join concurrency, but we do
-not need that capability for Drum.}  By ``structured'' we mean that
-processes are constructed by composing construct similar to those in
-most common sequential programming languages: blocks to express
-temporally sequenced actions, if-then-elses, while-loops and
-for-loops.
+We will use \verb|StmtFSM| to code Drum, which is a simple sequential
+process.  It will not be adequate to code Fife, which is a collection
+of concurrent FSMs; for that, we will use rules explicitly.
 
 % ----------------
 \vspace{2ex}
@@ -162,9 +220,9 @@ Section~\ref{BSV_small_testbench}.
 \end{minipage}}
 % ----------------
 
-% ================================================================
+% ****************************************************************
 
-\subsection{Actions and the {\tt Action} type}
+\section{Actions and the {\tt Action} type}
 
 \index{BSV!Action@{\tt Action}: primitive type of actions}
 \index{BSV!actions}
@@ -175,16 +233,22 @@ examples:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   rg_pc <= rg_pc + 4;          // Assignment to a register
-   f_F_to_D.deq;                // Dequeue a fifo
-   f_D_to_RR.enq (v);           // Enqueue into a fifo
-   $display ("Hello, World!");  // Print something (in simulation only)
+   rg_pc <= rg_pc + 4;            // Assignment to a register
+   f_Fetch_to_Decode.deq;         // Dequeue a fifo
+   f_Decode_to_RR.enq (v);        // Enqueue into a fifo
+   $display ("Hello, World!");    // Print something (in simulation only)
 \end{Verbatim}
 }
 
-As discussed in
-Section~\ref{Sec_Register_syntactic_shorthands}
-the first assignment statement is syntactic shorthand for:
+We discussed the \verb|Action| (and \verb|ActionValue|) types in
+Section~\ref{Sec_Pure_vs_Side_Effect_functions}.  We used them in the
+return type of the \verb|fn_Fetch| function in
+Section~\ref{Sec_Fetch_function}.  To recap, an expression with
+\verb|Action| or \verb|ActionValue| type is one that potentially has a
+side effect, as in each of the above example statements.
+
+As discussed in Section~\ref{Sec_Register_syntactic_shorthands} the
+first assignment statement is syntactic shorthand for:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -208,7 +272,7 @@ type \verb|Action|.
 
 % ================================================================
 
-\subsection{{\tt Action} blocks: grouping actions into larger actions}
+\subsection{{\tt Action} blocks: composing actions into larger actions}
 
 \index{action@{\tt action}-{\tt endaction} blocks}
 
@@ -231,15 +295,17 @@ which itself has type \verb|Action|:
 }
 
 Although the actions in an \verb|action| block must be written in some
-textual order, there is no temporal ordering of these actions.  All
-the primitive actions in an \verb|action| block (either directly in
-the block or, recursively in a sub-block) occur ``instantly'' and
-``simultaneously''.  In the example above, lines 2-5 could have been
-written in any order.
+textual order, \verb|action| \emph{blocks do not involve any
+sequencing.}  There is no temporal ordering of the actions in an
+\verb|action| block.  All the actions in an \verb|action| block
+(either directly in the block or, recursively in a sub-block) occur
+``instantly'' and ``simultaneously''.  In the example above, lines 2-5
+could have been written in any order with no change in
+meaning/behavior.
 
-% ----------------------------------------------------------------
+% ================================================================
 
-\subsubsection{Binding names in {\tt Action} blocks}
+\subsection{Binding names in {\tt Action} blocks}
 
 \index{let@{\tt let}-bindings in {\tt Action} blocks}
 
@@ -274,15 +340,19 @@ The \emph{scope} of the identifier, {\ie} the region of program text
 where it is available for use, is just the {\tt Action} block (and
 inside any syntactically nested construct).
 
+A binding, per se, \emph{is not an action!}.  It is just a
+convenience, giving a name to the value of the right-hand side
+expression.
+
 Bindings (whether with a type or with \verb|let|) impose some ordering
 on statements in the block: a binding of an identifier must precede
 any use of that identifier.  In the previous two examples, line 2 (the
 binding) must precede lines 3 and 4 (the actions), but lines 3 and 4
 could be written in the opposite order.
 
-% ================================================================
+% ****************************************************************
 
-\subsection{{\tt StmtFSM}: sequences of actions}
+\section{{\tt StmtFSM}: sequences of actions}
 
 \index{BSV!StmtFSM@{\tt StmtFSM}!seq@{\tt seq .. endseq}: sequences of actions}
 
@@ -290,9 +360,6 @@ Our first construct that has temporal behavior is the
 \verb|seq|-\verb|endseq| block.  Each item in the block is typically
 an entity of type \emph|Action|, and they are performed sequentially,
 one after another.
-
-The testbench in Section~\ref{BSV_small_testbench} contains an example
-of a \verb|seq| block:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -311,13 +378,18 @@ The \verb|seq| block itself has type \verb|Stmt|.  The items in a
 block can have type \verb|Action| or the type \verb|Stmt|, {\ie}
 \verb|seq-endseq| blocks can be nested.
 
-% ================================================================
+The testbench in Section~\ref{BSV_small_testbench} contains an example
+of a \verb|seq| block.
 
-\subsection{{\tt StmtFSM}: if-then-elses}
+% ****************************************************************
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!if@{\tt if-then-else}: conditional actions}
+\section{{\tt StmtFSM}: conditionals (if-then-else)}
 
-Conditional execution can be expressed with traditional if-then-else notation:
+\index{BSV!StmtFSM@{\tt StmtFSM}!if@{\tt if-then-else}: process conditional}
+\index{BSV!if-then-else: ordinary expression \emph{vs} {\tt StmtFSM} process}
+
+Conditional process execution can be expressed with traditional
+if-then-else notation:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -338,17 +410,29 @@ NOTE:
 \begin{minipage}{5in}
 
 In Section~\ref{BSV_Combo_Circuits_if_then_else} we described ordinary
-BSV if-then-else expressions.  {\tt StmtFSM} uses the same notation,
-but there is no ambiguity---the context always clearly distinguishes
-what we mean, because there is no overlap between ordinary expressions
-and {\tt StmtFSM} constructions.
+BSV if-then-else expressions, which often represent hardware
+multiplexers, where both arms are ``evaluated'' (the hardware exists
+for both sides) and the multiplexer merely selects one of the two
+outputs.
+
+\vspace{1ex}
+
+{\tt StmtFSM} uses the same notation, but here it represents a
+\emph{process}, and only one of the two arms is executed (like
+if-then-else in most software programming languages).
+
+\vspace{1ex}
+
+There is no ambiguity in these two uses of if-then-else notation---the
+context always clearly distinguishes what we mean, because there is no
+overlap between ordinary expressions and {\tt StmtFSM} constructions.
 
 \end{minipage}}
 % ----------------
 
-% ================================================================
+% ****************************************************************
 
-\subsection{{\tt StmtFSM}: while-loops}
+\section{{\tt StmtFSM}: while-loops}
 
 \index{BSV!StmtFSM@{\tt StmtFSM}!while@{\tt while}-loop repetition}
 
@@ -361,9 +445,9 @@ Repetitive processes can be expressed with traditional while-loop notation:
 \end{Verbatim}
 }
 
-% ================================================================
+% ****************************************************************
 
-\subsection{{\tt StmtFSM}: pausing until some condition holds}
+\section{{\tt StmtFSM}: pausing until some condition holds}
 
 \index{BSV!StmtFSM@{\tt StmtFSM}!await@{\tt await}: pausing until some condition}
 
@@ -380,36 +464,38 @@ true:
 Of course, the \verb|StmtFSM| itself cannot cause the value the
 change, since it is paused, and cannot change any state that would
 cause the expression to change its value.  The state-change thus has
-to be effected by some other part of the BSV design, not this
-particular \verb|StmtFSM|.
+to be effected by some other part of the BSV design (a concurrent
+FSM), not this particular \verb|StmtFSM|.
 
-% ----------------
-\vspace{2ex}
+% ****************************************************************
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!{\tt for}-loop repetition}
+\section{{\tt StmtFSM}: {\tt mkAutoFSM}: a simple FSM module constructor}
 
-NOTE:
-\fbox{\small
-\begin{minipage}{5in}
-
-{\tt StmtFSM} also has for-loop and repeat-loop notation, but we do not need them for Drum.
-
-\end{minipage}}
-% ----------------
-
-% ================================================================
-
-\subsection{{\tt StmtFSM}: {\tt mkAutoFSM}: a simple FSM module constructor}
+\label{Sec_AutoFSM}
 
 \index{BSV!StmtFSM@{\tt StmtFSM}!{\tt mkAutoFSM} module}
 \index{BSV!mkAutoFSM@{\tt mkAutoFSM} module in {\tt StmtFSM} library package}
 
-Given an entity of type \verb|Stmt|, we can pass it as an argument to
-to the module constructor \verb|mkAutoFSM|
+Creating an FSM using \verb|StmtFSM| in BSV is a two-step process:
+
+\begin{tightlist}
+
+ \item Define the desired FSM behavior as an entity of type
+       \verb|Stmt|.  Think of this as a \emph{specification} of
+       desired behavior.
+
+ \item Instantiate a module that takes this specification and
+       implements the behavior.
+
+\end{tightlist}
+
+There are several \verb|Stmt| $\longrightarrow$ module constructors
+available in the BSV library.  In this book we use only one of them,
+\verb|mkAutoFSM|:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   mkAutoFSM (... expression of type Stmt ...);
+   mkAutoFSM (... argument expression of type Stmt ...);
 \end{Verbatim}
 }
 
@@ -418,5 +504,35 @@ argument.  The FSM starts running immediately as we come out of reset,
 starting at the first statement, and terminates when we fall through
 the last statement.  Of course, it may never terminate if it contains
 an infinite {\tt while} loop.
+
+Note: ``terminating'' the FSM in simulation means it executes a
+\verb|$finish()| action which stops the complete simulation.  In
+hardware (where there is no concept of \verb|$finish()|) the FSM
+simply goes idle.\footnote{Technically, none of the rules implementing
+the FSM can fire any more.}  There may be other FSMs and rules in the
+design that continue running.
+
+% ****************************************************************
+
+\section{{\tt StmtFSM}: many more features}
+
+\index{BSV!StmtFSM@{\tt StmtFSM}!{\tt for}-loop repetition}
+
+Here we have covered all the features of \verb|StmtFSM| that we need
+for coding Drum.  There are many additional features that we skip
+here, such as for-loops and repeat-loops, fork-join parallel blocks,
+different kinds of modules instantiating \verb|Stmt|s, predicated
+modules, and more.  We refer the reader to the FSM chapter in the
+\emph{bsc Libraries Reference Guide} \cite{bsc_libs_ref_guide}.
+
+The type \verb|Stmt| is a first-class type in BSV.  You can write
+functions that have arguments and results of type \verb|Stmt|.  For
+example, you might write a function that takes a numeric argument and
+returns a \verb|Stmt|; this function can be invoked more than once to
+produce multiple \verb|Stmt|s that differ because of the parameter.
+Each of these \verb|Stmt|s can in instantiated into its own FSM.  This
+further emphasizes the view that \verb|Stmt| is a specification of an
+FSM behavior that is then instantiated in a module to produce that
+behavior.
 
 % ****************************************************************
