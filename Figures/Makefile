@@ -16,7 +16,6 @@ FIGS += Fig_Trap_Return.png
 FIGS += Fig_Instr_Exec.png
 FIGS += Fig_Instr_Exec_w_structs.png
 FIGS += Fig_Instr_Exec_w_FIFOs.png
-FIGS += Fig_Fife_Retire.png
 FIGS += Fig_Retire_Layers_1.png
 FIGS += Fig_Retire_Layers_1_2.png
 

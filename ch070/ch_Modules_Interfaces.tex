@@ -786,9 +786,9 @@ values to the Decode unit:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-interface F_IFC;
+interface Fetch_IFC;
    ...
-   interface FIFOF_O #(F_to_D)  fo_F_to_D;
+   interface FIFOF_O #(F_to_D)  fo_Fetch_to_Decode;
    ...
 endinterface
 \end{Verbatim}
@@ -799,9 +799,9 @@ to receive those values:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-interface D_IFC;
+interface Decode_IFC;
    ...
-   interface FIFOF_I #(F_to_D)  fi_F_to_D;
+   interface FIFOF_I #(F_to_D)  fi_Fetch_to_Decode;
    ...
 endinterface
 \end{Verbatim}
@@ -816,35 +816,38 @@ mkConnection} one-liner:
 module mkCPU (CPU_IFC);
    ...
    // Instantiate Fetch and Decode stages
-   F_IFC  stage_F  <- mkF;
-   D_IFC  stage_D  <- mkD;
+   Fetch_IFC   stage_F  <- mkFetch;
+   Decode_IFC  stage_D  <- mkDecode;
    ...
-   // Connect the F_to_D flow
-   mkConnection_O_to_I (stage_F.fo_F_to_D, stage_D.fi_F_to_D);
+   // Connect the Fetch_to_Decode flow
+   mkConnection (stage_F.fo_Fetch_to_Decode, stage_D.fi_Fetch_to_Decode);
    ...
 endmodule
 \end{Verbatim}
 }
 
-There is actually no magic in this!  First, {\tt
-mkConnection\_O\_to\_I} is just another BSV module which happens to
-have an ``empty'' interface (called {\tt Empty}, with no interface
-methods), so line 8 is actually shorthand for another module
-instantiation (the shorthand omits the ``{\tt Empty~tmp~<-}''
-left-hand side):
+There is actually no magic in this!  First, {\tt mkConnection} is just
+another BSV module which happens to have an ``\verb|Empty|'' interface
+with no interface methods, so the \verb|mkConnection| is actually
+shorthand for:
 
-\begin{tabbing}
-\hmm\small\tt   // Connect the F\_to\_D flow \\
-\hmm\small\tt   Empty tmp <- mkConnection\_O\_to\_I (stage\_F.fo\_F\_to\_D, stage\_D.fi\_F\_to\_D);
-\end{tabbing}
+{\small
+\begin{Verbatim}[frame=single]
+   Empty tmp <- mkConnection (stage_F.fo_Fetch_to_Decode, stage_D.fi_Fetch_to_Decode);
+\end{Verbatim}
+}
 
-Then, the module {\tt mkConnection\_O\_to\_I} can be written simply in BSV itself:
+The shorthand omits the ``{\tt Empty~tmp~<-}'' left-hand side).
+
+The module \verb|mkConnection| is such a useful construct that it is
+provided in the \emph{bsc} library.  It can be implemented in BSV
+itself, and is very simple:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-module mkConnection_O_to_I #(FIFOF_O #(F_to_D) f,    // module argument
-                             FIFOF_I #(F_to_D) d)    // module argument
-                           (Empty);                  // module interface
+module mkConnection #(FIFOF_O #(Fetch_to_Decode) f,    // module argument
+                      FIFOF_I #(Fetch_to_Decode) d)    // module argument
+                    (Empty);                  // module interface
    rule rl_connect;
        let x = f.first;
        f.deq;
@@ -854,18 +857,18 @@ endmodule
 \end{Verbatim}
 }
 
-{\tt mkConnection\_O\_to\_I} is a module with two arguments {\tt f} and {\tt d}
+{\tt mkConnection} is a module with two arguments {\tt f} and {\tt d}
 and producing an empty interface.  In BSV, Verilog and SystemVerilog
 syntax, a module's arguments are provided in {\tt \#(...)} and its
 interface follows in {\tt (...)}.
 
 \index{BSV!rule@{\tt rule}: the fundamental behavioral construct in BSV}
 
-The module contains a \emph{rule}, which is an infinite process.  It
-binds {\tt x} to {\tt f.first}, the head of the {\tt f} queue, and
-discards it from the queue ({\tt f.deq}).  It enqueues the value {\tt
-x} into {\tt d}.  Being an infinite process, it repeats this every
-time this is possible.
+The module contains a \emph{rule} (Chapter~\ref{ch_Rules}), which is
+an infinite process.  It binds {\tt x} to {\tt f.first}, the head of
+the {\tt f} queue, and discards it from the queue ({\tt f.deq}).  It
+enqueues the value {\tt x} into {\tt d}.  Being an infinite process,
+it repeats this every time this is possible.
 
 Because of the automatic flow-control in BSV FIFOs, this rule will
 only execute when {\tt f} is non-empty (contains an item, available to

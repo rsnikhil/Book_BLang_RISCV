@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{RISC-V: the Fife pipelined CPU: BSV code}
+\chapter{RISC-V: the Fife pipelined CPU code}
 
-\markboth{Ch \arabic{chapter}: Fife BSV code (DRAFT)}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: Fife code}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -17,8 +17,8 @@
 \section{Introduction}
 
 In this chapter we study BSV code to implement the principles that
-were discussed in the previous chapter.  We repeat
-Figure~\ref{Fig_Instr_Exec_w_FIFOs} here, for reference.
+were discussed in Chapter~\ref{ch_Fife_Principles}.
+We repeat Figure~\ref{Fig_Instr_Exec_w_FIFOs} here, for reference.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_FIFOs}}
   \caption{\label{Fig_Instr_Exec_w_FIFOs_2}Pipelined interpretation of RISC-V instructions (Fig.~\ref{Fig_Instr_Exec} with some annotations)}
@@ -31,80 +31,28 @@ Figure~\ref{Fig_Instr_Exec_w_FIFOs} here, for reference.
 \label{Sec_Fife_CPU_module}
 
 The code for the top-level Fife CPU module is actually simpler than
-the code for the Drum CPU module:
+the code for the Drum CPU module, because it simply instantiates
+sub-modules for each stage and connects them:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/CPU.bsv)]
-(* synthesize *)
-module mkCPU (CPU_IFC);
-   // Pipeline stages
-   Fetch_IFC       stage_F          <- mkFetch;
-   Decode_IFC      stage_D          <- mkDecode;
-   RR_RW_IFC       stage_RR_RW      <- mkRR_RW;
-   EX_Control_IFC  stage_EX_Control <- mkEX_Control;  // Branch, JAL, JALR
-   EX_Int_IFC      stage_EX_Int     <- mkEX_Int;      // Integer ops
-   Retire_IFC      stage_Retire     <- mkRetire;
-
-   // ================================================================
-   // Forward flows
-
-   // F->D->RR_RW->Retire
-   mkConnection (stage_F.fo_F_to_D,           stage_D.fi_F_to_D);
-   mkConnection (stage_D.fo_D_to_RR,          stage_RR_RW.fi_D_to_RR);
-   mkConnection (stage_RR_RW.fo_RR_to_Retire, stage_Retire.fi_RR_to_Retire);
-
-   // RR->various EX
-   mkConnection (stage_RR_RW.fo_RR_to_Control, stage_EX_Control.fi_RR_to_Control);
-   mkConnection (stage_RR_RW.fo_RR_to_EX_IALU, stage_EX_Int.fi_RR_to_EX_IALU);
-
-   // Various EX->Retire
-   mkConnection (stage_EX_Control.fo_Control_to_Retire,
-		 stage_Retire.fi_Control_to_Retire);
-   mkConnection (stage_EX_Int.fo_EX_IALU_to_Retire,
-		 stage_Retire.fi_IALU_to_Retire);
-
-   // ================================================================
-   // Backward flows
-
-   // F<-RR (redirection)
-   mkConnection (stage_Retire.fo_F_from_Retire,  stage_F.fi_F_from_Retire);
-   // RR<-RW (writeback/trap/flush)
-   mkConnection (stage_Retire.fo_RW_from_Retire, stage_RR_RW.fi_RW_from_Retire);
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      stage_F.init (initial_params);
-      ... and similarly, for all the other stages ...
-   endmethod
-
-   interface fo_IMem_req = stage_F.fo_F_to_IMem;
-   interface fi_IMem_rsp = stage_D.fi_IMem_to_D;
-
-   interface fo_DMem_S_req    = stage_RR_RW.fo_DMem_S_req;
-   interface fi_DMem_S_rsp    = stage_Retire.fi_DMem_S_rsp;
-   interface fo_DMem_S_commit = stage_Retire.fo_DMem_S_commit;
-
-   interface fo_DMem_NS_req = stage_Retire.fo_DMem_NS_req;
-   interface fi_DMem_NS_rsp = stage_Retire.fi_DMem_NS_rsp;
-endmodule
-\end{Verbatim}
-}
+\input{Code_Extracts/Fife_mkCPU.tex}
 
 This is practically a direct textual description of
-Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}.  The first few lines
-instantiate the pipeline stages shown in the figure.  There is no
+Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}.  The STATE section first
+instantiates the pipeline stages shown in the figure.  There is no
 explicit module corresponding to Execute Memory Ops---the DMem request
 is sent out directly from \verb|stage_RR_RW| and the DMem response is
 collected directly by \verb|stage_Retire|.
 
-The next several lines make the ``forward-flow'' connections between
-modules (left to right in the figure) .  These are followed by lines
-making the ``backward-flow'' connections.  All these use the
+The STATE section then instantiates the ``forward-flow'' connections
+between modules (left to right in the figure), using the
 \verb|mkConnection| module to connect a \verb|FIFOF_O| interface
 (producer) to a \verb|FIFOF_I| interface (consumer), which was
-discussed in Section~\ref{Sec_connecting_FIFOs}.
+discussed in Section~\ref{Sec_connecting_FIFOs}.  These module
+connections are in the STATE section because, as discussed in
+Section~\ref{Sec_connecting_FIFOs} \verb|mkConnection| is just a
+module instantiation.
+
+The next few lines instantiate the ``backward-flow'' connections.
 
 In the INTERFACE section, after the \verb|init| method, the next two
 lines are the flows of IMem requests from the Fetch stage to memory
@@ -124,128 +72,72 @@ we discussed in Section~\ref{Sec_DMem_MMIO}.
 
 Note that the module interface \verb|CPU_IFC| is exactly the same as
 in Drum (although Drum has no need for, and does not use the
-speculative DMem interfaces).  Thus, in a system context, we can
-directly substitute Drum for Fife and vice versa.  Generalizing, we
-can develop other CPUs and substitute them, as well.
+\verb|DMem_S| speculative interfaces).  Thus, in a system context, we
+can directly substitute Drum for Fife and vice versa.  Generalizing
+this idea, we can develop other CPUs and substitute them, as well.
+
+We next go through the code for the individual stage modules.
 
 % ****************************************************************
 
-\section{Fife: the Fetch stage}
+\section{The Fetch stage}
 
 \label{Sec_Fife_Fetch_stage}
 
+The Fetch stage module interface is shown below.  Apart from the
+\verb|init| method, the remaining sub-interfaces correspond to the
+FIFO-labeled arrows in Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the
+outgoing \verb|FIFOF_O| interfaces to memory (IMem) and the Decode
+stage, and the incoming \verb|FIFOF_I| for redirections from the
+Retire stage.
+
+\input{Code_Extracts/Fife_Fetch_IFC.tex}
+
 The Fetch stage module code is shown below.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S1\_Fetch.bsv)]
-(* synthesize *)
-module mkFetch (Fetch_IFC);
-   Reg #(Bool) rg_running <- mkReg (False);
+\input{Code_Extracts/Fife_mkFetch.tex}
 
-   // Forward out
-   FIFOF #(F_to_D)  f_F_to_D    <- mkBypassFIFOF;
-   FIFOF #(Mem_Req) f_F_to_IMem <- mkBypassFIFOF;
-
-   // Backward in
-   FIFOF #(F_from_Retire) f_F_from_Retire <- mkPipelineFIFOF;
-
-   // inum, PC and epoch registers
-   Reg #(Bit #(64))       rg_inum  <- mkReg (0);
-   Reg #(Bit #(XLEN))     rg_pc    <- mkReg (0);
-   Reg #(Bit #(W_Epoch))  rg_epoch <- mkReg (0);
-
-   // ----------------------------------------------------------------
-   // BEHAVIOR
-
-   // Forward flow
-   rule rl_Fetch_req (rg_running && (! f_F_from_Retire.notEmpty));
-      // Predict next PC
-      let pred_pc = rg_pc + 4;
-
-      let y <- fn_F (rg_inum, rg_pc, pred_pc, rg_epoch);
-      f_F_to_D.enq (y.to_D);
-      f_F_to_IMem.enq (y.mem_req);
-
-      rg_pc   <= pred_pc;
-      rg_inum <= rg_inum + 1;
-   endrule
-
-   // Backward flow: redirection from Retire
-   rule rl_F_from_Retire;
-      let x <- pop_o (to_FIFOF_O (f_F_from_Retire));
-
-      rg_pc    <= x.next_pc;
-      rg_epoch <= x.next_epoch;
-   endrule
-
-   // ----------------------------------------------------------------
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params) if (! rg_running);
-      ...
-      rg_pc      <= initial_params.pc_reset_value;
-      rg_running <= True;
-   endmethod
-
-   // Forward out
-   interface fo_F_to_D    = to_FIFOF_O (f_F_to_D);
-   interface fo_F_to_IMem = to_FIFOF_O (f_F_to_IMem);
-
-   // Backward in
-   interface fi_F_from_Retire = to_FIFOF_I (f_F_from_Retire);
-endmodule
-\end{Verbatim}
-}
-
-The first section of the module instantiates some registers and FIFOs.
-
-Next, the BEHAVIOR section contains two \emph{rules}, which are the
-fundamental dynamic behavior constructs in BSV.  A rule is an infinite
-process.  Every rule consists of a \emph{condition} and an
-\emph{action}: whenever the condition is true, the action is
-performed; we say the rule ``fires'' whenever its condition is
-true.\footnote{Topic discussed later in the book: a rule may not fire
-even if its condition is true, if it ``conflicts'' with another rule.}
-
-A rule may contain explicit and implicit conditions. In rule
-\verb|rl_Fetch_req|, the explicit condition is the expression:
+The STATE section instantiates various registers and FIFOs.  Next, the
+BEHAVIOR section contains two \emph{rules} (Chapter~\ref{ch_Rules}).
+In rule \verb|rl_Fetch_req|, the explicit condition is the expression:
 
 \hm\small \verb|(rg_running && (! f_F_from_Retire.notEmpty))|
 
-Rule \verb|rl_Fetch_req|'s implicit conditions come from the methods
-that it invokes, specifically: \verb|f_F_to_D.enq ()| and
-\verb|f_F_to_IMem.enq ()|.  Every method has an implicit conditions.
-For a FIFO, the \emph{enq()} method's implicit condition is false when
-the FIFO is full, {\ie} when it does not contain space to enqueue a
-new item.  We also say the method is ``enabled'' when its implicit
-condition is true.
+Rule \verb|rl_Fetch_req|'s implicit condition comes from the methods
+that it invokes, \verb|f_Fetch_to_Decode.enq ()| and
+\verb|f_Fetch_to_IMem.enq ()|.  The rule will fire only when the
+explicit condition is true, and when both FIFOs are enabled to enqueue
+(have space).  When it fires, it performs the composite action that
+comprises all the actions in the rule body:
 
-In summary, rule \verb|rl_Fetch_req| will fire only when the explicit
-condition is true, and when both FIFOs on which it tries to enqueue
-are enabled.  When it fires, it performs a composite action that
-includes all the actions stated in the rule:
 
-\begin{tightlist}
+\begin{itemize}
 
- \item enqueues into \verb|f_F_to_D| the value of \verb|y.to_D|,
+ \item enqueue the value of \verb|y.to_D| into FIFO \verb|f_Fetch_to_Decode|;
 
- \item enqueues into \verb|f_F_to_IMem| the value of \verb|y.mem_req|,
+ \item enqueuethe value of \verb|y.mem_req| into FIFO \verb|f_Fetch_to_IMem|;
 
- \item writes \verb|pred_pc| into \verb|rg_pc|,
+ \item write the predicted PC value \verb|pred_pc| into register \verb|rg_pc|, and
 
- \item and writes the value of \verb|rg_inum+1| into \verb|rg_inum|.
+ \item write the value of \verb|rg_inum+1| into the register \verb|rg_inum|.
 
-\end{tightlist}
-where \verb|y| is the result of applying \verb|fn_F| to
-\verb|rg_inum|, \verb|pred_pc| and \verb|rg_epoch|, where
-\verb|pred_pc| is the value of \verb|rg_pc+4.|,
+\end{itemize}
+
+The right-hand side expressions (\verb|rg_pc+4|, \verb|fn_Fetch(...)| and
+\verb|rg_inum+1|) are all combinational circuits, and ``\verb|y|'' is
+not a register, just a name for the wires carrying the output value of
+\verb|fn_Fetch()|.
+
+% ----------------
+
+\vspace{1ex}
 
 NOTE:
 \fbox{\small
 \begin{minipage}{5in}
 
-The function {\tt fn\_F()} invoked in rule {\tt rl\_Fetch} is exactly
-the same one as {\tt fn\_F()} used in the Fetch step of Drum.
+The function {\tt fn\_Fetch()} is exactly the same as the one used in
+the Fetch step of Drum (was described in Section~\ref{Sec_fn_Fetch}).
 
 \vspace{1ex}
 
@@ -255,106 +147,116 @@ Mem\_Req}) are the same as in Drum.
 
 \end{minipage}}
 
+\vspace{1ex}
+
+% ----------------
+
 All these actions are semantically \emph{instantaneous} and
 \emph{simultaneous}.  Note that when the rule's implicit and explicit
 conditions are true, all the actions are peformed; if false, none of
-them are performed.  We also say that the rule's composite action is
-``atomic''.
+them are performed, {\ie} the rule is ``atomic''.
 
 In summary, rule \verb|rl_Fetch_req| computes an IMem memory request
 from the PC and sends it to memory; it sends auxiliary information to
 the Decode stage; and it updates the PC and inum in preparation for
-the next Fetch.
+the next Fetch (the next firing of the rule)..
 
-Rule \verb|rl_F_from_Retire| receives, in \verb|x|, a redirection
-message from the Retire stage, and updates the PC and epoch
-accordingly.  This rule has no explicit conditions; its single
-implicit condition comes from \verb|f_F_from_Retire|'s implicit
-condition that we cannot pop a value from the FIFO if it is empty,
-{\ie}, this rule only fires when a redirection message is available.
-When it fires, it performs three actions
-atomically/instantaneously/simultaneously:
+The second rule in the module is \verb|rl_Fetch_from_Retire|. It
+receives, in \verb|x|, a redirection message from the Retire stage,
+and updates the PC and epoch accordingly.  This rule has no explicit
+conditions; its single implicit condition comes from
+\verb|f_Fetch_from_Retire|'s implicit condition that we cannot pop a
+value from the FIFO until it is non-empty, {\ie}, this rule only fires
+when a redirection message is available.  When it fires, it performs
+three actions atomically/instantaneously/simultaneously:
  
-\begin{tightlist}
+\begin{itemize}
 
  \item It dequeues \verb|x| from the FIFO \verb|f_F_from_Retire| (the
        dequeue action is inside the \verb|pop_o| function),
  \item It updates \verb|rg_pc| with the new PC in the redirection message,
  \item It updates \verb|rg_epoch| with the new epoch in the redirection message.
 
-\end{tightlist}
+\end{itemize}
 
-Note, \verb|rl_F_from_Retire| updates two registers \verb|rg_pc| and
-\verb|rg_epoch| and, \emph{concurrently}, \verb|rl_Fetch| reads both
-those registers.  Because rule actions are atomic, we are guaranteed
-that \verb|rl_Fetch| will not see inconsitent values in those two
-registers, where one has been updated but the other has not yet been
-updated.
+Note, \verb|rl_Fetch_from_Retire| updates two registers \verb|rg_pc|
+and \verb|rg_epoch| and, \emph{concurrently}, \verb|rl_Fetch| reads
+both those registers.  Because rule actions are atomic, we are
+guaranteed that \verb|rl_Fetch| will not see inconsitent values in
+those two registers, where one has been updated but the other has not
+yet been updated.
 
 Finally, the INTERFACE section of the module is simple.  After the
 \verb|init| method, we simply lift the FIFO interfaces to the
-\verb|mkFetch| interface.
+\verb|mkFetch| module interface.
+
+% ================================================================
+
+\subsection{Prioritizing rule {\tt rl\_Fetch\_from\_Retire} over {\tt rl\_Fetch\_req}}
+
+\index{Rules!prioritizing explicitly}
+
+What would happen if we omit the condition
+``\verb|(!f_Fetch_from_Retire.notEmpty)|'' in \verb|rl_Fetch_req|?  It
+would not affect the correctness of this module at all.  If we omit
+the condition, then both rules could be enabled simultaneously, and it
+is non-deterministic which one will fire first.  Actually, the
+hardware is deterministic because the \emph{bsc} compiler will make a
+prioritization choice, but its choice is unspecified, and so
+semantically it is non-deterministic ({\eg} a new release of the
+compiler, or a later change in other code in the module may prioritize
+differently).  But, for correctness, the choice \emph{does not
+matter}.  Because of the atomicity of rules, the rules will never
+\emph{interleave} their behavior---either one goes before the other,
+or vice versa.  We can quickly reason that, in either case, we get
+functionally correct behavior.
+
+The only difference will be in performance: if both rules are enabled,
+then, by definition, \verb|rl_Fetch| is fetching ``wrong-path''
+instructions due to an earlier misprediction (which is why we have a
+redirection).  We know that wrong-path instructions will be discarded
+and have no effect.  So if \verb|rl_Fetch| is prioritized, it will
+fetch one more wrong-path instruction, with no impact on correctness.
+
+By adding the ``\verb|(!f_Fetch_from_Retire.notEmpty)|'' condition to
+\verb|rl_Fetch|, we are explicitly prioritizing
+\verb|rl_Fetch_from_Retire| when both are enabled, thus avoiding
+\verb|rl_Fetch_req| performing a wasted wrong-path fetch.
 
 % ****************************************************************
 
-\section{Fife: the Decode stage}
-
-The Decode stage module code is shown below.
+\section{The Decode stage}
 
 \label{Sec_Fife_Decode_stage}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S2\_Decode.bsv)]
-(* synthesize *)
-module mkDecode (Decode_IFC);
-   // Forward flows in
-   // Depth should be > F=>IMem=>D path latency
-   FIFOF #(F_to_D)  f_F_to_D    <- mkSizedFIFOF (4);
-   FIFOF #(Mem_Rsp) f_IMem_to_D <- mkPipelineFIFOF;
+The Decode stage module interface is shown below.  Apart from the
+\verb|init| method, the remaining sub-interfaces correspond to the
+FIFO-labeled arrows in Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the
+incoming \verb|FIFOF_I| interfaces from the Fetch stage and memory
+(IMem), and the outgoing \verb|FIFOF_O| interface to the Register-Read
+stage.
 
-   // Forward flow out
-   FIFOF #(D_to_RR) f_D_to_RR   <- mkBypassFIFOF;
+\input{Code_Extracts/Fife_Decode_IFC.tex}
 
-   // ================================================================
-   // Functionality
+The Decode stage module code is shown below.
 
-   rule rl_Decode;
-      F_to_D  x        <- pop_o (to_FIFOF_O (f_F_to_D));
-      Mem_Rsp rsp_IMem <- pop_o (to_FIFOF_O (f_IMem_to_D));
+\input{Code_Extracts/Fife_mkDecode.tex}
 
-      D_to_RR y <- fn_D (x, rsp_IMem);
+The STATE section instantiates FIFOs for incoming and outgoing flows.
 
-      f_D_to_RR.enq (y);
-   endrule
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      ...
-   endmethod
-
-   // Forward flows in
-   interface fi_F_to_D    = to_FIFOF_I (f_F_to_D);
-   interface fi_IMem_to_D = to_FIFOF_I (f_IMem_to_D);
-   // Forward flows out
-   interface fo_D_to_RR = to_FIFOF_O (f_D_to_RR);
-endmodule
-\end{Verbatim}
-}
-
-The first section instantiates FIFOs for incoming and outgoing flows.
-
-The single rule \verb|rl_Decode|'s implicit conditions will make it
-wait for both incoming FIFOs \verb|f_F_to_D| and \verb|f_IMem_to_D| to
-be non-empty.  When the rule fires, it:
+The BEHAVIOR section has the single rule \verb|rl_Decode|, whose
+implicit conditions will make it wait for both incoming FIFOs
+\verb|f_Fetch_to_Decode| and \verb|f_IMem_to_Decode| to be non-empty,
+and for its outgoing FIFO \verb|f_Decode_to_RR| to have space.  When
+the rule fires, it:
 
 \begin{tightlist}
- \item pops \verb|x| and \verb|rsp_Mem| from the two FIFOs, respectively,
+ \item pops \verb|x| and \verb|rsp_Mem| from the two FIFOs, respectively;
 
- \item applies function \verb|fn_D()| to those values (this is the
-       \emph{same} \verb|fn_D()| that was used in the Decode step of
-       Drum), and
+ \item applies function \verb|fn_Decode()| to those values (this is
+       the \emph{same} \verb|fn_Decode()| that was used in the Decode
+       step of Drum, and described in Section~\ref{Sec_fn_Decode}),
+       and
 
  \item sends the result on to the Register-Read stage.
 \end{tightlist}
@@ -362,44 +264,117 @@ be non-empty.  When the rule fires, it:
 The INTERFACE section is again straightforward, just lifting the FIFO
 interfaces to this module's interface.
 
+% ================================================================
+
+\subsection{Balancing concurrent paths in a pipeline}
+
+\label{Sec_Balancing}
+
+\index{RISC-V!Balancing concurrent paths in a pipeline}
+
+In Figure~\ref{Fig_Instr_Exec_w_FIFOs_2} we see that there are two
+concurrent FIFO-like paths from Fetch to Decode: one direct, and the
+other via memory (IMem).  Fetch produces two outputs together, one for
+each path.  The paths re-converge at Decode, where Fetch's first
+output ``meets'' the corresponding response from memory.
+
+\index{RISC-V!In-flight memory transactions}
+\index{RISC-V!Memory!pipelined}
+\index{RISC-V!Memory!latency}
+
+The path via IMem is also FIFO-like because good memory systems are
+themselves pipelined; it is possible for Fetch to issue several
+consecutive memory requests before the first response arrives at
+Decode.  We say that multiple IMem transactions may be ``in flight''.
+Also, in Section~\ref{Sec_mem_latency} we discussed how memory latency
+can be variable and unpredictable, so the number of transactions in
+flight may vary.
+
+If we wish to allow up to $n$ IMem transactions in flight, then the
+direct Fetch-to-Decode path must be capable of buffering up to $n$
+\verb|Fetch_to_Decode| items.  If not, rule \verb|rl_Fetch| in Fetch
+will get stuck: its \verb|f_Fetch_to_Decode| FIFO will be full, and so
+the ``\verb|enq|'' method's implicit condition will become false,
+preventing the rule from firing.
+
+This is the reason, in Decode, the incoming \verb|f_Fetch_to_Decode|
+FIFO is instantiated with \verb|mkSizedFIFOF(4)|, which is a FIFO with
+the capacity to hold four items\footnote{We could also have,
+equivalently, instantiated the {\tt f\_Fetch\_to\_Decode} FIFO in
+Fetch with {\tt mkSizedFIFO}, or split the buffering capacity between
+the two stages.}  We also use the term ``balancing'' for this---the
+number of items that can be ``in flight'' in the two paths should be
+matched.
+
+Why did we choose the number 4?  Why not something smaller, or larger?
+Greater capacity requires more hardware resources, which argues for a
+smaller number, but a smaller number may affect performance where
+Fetch has to wait only because of limited capacity.  We would like to
+choose the smallest number that covers the number of IMem transactions
+that may be in flight (memory latency, or depth of IMem pipeline).
+But that number varies with memory system design and, even for a
+particular design, it varies over time---it depends on the particular
+RISC-V program running, the memory system's caches, hits and misses,
+cache interactions, cache miss latencies, and so on\footnote{With
+virtual memory, it will also depend on TLB misses and the latency of
+page table walks.}  Thus, there is no obvious ``optimal'' choice for
+\verb|mkSizedFIFOF| capacity; we must ``tune'' the number by running
+the CPU on desired applications, with different FIFO capacities,
+observe the effect on performance and resources, and pick an
+``acceptable'' capacity.
+
 % ****************************************************************
 
-\section{Fife: RR-RW module (Register-Read, Dispatch, Register-Write)}
+\section{The Register-Read and Dispatch (and Register-Write) stage}
 
-\label{Sec_Fife_RR_RW_module}
+\label{Sec_Fife_RR_RW_stage}
 
-The next module (``RR-RW'') contains the register file and the
-scoreboard, and performs several functions. In the forward flow
-(``Register-Read and Dispatch'' stage):
+The Register-Read and Dispatch module contains (instantiates) the GPRs
+register file (Section~\ref{Sec_RISCV_regfile}) and the scoreboard to
+manage read-write hazards (Section~\ref{Sec_Scoreboards}).  In the
+forward flow,
 
-\begin{tightlist}
+\begin{itemize}
 
-  \item stall (wait) if the instruction has rs1, rs2 or rd, and these
-        are busy according to the scoreboard;
+  \item it stalls (waits) if the instruction has rs1, rs2 or rd, and
+        these are busy according to the scoreboard;
 
-  \item read rs1 and rs2 registers (if needed) for the current instruction;
+  \item it reads rs1 and rs2 registers for the current instruction;
 
-  \item set the scoreboard for rd to 1, meaning ``busy'' (if the
-        instruction has an rd);
+  \item it sets the scoreboard for the current instruction's rd to 1,
+        marking it ``busy'' (if the instruction has an rd);
 
-  \item use the information from the Decode stage to dispatch to the
-        Execute pipes.  We always (for every instruction) send an
+  \item it uses information from the Decode stage to dispatch to the
+        four Execute pipes.  We always (for every instruction) send an
         execution tag and additional information on the direct path to
-        the Retire stage.  We possibly send information into one of
-        the following Execute pipes:
+        Retire.  Depending on the instruction, it may also send
+        information into one of the other Execute pipes:
 
   \begin{tightlist}
-    \item to Execute Control stage, or
-    \item to Execute Control stage, or
-    \item to memory (a DMem request).
+    \item Execute Control
+    \item Execute Integer
+    \item memory (a DMem request)
   \end{tightlist}
 
-\end{tightlist}
+\end{itemize}
 
-In the backward flow (``Register-Write stage''), it receives messages
-from the Retire stage to release scoreboard reservations (for
-instructions that have retired or aborted due to mispredictions or
-traps) and to write-back rd values of retired instructions.
+This stage also participates in a backward flow, because the GPRs
+register file and scoreboard are instantiated here.  When an
+instruction is completed, the Retire stage sends a message to this
+module to update those components: release an rd reservation in the
+scoreboard and write-back an rd register value.
+
+The interface for the Register-Read and Dispatch stage module is shown
+below.  Apart from the \verb|init| method, the remaining
+sub-interfaces correspond to the FIFO-labeled arrows in
+Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the incoming \verb|FIFOF_I|
+interface from the Decode stage, the outgoing \verb|FIFOF_O|
+interfaces direct to Retire and to Execute Control, Execute Int and to
+DMem, and an incoming \verb|FIFOF_I| from Retire for updating the
+register file and scoreboard, which are instantiated inside this
+module.
+
+\input{Code_Extracts/Fife_RR_RW_IFC.tex}
 
 % ================================================================
 
@@ -485,170 +460,58 @@ and we can convert a \verb|Bit#(32)| value into a \verb|Vector #(32, Bit #(1))| 
 
 % ================================================================
 
-\subsection{The RR-RW module}
+\subsection{The Register-Read and Dispatch (and Register-Write) module}
 
-\label{Sec_RR_RW_module}
+\label{Sec_mkRR_RW}
 
-The RR-RW module code is shown below (except we elide the BEHAVIOR
-rules, which we will discuss shortly.
+The first part of the \verb|mkRR_RW| module, instantiating its STATE, is shown below:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
-(* synthesize *)
-module mkRR_RW (RR_RW_IFC);
-   // Forward in
-   FIFOF #(D_to_RR) f_D_to_RR <- mkPipelineFIFOF;
+\input{Code_Extracts/Fife_mkRR_RW1.tex}
 
-   // Forward out
-   FIFOF #(RR_to_Retire)  f_RR_to_Retire  <- mkBypassFIFOF;  // Direct
-   FIFOF #(RR_to_Control) f_RR_to_Control <- mkBypassFIFOF;  // Control pipe
-   FIFOF #(RR_to_EX)      f_RR_to_EX_IALU <- mkBypassFIFOF;  // Integer pipe
-   FIFOF #(Mem_Req)       f_DMem_S_req    <- mkBypassFIFOF;  // DMem pipe
+It instantiates FIFOs for all the forward and backward flows, and it
+instantiates the GPRs register file \verb|gprs|
+(Section~\ref{Sec_RISCV_regfile}) and the \verb|scoreboard|
+(Section~\ref{Sec_Scoreboards}).  The second part of the
+\verb|mkRR_RW| module, implementing its BEHAVIOR for the forward flow,
+is shown below:
 
-   // Backward in
-   FIFOF #(RW_from_Retire) f_RW_from_Retire <- mkPipelineFIFOF;
+\input{Code_Extracts/Fife_mkRR_RW2.tex}
 
-   // The integer register file (GPRs)
-   RISCV_GPRs_IFC #(XLEN)  gprs <- mkRISCV_GPRs;
-
-   // Scoreboard for GPRs
-   Reg #(Scoreboard) rg_scoreboard <- mkReg (replicate (0));
-
-   // ================================================================
-   // BEHAVIOR
-
-   ... (to be discussed shortly) ...
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      ...
-   endmethod
-
-   // Forward in
-   interface fi_D_to_RR = to_FIFOF_I (f_D_to_RR);
-
-   // Forward out
-   interface fo_RR_to_Retire  = to_FIFOF_O (f_RR_to_Retire);
-   interface fo_RR_to_Control = to_FIFOF_O (f_RR_to_Control);
-   interface fo_RR_to_EX_IALU = to_FIFOF_O (f_RR_to_EX_IALU);
-   interface fo_DMem_S_req    = to_FIFOF_O (f_DMem_S_req);
-
-   // Backward in
-   interface fi_RW_from_Retire = to_FIFOF_I (f_RW_from_Retire);
-endmodule
-\end{Verbatim}
-}
-
-The first section instantiates FIFOs {\tt f\_XXX} for all the forward
-and backward flows, and instantiates the register file \verb|gprs| and
-the \verb|scoreboard|.
-
-The final INTERFACE section, after the \verb|init| method, simply
-lists the FIFO interfaces to this module's interface.
-
-The BEHAVIOR section contains two rules, one for the forward flow
-(Register-Read and Dispatch) and one for the backward flow
-(Register-Write).  The forward-flow rule is shown below:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
-   rule rl_RR_Dispatch;
-      let x = f_D_to_RR.first;
-
-      let instr   = x.instr;
-      let opclass = x.opclass;
-      let rs1     = instr_rs1 (instr);
-      let rs2     = instr_rs2 (instr);
-      let rd      = instr_rd  (instr);
-
-      let scoreboard = rg_scoreboard;
-      let busy_rs1   = (x.has_rs1 && scoreboard [rs1]);
-      let busy_rs2   = (x.has_rs2 && scoreboard [rs2]);
-      let busy_rd    = (x.has_rd  && scoreboard [rd]);
-      Bool stall     = (busy_rs1 || busy_rs2 || busy_rd);
-
-      if (stall) begin
-         // no action
-      end
-      else begin
-	 // Not stalled; proceed
-	 f_D_to_RR.deq;
-
-	 // Read GPRs
-	 let rs1_val = gprs.read_rs1 (rs1);
-	 let rs2_val = gprs.read_rs2 (rs2);
-
-	 // Dispatch to one of the next-stage pipes
-	 Result_Dispatch y <- fn_Dispatch (rg_flog, x, rs1_val, rs2_val);
-
-	 // Direct to Retire
-	 f_RR_to_Retire.enq (y.to_Retire);
-
-	 // Dispatch
-	 if (y.to_Retire.exec_tag == EXEC_TAG_RETIRE) begin
-	    // no further action
-	 end
-	 else begin
-	    // Update scoreboard for RD
-	    if (x.has_rd) begin
-	       scoreboard [rd] = 1;
-	       rg_scoreboard <= scoreboard;
-	    end
-
-	    // Forward info to appropriate Execute pipe
-	    if (y.to_Retire.exec_tag == EXEC_TAG_CONTROL)
-	       f_RR_to_Control.enq (y.to_Control);
-
-	    else if (y.to_Retire.exec_tag == EXEC_TAG_IALU)
-	       f_RR_to_EX_IALU.enq (y.to_EX);
-
-	    else if (y.to_Retire.exec_tag == EXEC_TAG_DMEM) begin
-	       Mem_Req mem_req <- fn_DMem_Req (rg_flog, y.to_EX);
-	       f_DMem_S_req.enq (mem_req);
-	    end
-	    else begin
-	       $display ("    -> IMPOSSIBLE");
-	       $finish (1);
-	    end
-	 end
-      end
-   endrule
-\end{Verbatim}
-}
-
-In line 2, we observe the first element in the \verb|f_D_to_RR| FIFO.
-Note, we observe it non-destructively, {\ie} \emph{we do not dequeue}
-it from the FIFO.  This is because, if we must stall, it needs to be
-available the next time the rule fires.
+In line 6, we observe the first element in the \verb|f_Decode_to_RR|
+FIFO.  Note, the \verb|.first| method is non-destructive, {\ie} it
+merely observes and \emph{does not dequeue} the first element from the
+FIFO.  This is because, if we must stall, it needs to be available
+again the next time the rule fires.
 
 The next several lines compute the stall condition by checking the
 scoreboard for whether rs1, rs2 or rd are busy (if the instruction has
 rs1, rs2 or rd, respectively).
 
 If we stall, the rule takes no action; everything will be retried the
-next time it fires.  If we do not stall, then we dequeue the
-\verb|f_D_to_RR| FIFO.  We read values of the rs1 and rs2 registers.
-Note, if the instruction does not have an rs1 or rs2, here we will be
-reading some random registers according to the bits that happen to be
-in the rs1 and rs2 bit-positions in the instruction.  This does not
-matter; in the Execute stage each instruction only \emph{uses} these
-values if the instruction has an rs1 and/or rs2.
+next time it fires.
 
-Next, we apply the function \verb|fn_Dispatch| (it was discussed in
+If we do not stall, then we dequeue the \verb|f_Decode_to_RR| FIFO.
+We read values of the rs1 and rs2 registers.  Note, if the instruction
+does not have an rs1 or rs2, here we will be reading some random
+registers according to the bits that happen to be in the rs1 and rs2
+bit-positions in the instruction.  This does not matter; in the
+Execute stage each instruction only \emph{uses} these values if the
+instruction has an rs1 and/or rs2.
+
+Next, we apply the function \verb|fn_Dispatch()| (discussed in
 Section~\ref{Sec_fn_Dispatch}, and is the same one we use in Drum) to
 the inputs, which computes \verb|y|, containing the structs to be sent
 on the direct path (\verb|y.to_Retire|), to Execute Control
 (\verb|y.to_Control|), and to Execute Int and Execute DMem
 (\verb|y.toEX|).
 
-We enqueue \verb|y.to_Retire| on the direct flow (FIFO
-\verb|f_RR_to_Retire|).  If the execution tag is not
-\verb|EXEC_TAG_RETIRE|, we will be sending the instruction into the
-one of the Execute pipes (Execute Control, Execute Integer, or DMem).
-If the instruction has an rd, we mark it on the scoreboard, and send
-the instruction into the appropriate pipe.
+If the instruction has an rd, we mark it on the scoreboard.  We
+enqueue \verb|y.to_Retire| on the direct flow (FIFO
+\verb|f_RR_to_Retire|).
+
+The remaining code is a nested if-then-else that sends information
+into the appropriate Execute pipe (Execute Control, Execute Integer,
+or DMem).
 
 % ----------------
 \hdivider
@@ -656,16 +519,14 @@ the instruction into the appropriate pipe.
 \Exercise
 
 Consider this hypothetical scenario: suppose the \verb|stall|
-condition is false.  Then, we need to dequeue \verb|f_D_to_RR| and do
-one or more enqueues into \verb|f_RR_to_Retire| and
-\verb|f_RR_to_Control|, \verb|f_RR_to_EX_IALU| or
+condition is false.  Then, we need to dequeue \verb|f_Decode_to_RR|
+and do one or more enqueues into \verb|f_RR_to_Retire| and
+\verb|f_RR_to_EX_Control|, \verb|f_RR_to_EX_Int| or
 \verb|f_DMem_S_req.enq|.  Is it possible that we perform the dequeue
 and then are unable to perform the enqueue(s) because the
 corresponding output FIFO happens to be full?
 
-\emph{Hint:} Remember the definition of rule atomicity where a rule
-only fires if the implicit conditions on \emph{all} the methods it
-invokes are true.
+\emph{Hint:} rule atomicity
 
 \Exercise
 
@@ -691,31 +552,24 @@ messages and executes \verb|$finish| to terminate simulation.
 
 \Endexercise
 
-Here is the code for rule \verb|rl_RW_from_Retire| For the backward
-flow.
+The third part of the \verb|mkRR_RW| module, implementing its BEHAVIOR
+for the backward flow, is shown below:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S3\_RR\_RW.bsv)]
-   rule rl_RW_from_Retire;
-      let x <- pop_o (to_FIFOF_O (f_RW_from_Retire));
-
-      Scoreboard scoreboard = rg_scoreboard;
-      scoreboard [x.rd] = 0;
-      rg_scoreboard <= scoreboard;
-
-      if (x.commit)
-	 gprs.write_rd (x.rd, x.data);
-   endrule
-\end{Verbatim}
-}
+\input{Code_Extracts/Fife_mkRR_RW3.tex}
 
 We pop the message \verb|x| from the \verb|f_RW_from_Retire| FIFO.  We
 perform its specified scoreboard-release for register rd.  If the rd
-value is to be committed, we write it into GPR [rd].
+value is to be committed, we write it into GPR [rd].  The fourth and
+final part of the \verb|mkRR_RW| module, defining its INTERFACE, is
+shown below:
+
+\input{Code_Extracts/Fife_mkRR_RW4.tex}
+
+It simply lifts the FIFO interfaces to this module's interface.
 
 % ****************************************************************
 
-\section{Fife: the Execute Control stage}
+\section{The Execute Control stage}
 
 \label{Sec_Fife_Control_stage}
 
@@ -763,7 +617,7 @@ lifts the FIFO interfaces to the interface of this module.
 
 % ****************************************************************
 
-\section{Fife: the Execute Integer Ops stage}
+\section{The Execute Integer Ops stage}
 
 \label{Sec_Fife_IALU_stage}
 
@@ -813,7 +667,7 @@ FIFO interfaces to the interface of this module.
 
 % ****************************************************************
 
-\section{Fife: the Execute Memory Ops stage (speculative DMem)}
+\section{The Execute Memory Ops stage (speculative DMem)}
 
 \label{Sec_Fife_DMem_stage}
 
@@ -835,7 +689,7 @@ This module is longer than the others only because it takes care of
 many possible cases as outlined in Figure~\ref{Fig_Fife_Retire_2}
 (which repeats Figure~\ref{Fig_Fife_Retire} here for reference).
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Fife_Retire}}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1_2}}
   \caption{\label{Fig_Fife_Retire_2}
            Actions in the ``Retire'' stage of Fife
 	   (same as Fig.~\ref{Fig_Fife_Retire})}

@@ -2,7 +2,7 @@
 
 % ****************************************************************
 
-\chapter{BSV: Struct types, and\\
+\chapter{BSV: Struct types, tuples, and\\
 RISC-V: Memory requests and responses}
 
 \markboth{Ch \arabic{chapter}: BSV structs; RISC-V mem reqs and rsps}{\copyrightnotice}
@@ -256,7 +256,7 @@ the struct value.
 
 % ================================================================
 
-\subsection{BSV: Don't-care values} 
+\subsection{Don't-care values} 
 
 \label{Sec_Dont_Care_Values}
 
@@ -306,6 +306,8 @@ Verilog/SystemVerilog/VHDL).
 
 % ----------------
 \vspace{2ex}
+
+\index{BSV!X values!Notation for unassigned values in Verilog (no such concept in BSV)}
 
 NOTE:
 \fbox{\small
@@ -362,6 +364,85 @@ notation common to SystemVerilog and C/C++:
    x.instr = ... new value ... ;
 \end{Verbatim}
 }
+
+% ****************************************************************
+
+\section{BSV: Tuples and the {\tt match} statement}
+
+\label{Sec_Tuples}
+
+\index{BSV!Tuples}
+
+Tuples are a built-in set of struct-like constructs in BSV that are
+often convenient.  For example, when a function needs to return a pair
+of values, instead of declaring a struct type with two fields for the
+result, it is often more convenient to just use the built-in
+\verb|Tuple2| type.  Example: (from the \verb|mkCSRs| module in file
+\verb|src_Common/CSRs.bsv|):
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
+            fav_csr_read (Bit #(12) csr_addr);
+      ...
+         let result = (exception, rd_val);
+	 return result;
+   endfunction
+\end{Verbatim}
+}
+
+The function returns a pair of values which have types \verb|Bool| and
+\verb|Bit#(XLEN)|, respectively.  The overall type of the result is
+\verb|Tuple2 #(Bool, Bit #(XLEN))|.
+
+The expression on the right-hand side of the \verb|let| statement
+shows how one can construct a 2-tuple value: simply enclose the
+components in parentheses and separate them with commas.
+
+Unlike structs, there is no assignment statement to update a field of
+a tuple, nor is there is any ``.field'' notation for component
+selection.
+
+To select an individual field of a tuple, one can use one of the
+built-in selector functions:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   let xy <- fav_csr_read (...);
+   let exc = tpl_1 (xy);    // exc has type: Bool
+   let v   = tpl_2 (xy);    // v   has type: Bit #(XLEN)
+\end{Verbatim}
+}
+
+Alternatively, to access multiple fields of a tuple at once, one can
+use a ``match'' statement. Example (from \verb|src_Drum/CPU_FSM.bsv|):
+
+\index{BSV!Tuples|match@{\tt match} statement (pattern-matching_)}
+\index{BSV!Pattern matching!match@{\tt match} statement for tuples}
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   match { .exc, .v } <- fav_csr_read (csr_addr);
+\end{Verbatim}
+}
+
+The \verb|match| keyword is followed by a \emph{pattern} that should
+match the tuple, {\ie} here it should be a list of two variable names
+surrounded by braces with each variable preceded by a ``\verb|.|''.
+The leading ``\verb|.|'' is important: ``\verb|x|'' would represent
+the value of an existing variable to be matched with the corresponding
+value in the tuple, whereas ``\verb|.x|'' \emph{introduces a new
+variable} \verb|x| to be bound to the corresponding value in the
+tuple; the latter is what we want.  We refer the reader to the BSV
+Language Reference Guide~\cite{BSV_Lang_Ref_Guide} for many more
+capabilities of pattern-matching, including fields to be ignored,
+pattern-matching on structs and tagged unions, pattern-matching
+\verb|case| expressions, and more.
+
+BSV defines tuples of up to 8 components ({\tt Tuple\_3}, {\tt
+Tuple\_4}, ...) but we recommend not using tuples when you have more
+than, say, 2 or 3 components; define a struct instead, with readable
+and meaningful field names.
 
 % ****************************************************************
 
@@ -430,7 +511,7 @@ which these new instructions can be fetched.
 
 % ================================================================
 
-\subsection{RISC-V: Memory Requests}
+\subsection{Memory Requests}
 
 \label{Sec_Mem_Req}
 
@@ -497,7 +578,7 @@ Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
 
 % ================================================================
 
-\subsection{RISC-V: Address Alignment}
+\subsection{Address Alignment}
 
 \index{Address alignment}
 \index{Memory!Address alignment}
@@ -576,7 +657,7 @@ not even contain a trap-handler for misaligned accesses.
 
 % ================================================================
 
-\subsection{RISC-V: Memory Responses}
+\subsection{Memory Responses}
 
 \label{Sec_Mem_Rsp}
 

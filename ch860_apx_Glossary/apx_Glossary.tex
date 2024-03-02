@@ -153,6 +153,12 @@
   Zephyr, to secure micro-kernels like seL4, to full-featured OSs like
   Linux, Windows, MacOS, Solaris, AIX, {\etc}
 
+\item[\bf PTW] Page Table Walk.  A function in systems supporting
+  virtual memory, to translate virtual memory addresses into physical
+  memory addresses (not described in this book).  Requires multiple
+  memory references to descend a ``tree'' data structure called the
+  Page Table.
+
 \item[\bf RISC-V] A particular standard ISA.  Originated circa
   2008-2010 in research at University of California, Berkeley, and
   subsequently spun out (2010s) into an international non-profit
@@ -196,6 +202,11 @@
   several versions.  Can be used for both analog and digital circuits.
   Some features can only be used in simulation (a ``synthesizable
   subset'' can be rendered into hardware).
+
+\item[\bf TLB] Translation Look-aside Buffer.  A component used in
+  systems supporting virtual memory, to speed up translation of
+  virtual memory addresses into physical memory addresses (not
+  described in this book.)
 
 \item[\bf Two's Complement] A particular representation of positive
   and negative integers in bits (binary) that makes it possible to

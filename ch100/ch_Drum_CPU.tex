@@ -470,10 +470,11 @@ resumes at the trap-vector PC provided in CSR \verb|mt_vec|.
 
 \section{Conclusion}
 
-And that is the complete Drum CPU.  We can compile it, connect the CPU
-interface to a memory system, and run the system on RISC-V programs
-compiled for the RV32I ISA subset (and, further, Drum can recover from
-illegal instructions due to trap-handling).
+And that is the complete Drum CPU!  We can compile it with \emph{bsc}
+into Verilog, connect the CPU interface to a memory system, and run
+the system to execute RISC-V programs compiled for the RV32I ISA
+subset (and, further, Drum can recover from illegal instructions due
+to trap-handling).
 
 % ================================================================
 

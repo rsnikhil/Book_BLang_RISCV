@@ -620,40 +620,56 @@ Discuss the implications of such a design on the size of the store-buffer.
 
 \label{Sec_Fife_Retire_Principles}
 
-Figure~\ref{Fig_Fife_Retire} summarizes the actions to be taken by the
-Retire stage.
-\begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Fife_Retire}}
-  \caption{\label{Fig_Fife_Retire}Actions in the ``Retire'' stage of Fife}
-\end{figure}
-
-Any of the Execute pipes can produce a wrong-path instruction
-(accompanying epoch does not match current epoch).  In each such case,
-we discard the instruction, but if the instruction has taken a
-scoreboard reservation, we must also release that (``rel''
-annotations).  In the case of LOAD/STORE that was performed by the
-Exec Memory Ops stage, we must also send a ``discard'' message to the
-store-buffer.
-
-Any of the Execute pipes can produce an exception.  In each case we
-must redirect the Fetch stage to the trap-handler PC, but before we do
-that we must release scoreboard reservations, if any, and send a
-``discard'' message to the store-buffer, if necessary.
-
-If the output of the Execute pipes is ``OK'' (not wrong-path, not an
-exception), then we can retire the instruction.  Control instructions
-may redirect the Fetch stage.  Control, IALU and LOAD instructions may
-write a register value (and release its reservation).  STORE
-instructions must send a ``commit'' message to the store-buffer.
-
-Finally, deferred LOAD/STORE instructions must be excuted, sending a
-request to memory, collecting its response and retiring it.
-
-Retire actions in Fife
+Figure~\ref{Fig_Fife_Retire} summarizes the actions to be taken by
+Fife's Retire stage.
 
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1_2}}
-  \caption{\label{Fig_Retire_Fife}Retire actions in Fife}
+  \caption{\label{Fig_Fife_Retire}Retire actions in Fife}
 \end{figure}
+
+Much of this is the same as in Figure~\ref{Fig_Retire_Drum} for Drum.
+The new additional details are:
+
+\begin{itemize}
+
+ \item The ``update PC'' operation now sends a message to redirect
+       Fetch \emph{only} if the successor to the current PC had been
+       mispredicted.  Recall that we carry the predicted PC value
+       along with the instruction through the pipe, so here we can
+       compare the now-known actual next PC with the predicted PC.
+
+       If we redirect, we increment the \verb|epoch| number and send
+       the new epoch number along with the redirection.  Any
+       subsequent instructions with the old epoch number are ``wrong
+       path'' instructions and must be discarded.
+
+ \item Wrong path: any of the Execute pipes can produce a wrong-path
+       instruction (accompanying epoch does not match current epoch).
+       In each such case, we discard the instruction, but there are two more needed actions:
+
+       \begin{tightlist}
+
+        \item If-path instruction has an \verb|Rd|, we would have
+              taken a scoreboard reservation for it in the
+              Register-Read stage; we must now release that scoreboard
+              reservation.  We extend \verb|update_rd| to perform a
+              scoreboard-release without a register-write.
+
+        \item In the case of a non-deferred STORE instruction, we
+              would have placed an entry in the store-buffer.  We use
+              ``finalize store buffer'' to discard that entry.
+
+       \end{tightlist}
+
+ \item Correct path non-deferred STORE instruction: we would have
+        placed an entry in the store-buffer.  We use ``finalize store
+        buffer'' to commit that entry to memory.
+
+ \item ``Deferred'' memory request from DMem (because it was for an
+       non-memory-like address such as MMIO): If so, the second Exec
+       Mem Ops box in the figure now performs the DMem operation.
+
+\end{itemize}
 
 % ****************************************************************
