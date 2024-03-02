@@ -536,6 +536,9 @@ have implicit conditions, but for each FIFO, that condition is only
 relevant if the conditions on the surrounding if-then-else's select
 that action.
 
+% ----------------
+\hdivider
+
 \Exercise
 
 When debugging the implementation, it is useful to know if, due to
@@ -551,6 +554,7 @@ stall-counter reaches some chosen threshold value, prints debugging
 messages and executes \verb|$finish| to terminate simulation.
 
 \Endexercise
+% ----------------
 
 The third part of the \verb|mkRR_RW| module, implementing its BEHAVIOR
 for the backward flow, is shown below:
@@ -727,7 +731,7 @@ an instruction's destination rd register. If the instruction has an rd
 register, it assembles a \verb|RW_to_Retire| message and sends it to
 the \verb|RR_RW| module.  The consumption of this message in the
 Register-Read and Dispath (and Register-Write) stage was discussed in
-Section~\ref{Sec_RR_RW_stage}.
+Section~\ref{Sec_Fife_RR_RW_stage}.
 
 \input{Code_Extracts/Fife_fa_update_rd.tex}
 
@@ -749,7 +753,7 @@ accompanying epoch does not match our \verb|rg_epoch| register.
 
 % ================================================================
 
-\subsection{Rule to discard wrong-path instructions}
+\subsection{Rule to retire wrong-path instructions (all paths; discard)}
 
 For a wrong-path instruction, we dequeue it from \verb|f_RR_to_Retire|.
 
@@ -765,7 +769,18 @@ the store-buffer using \verb|fa_retire_store_buf()|.
 
 % ================================================================
 
-\subsection{Rules to retire CSRRxx instructions}
+\subsection{Rules to retire from direct path}
+
+The following subsections handle instruction-retirement for the cases
+where the direct-path has all the necessary information, i.e., where
+the instruction was not dispatched into the Execute Control, Execute
+Int or Execute DMem paths.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Rule to retire CSRRxx instructions (direct path)}
+
+\label{Sec_Fife_Retire_CSRRxx}
 
 The following rule handles CSRRxx instructions, which arrive on the direct path:
 
@@ -777,361 +792,353 @@ instruction (epoch is correct), is a Direct-path instruction, is not
 an exception, and is indeed a CSRRxx instruction.
 
 If so, it applies \verb|csrs.csrrxx()| (described in
-Section~\ref{Sec_RISCV_CSRs}, and the same one we used in Drum).  It
+Section~\ref{Sec_RISCV_CSRs}, and the same one we used in Drum), and
 updates the rd register with the result.
 
 If the CSRRxx operation did not raise an exception, it redirects Fetch
 this instruction's successor was mispredicted.
 
-If the CSRRxx operation did raise an exception, we save the details in
-some registers and exit PIPE mode into EXCEPTION mode, which will
-enable rule \verb|rl_exception| (Section~\ref{Sec_Fife_Exception}) to
-handle it.
+If the CSRRxx operation raised an exception, we save the details in
+some registers and switch from PIPE mode into EXCEPTION mode; this
+will enable rule \verb|rl_exception|
+(Section~\ref{Sec_Fife_Exception}) to handle it.
+
+Why postpone exception-handling to the later rule?  Why not perform
+that rule's action here?  The reason is to avoid contention on the CSR
+registers.  Rule \verb|rl_Retire_CSRRxx| invokes method
+\verb|csrs.mav_csrrrxx()| and rule \verb|rl_exception| invokes method
+\verb|csrs.mav_exception()|.  By separating these invocations into two
+separate rules, we avoid contention between these two CSR module
+methods.
+
+% ----------------
+
+\Exercise
+
+The provided implementation of the CSR registers
+(Section~\ref{Sec_RISCV_CSRs}) will in fact prevent the two methods
+\verb|csrs.mav_csrrrxx()| and \verb|csrs.mav_exception()| from being
+invoked in a single action, {\ie} in a single rule, due to
+method-ordering constraints.  Try this experiment: copy the body of
+\verb|rl_exception| into \verb|rl_Retire_CSRRxx|; try compiling it
+with \verb|bsc|, and observe the compiler's complaint message.
+
+\Exercise
+
+Modify the CSRs module method \verb|mav_csrrxx()| to combine the
+actions of the original \verb|mav_csrrrxx()| with the actions of
+\verb|mav_exception()|.  The result type will have to be extended
+(say, a 3-tuple) to also return the trap-vector PC in case of an
+exception.  Modify \verb|rl_Retire_CSRRxx| so that it immediately does
+a Fetch-redirect with the trap-vector PC in case of an exception.
+There is no longer any need to shift out of \verb|MODE_PIPE| into
+\verb|MODE_EXCEPTION|.
+
+\vspace{1ex}
+
+This will save a cycle in handling CSRRxx instructions.  But what is
+the impact on hardware complexity in the \verb|mkCSRs| module?
+
+\Endexercise
+% ----------------
+
+% ----------------------------------------------------------------
+
+\subsubsection{Rules to retire MRET instructions (direct path)}
+
+The following rule handles MRET instructions, which arrive on the direct path:
+
+\input{Code_Extracts/Fife_rl_MRET.tex}
+
+Again, pay careful attention to the rule's explicit condition which
+restricts it to fire only when we are in PIPE mode and when the next
+instruction is not a wrong-path instruction (epoch is correct), is a
+Direct-path instruction, is not an exception, and is indeed an MRET
+instruction.
+
+The rule body is simple---always redirect to the PC found in the CSR
+MEPC (Section~\ref{Sec_Traps}).
+
+% ----------------------------------------------------------------
+
+\subsubsection{Rules to retire ECALL and EBREAK instructions (direct path)}
+
+The following rule handles ECALL and EBREAK instructions, which arrive on the direct path:
+
+\input{Code_Extracts/Fife_rl_ECALL.tex}
+
+The rule's explicit condition restricts it to fire only when we are in
+PIPE mode and when the next instruction is not a wrong-path
+instruction (epoch is correct), is a Direct-path instruction, is not
+an exception, and is indeed an ECALL or EBREAK instruction.
+
+ECALL and EBREAK are just deliberately-invoked exceptions, the only
+difference being the exception-code we pass in the \verb|mcause| CSR
+(Section~\ref{Sec_ECALL_EBREAK}).  We save appropriate exception
+values and switch from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|,
+which will handle the exception.
+
+% ----------------
+
+\Exercise
+
+In the exercises in Section~\ref{Sec_Fife_Retire_CSRRxx}, we discussed
+why, in \verb|rl_Retire_CSRRxx| we postponed exception handling to the
+separate rule \verb|rl_exception|: \verb|rl_Retire_CSRRxx| itself
+accesses the CSRs, and \verb|rl_exception| accesses the CSRs, and we
+wanted to avoid contention.
+
+\vspace{1ex}
+
+Here, \verb|rl_Retire_ECALL_EBREAK| does not otherwise access the
+CSRs, so there is no such contention, so why not handle the exception
+directly here (copy the body of \verb|rl_exception| here) and save a
+cycle?  Discuss the impact on hardware structure.  Try it, examine the
+generated Verilog, and examine the performance impact (which will
+depend on the RISC-V program being run, of course).
+
+\Endexercise
+% ----------------
+
+% ----------------------------------------------------------------
+
+\subsubsection{Rules to retire exceptions from the direct path}
+
+The following rule handles exceptions which arrive on the direct path:
+
+\input{Code_Extracts/Fife_rl_Dir_Exc.tex}
+
+The rule's explicit condition restricts it to fire only when we are in
+PIPE mode and when the next instruction is not a wrong-path
+instruction (epoch is correct), is a Direct-path instruction, and is
+an exception.
+
+The rule does nothing more than save the exception information in
+registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION| so
+that the exception will be handled by \verb|rl_exception|.
 
 % ================================================================
 
-\subsection{Rules to retire instructions direct from RR-RW}
+\subsection{Rules to retire from the Execute Control path}
 
-The following rules handle instructions that are direct from the RR-RW
-stage, {\ie} which were \emph{not} also sent through any of the
-Execute pipes (Control, Int or DMem).
+\label{Sec_Fife_Retire_Control}
 
-If it is not an exception, then it must be a CSRRx instruction, which
-we have not yet implemented yet (we will do so in
-Section~\ref{Sec_Fife_Exception}).  For now, we treat it as a no-op.  We
-dequeue the instruction from \verb|f_RR_to_Retire|.  For CSRRx
-instructions, the correct next-PC is the fall-through PC, so we check
-this against the predicted PC, and redirect if necessary using
-action-function \verb|fa_redirect_fetch()| which was described in
-Section~\ref{Sec_Retire_Common}.
+The following rule handles instructions (BRANCH, JAL, JALR) that
+arrive on the Execute Control path.  In Execute Control, it could have
+succeeded or it could have raised an exception (if the
+control-transfer target PC was misaligned).
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_normal ((rg_state == STATE_PIPE)
-                          && (! wrong_path)
-                          && is_Direct
-			  && (! x_rr_to_retire.exception));
-      f_RR_to_Retire.deq;
+\input{Code_Extracts/Fife_S5_Control.tex}
 
-      $display ("CSRRx instructions not yet implemented; no-op for now");
+We dequeue the direct-path information (\verb|f_RR_to_Retire|) and we
+pop the Execute Control path information
+(\verb|f_EX_Control_to_Retire|).
 
-      // Redirect Fetch PC if mispredicted
-      Bool mispredicted = (x_rr_to_retire.predicted_pc
-                           != x_rr_to_retire.fallthru_pc);
-      fa_redirect_Fetch (mispredicted, x_rr_to_retire, x_rr_to_retire.fallthru_pc);
-   endrule
-\end{Verbatim}
-}
+We invoke \verb|fa_update_rd()| to update the destination register
+(JAL and JALR may save a ``return address'' in rd) and its scoreboard
+reservation.  Recall from Section~\ref{Sec_Retire_Common} that
+\verb|fa_update_rd()| will not send any update message if the
+instruction does not have an rd (or if rd is 0).  The
+``\verb|(!x2.exception)|'' argument to \verb|fa_update_rd()| ensures
+that if there was an exception only the scoreboard reservation will be
+released, and no register value will be written.
 
-If the first element of \verb|f_RR_to_Retire| is carrying an
-exception, this could be due to a memory-fault during Fetch, or
-detection of an illegal instruction during Decode.  In
-Section~\ref{Sec_Fife_Exception} we will describe how to handle
-exceptions, but for now we use \verb|$finish()| to abort the
-simulation.
+If there was no Execute Control exception, we redirect the Fetch stage
+if mispredicted.  At this point we know both what was predicted as the
+successor PC and what is the actual successor PC for this instruction,
+so we can compare these to determine if there was a misprediction.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_exc ((rg_state == STATE_PIPE)
-                       && (! wrong_path)
-		       && is_Direct
-		       && x_rr_to_retire.exception);
-      f_RR_to_Retire.deq;
-
-      $display ("Exception-handling not yet implemented");
-      $finish (1);
-   endrule
-\end{Verbatim}
-}
+If there was a Execute Control exception, we save relevant values in
+registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|
+which will enable \verb|rl_exception| to perform the required actions.
 
 % ================================================================
 
-\subsection{Rules to retire instructions from the Execute Control path}
+\subsection{Rules to retire from the Execute Integer path}
 
-If the instruction is a Control instruction without an exception, we
-pop the relevant incoming queues (\verb|f_RR_to_Retire| and
-\verb|f_Control_to_Retire|), update the Rd destination register (JAL
-and JALR often save a ``return address'' in rd), and redirect the
-Fetch stage if mispredicted.
+\label{Sec_Fife_Retire_Int}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_Control_normal ((rg_state == STATE_PIPE)
-                                  && (! wrong_path)
-				  && is_Control
-				  && (! f_Control_to_Retire.first.exception));
-      f_RR_to_Retire.deq;
-      let x2 <- pop_o (to_FIFOF_O (f_Control_to_Retire));
+The following rule handles LUI, AUIPC and Integer instructions that
+arrive on the Execute Integer path.  Note, none of these standard
+RISC-V instructions raise any exceptions.  However, in this rule we
+assume the possibility of an instruciton in case, in future, we extend
+Fife's supported ISA with new non-standard Integer instructions that
+could raise an exception.
 
-      // Updata rd if valid
-      Bool rd_commit = True;
-      if (x2.data_valid) fa_update_rd (x_rr_to_retire, rd_commit, x2.data);
+\input{Code_Extracts/Fife_S5_Int.tex}
 
-      // Redirect Fetch PC if mispredicted
-      Bool mispredicted = (x_rr_to_retire.predicted_pc != x2.next_pc);
-      fa_redirect_Fetch (mispredicted,  x_rr_to_retire, x2.next_pc);
-   endrule
-\end{Verbatim}
-}
+We dequeue the direct-path information (\verb|f_RR_to_Retire|) and we
+pop the Execute Int path information (\verb|f_EX_Int_to_Retire|).
 
-If the instruction is carrying an exception this is because the
-BRANCH, JAL or JALR target was misaligned.  In
-Section~\ref{Sec_Fife_Exception} we will describe how to handle
-exceptions, but for now we use \verb|$finish()| to abort the
-simulation.
+We invoke \verb|fa_update_rd()| to update the destination register and
+its scoreboard reservation.  Recall from
+Section~\ref{Sec_Retire_Common} that \verb|fa_update_rd()| will not
+send any update message if the instruction does not have an rd (or if
+rd is 0).  The ``\verb|(!x2.exception)|'' argument to
+\verb|fa_update_rd()| ensures that if there was an exception only the
+scoreboard reservation will be released, and no register value will be
+written.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_Control_exc ((rg_state == STATE_PIPE)
-                               && (! wrong_path)
-                               && is_Control
-			       && f_Control_to_Retire.first.exception);
-      f_RR_to_Retire.deq;
-      let x2 <- pop_o (to_FIFOF_O (f_Control_to_Retire));
+If there was no Execute Integer exception, we redirect the Fetch stage
+if mispredicted.  We can compare the predicted successor PC for this
+instruction with its fall-through PC to determine if there was a
+misprediction.
 
-      $display ("Exception-handling not yet implemented");
-      $finish (1);
-   endrule
-\end{Verbatim}
-}
+If there was an Execute Integer exception, we save relevant values in
+registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|
+which will enable \verb|rl_exception| to perform the required actions.
 
 % ================================================================
 
-\subsection{Rules to retire instructions from the Execute Int path}
+\subsection{Rules to retire from the Execute DMem path, or perform deferred DMem request}
 
-The two rules to retire instructions from the Execute Int path are
-similar to the rules for the Control path in the previous section.
+\label{Sec_Fife_S5_DMem}
 
-If the instruction is without an exception, we pop the relevant
-incoming queues (\verb|f_RR_to_Retire| and \verb|f_IALU_to_Retire|),
-update the Rd destination register, and redirect the Fetch stage if
-mispredicted.
+The following rules handle instructions that arrive on the Execute
+DMem path.  This path could have raised an exception (bad address,
+misaligned, memory-permission violation).  Or, it could have performed
+a speculative LOAD/STORE/AMO successfully, but if it wrote to memory,
+the value is still sitting in the store-buffer and needs to be
+committed.  Or, it could have been deferred because the memory address
+was a non-memory-like location ({\eg} MMIO) that did not allow
+speculation.  The first two cases are handled by the first rule below;
+the deferred case is handled by rules described subsequently.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_Int_normal ((rg_state == STATE_PIPE)
-			      && (! wrong_path)
-			      && is_Int
-			      && (! f_IALU_to_Retire.first.exception));
-      f_RR_to_Retire.deq;
-      EX_to_Retire x2 <- pop_o (to_FIFOF_O (f_IALU_to_Retire));
+% ----------------------------------------------------------------
 
-      // Updata rd if valid
-      Bool rd_commit = True;
-      if (x2.data_valid) fa_update_rd (x_rr_to_retire, rd_commit, x2.data);
+\subsubsection{Retire speculative and exception from DMem}
 
-      // Redirect Fetch PC if mispredicted
-      Bool mispredicted = (x_rr_to_retire.predicted_pc != x_rr_to_retire.fallthru_pc);
-      fa_redirect_Fetch (mispredicted, x_rr_to_retire, x_rr_to_retire.fallthru_pc);
-   endrule
-\end{Verbatim}
-}
+\label{Sec_Fife_Retire_DMem}
 
-If the instruction is carrying an exception: in
-Section~\ref{Sec_Fife_Exception} we will describe how to handle
-exceptions, but for now we use \verb|$finish()| to abort the
-simulation.
+The following rule handles incoming DMem exceptions and successful
+speculative results.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_Control_exc ((rg_state == STATE_PIPE)
-                               && (! wrong_path)
-                               && is_Control
-			       && f_Control_to_Retire.first.exception);
-      f_RR_to_Retire.deq;
-      let x2 <- pop_o (to_FIFOF_O (f_Control_to_Retire));
+\input{Code_Extracts/Fife_S5_DMem.tex}
 
-      $display ("Exception-handling not yet implemented");
-      $finish (1);
-   endrule
-\end{Verbatim}
-}
+Note that the rule condition excludes deferred requests (they are
+handled in another rule, described in the next section).
 
-Note, none of the standard RISC-V Integer instructions raise any
-exceptions, so we do not expect this rule to ever be
-executed. However, if we extend the ISA to new Integer instructions
-that could raise an exception, this rule is ready to field those
-exceptions.
+We dequeue the direct-path information (\verb|f_RR_to_Retire|) and we
+pop the Execute DMem path information (\verb|f_EX_DMem_S_Rsp|).
 
-% ================================================================
+We invoke \verb|fa_update_rd()| to update the destination register and
+its scoreboard reservation.  Recall from
+Section~\ref{Sec_Retire_Common} that \verb|fa_update_rd()| will not
+send any update message if the instruction does not have an rd (or if
+rd is 0).  The ``\verb|(!x2.exception)|'' argument to
+\verb|fa_update_rd()| ensures that if there was an exception only the
+scoreboard reservation will be released, and no register value will be
+written.
 
-\subsection{Rules to retire instructions from the Execute DMem path}
+If there was no Execute Dmem exception, we send a ``commit'' message
+to the store buffer and redirect the Fetch stage if mispredicted.  We
+can compare the predicted successor PC for this instruction with its
+fall-through PC to determine if there was a misprediction.  Note that
+``\verb|fa_retire_store_buf()|'' will send a commit message only if
+the instruction wrote memory (Section~\ref{Sec_Retire_Common}).
 
-From the Execute DMem path we receive memory responses.  If the
-response type is \verb|MEM_RSP_OK| then this instruction was executed
-speculatively and successfully; we just have to retire it just like
-the Control and Int scenarios above, with the additional need to send
-a ``commit'' message to the store-buffer if it wrote to memory.
+If there was an Execute DMem exception, we save relevant values in
+registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|
+which will enable \verb|rl_exception| to perform the required actions.
+The RISC-V ``cause code'' is computed based on the kind of DMem
+exception and the kind of instruction.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_Dmem_S_normal ((rg_state == STATE_PIPE)
-				 && (! wrong_path)
-				 && is_DMem
-				 && (f_DMem_S_rsp.first.rsp_type == MEM_RSP_OK));
-      f_RR_to_Retire.deq;
-      let x2 <- pop_o (to_FIFOF_O (f_DMem_S_rsp));
+% ----------------
 
-      Bool rd_commit = True;
-      if (x_rr_to_retire.has_rd)
-	 fa_update_rd (x_rr_to_retire, rd_commit, truncate (x2.data));
+\Exercise
 
-      // Send commit to Store Buffer if it wrote to memory
-      Bool wrote_mem = ((! is_LOAD (x_rr_to_retire.instr))
-		        && (! is_LR (x_rr_to_retire.instr)));
-      if (wrote_mem) begin
-	 let y = Retire_to_DMem_Commit{inum:   x_rr_to_retire.inum,
-				       commit: True};
-	 f_DMem_S_commit.enq (y);
-      end
+Inside \verb|rl_Retire_EX_DMem| we invoke ``\verb|fa_update_rd()|''
+always, but we invoke ``\verb|f_retire_store_buf()|'' only when there
+was no exception.  Justify this.
 
-      // Redirect Fetch PC if mispredicted
-      Bool mispredicted = (x_rr_to_retire.predicted_pc != x_rr_to_retire.fallthru_pc);
-      fa_redirect_Fetch (mispredicted, x_rr_to_retire, x_rr_to_retire.fallthru_pc);
-   endrule
-\end{Verbatim}
-}
+\Endexercise
+% ----------------
 
-If the DMem response indicates that it attempted a speculative access
-and encountered an exception, the memory response type will be
-\verb|MEM_RSP_ERR| or \verb|MEM_RSP_MISALIGNED|.  We compute the
-appropriate RISC-V exception \verb|cause| code.  In
-Section~\ref{Sec_Fife_Exception} we will describe how to handle
-exceptions, but for now we use \verb|$finish()| to abort the
-simulation.
+% ----------------------------------------------------------------
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   Bool dmem_S_rsp_exception = ((f_DMem_S_rsp.first.rsp_type    == MEM_RSP_ERR)
-				|| (f_DMem_S_rsp.first.rsp_type == MEM_RSP_MISALIGNED));
+\subsubsection{Rule handle deferred DMem requests (from Execute DMem path)}
 
-   rule rl_Retire_Dmem_S_exc ((rg_state == STATE_PIPE)
-			      && (! wrong_path)
-			      && is_DMem
-			      && dmem_S_rsp_exception);
-      f_RR_to_Retire.deq;
-      let x2 <- pop_o (to_FIFOF_O (f_DMem_S_rsp));
+\label{Sec_Fife_DMem_deferred}
 
-      Bit #(XLEN)  cause = ?;
-      if (x2.rsp_type == MEM_RSP_MISALIGNED)
-	 cause = (is_LOAD (x_rr_to_retire.instr)
-		  ? cause_LOAD_ADDRESS_MISALIGNED
-		  : cause_STORE_AMO_ADDRESS_MISALIGNED);
-      else
-	 cause = (is_LOAD (x_rr_to_retire.instr)
-		  ? cause_LOAD_ACCESS_FAULT
-		  : cause_STORE_AMO_ACCESS_FAULT);
+The following rule handles memory requests that were deferred by the
+Execute DMem stage because there could not be performed speculatively.
 
-      $display ("Exception-handling not yet implemented");
-      $finish (1);
-   endrule
-\end{Verbatim}
-}
+\input{Code_Extracts/Fife_S5_Deferred.tex}
 
-If the DMem response indicates that it deferred the request because
-the address was to an MMIO/non-memory-like address, the memory
-response type will be \verb|MEM_RSP_ERR| or \verb|MEM_REQ_DEFERRED|.
-In this case, we now construct the memory response and send it to
-memory.  Finally we change the module state to \verb|STATE_DMEM_RSP|
-indicating that we will now await the memory response.  Note, this all
-previous rules will no longer fire because they all have
-``\verb|(rg_state == STATE_PIPE)|'' in their rule conditions, which is
-now false.
+We pop the Execute DMem result (\verb|f_DMem_S_rsp|).  We do not
+dequeue the direct-path (\verb|f_RR_to_Retire|) because we will need
+that informnation when we later handle the DMem response; we leave it
+at the head of the FIFO.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_DMem_deferred ((rg_state == STATE_PIPE)
-                                 && (! wrong_path)
-				 && is_DMem
-				 && (f_DMem_S_rsp.first.rsp_type == MEM_REQ_DEFERRED));
-      let x2 <- pop_o (to_FIFOF_O (f_DMem_S_rsp));
-      let mem_req = Mem_Req{inum:     x2.inum,
-			    pc:       x2.pc,
-			    instr:    x2.instr,
-			    req_type: x2.req_type,
-			    size:     x2.size,
-			    addr:     x2.addr,
-			    data:     x2.data};
-      f_DMem_req.enq (mem_req);
-      rg_state <= STATE_DMEM_RSP;
-   endrule
-\end{Verbatim}
-}
+We merely construct the memory request now, and send it to memory
+(enqueue it on \verb|f_DMem_req|).  We also switch out of
+\verb|MODE_PIPE| into \verb|MODE_DMEM_RSP| which enables rule
+\verb|rl_Retire_DMem_rsp| (described next) to await the memory
+response.
 
-The final rule, handles the corresponding responses from memory.  We
-pop the direct-path information (\verb|f_RR_to_Retire|) and the
-memory-response (\verb|f_DMem_Rsp|).
+% ----------------------------------------------------------------
+
+\subsubsection{Rules to retire responses for deferred DMem requests}
+
+\label{Sec_Fife_Retire_DMem_deferred}
+
+The following rule handles the corresponding responses from memory.
+
+\input{Code_Extracts/Fife_S5_Deferred_rsp.tex}
+
+We can now dequeue the direct-path information (\verb|f_RR_to_Retire|)
+and the memory-response (\verb|f_DMem_Rsp|).
 
 If the response returned an exception, we compute the RISC-V exception
-\verb|cause|.  In Section~\ref{Sec_Fife_Exception} we will describe how
-to handle exceptions, but for now we use \verb|$finish()| to abort the
-simulation.
+\verb|cause| code, save values in registers, and move to
+\verb|MODE_EXCEPTION| so that \verb|rl_exception| can handle it
+subsequently.
 
-Next we check for \verb|MEM_REQ_DEFERRED| responses.  This is a
-redundant check in that it should be impossible---the non-speculative
-DMem port should never defer any requests---and is just a bit of
-defensive programming in case of a bug in the memory system.  We abort
-the simulation with \verb|$finish()|.
+The memory system should \emph{never} return a \verb|MEM_REQ_DEFERRED|
+for these requests through the non-speculative memory interface;
+responses can only be OK or an exception.  The middle
+``\verb|else-if|'' clause is just a bit of defensive programming in
+case of a buggy memory system.
 
-On successful responses (\verb|MEM_RSP_OK|) we perform the usual
-writeback-register and possible redirection on misprediction.
+If the response was OK, we invoke \verb|fa_update_rd()| to update the
+destination register and its scoreboard reservation.  Recall from
+Section~\ref{Sec_Retire_Common} that \verb|fa_update_rd()| will not
+send any update message if the instruction does not have an rd (or if
+rd is 0).  The second argument is True because this not the exception
+case.
 
-Finally, we set \verb|rg_state| to \verb|STATE_PIPE|, which once again
-enables all the pipeline rules.
+Finally, we redirect the Fetch stage if mispredicted, and return to
+\verb|MODE_PIPE| to resume pipeline processing.  We can compare the
+predicted successor PC for this instruction with its fall-through PC
+to determine if there was a misprediction.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_DMem_rsp (rg_state == STATE_DMEM_RSP);
-      f_RR_to_Retire.deq;
-      let mem_rsp <- pop_o (to_FIFOF_O (f_DMem_rsp));
+% ----------------
 
-      Bool exception = ((mem_rsp.rsp_type == MEM_RSP_ERR)
-			|| (mem_rsp.rsp_type == MEM_RSP_MISALIGNED));
-      Bit #(XLEN)  cause = ?;
-      if (exception) begin
-	 if (mem_rsp.rsp_type == MEM_RSP_MISALIGNED)
-	    cause = (is_LOAD (x_rr_to_retire.instr)
-		     ? cause_LOAD_ADDRESS_MISALIGNED
-		     : cause_STORE_AMO_ADDRESS_MISALIGNED);
-	 else
-	    cause = (is_LOAD (x_rr_to_retire.instr)
-		     ? cause_LOAD_ACCESS_FAULT
-		     : cause_STORE_AMO_ACCESS_FAULT);
-	 $finish (1);
-      end
-      else if (mem_rsp.rsp_type == MEM_REQ_DEFERRED) begin
-         $display ("IMPOSSIBLE: Unexpected MEM_REQ_DEFERRED; FINISH.");
-	 $finish (1);
-      end
-      else begin
-      	 // mem_rsp.rsp_type will be MEM_REQ_OK here
+\Exercise
 
-	 // Writeback register
-	 Bool rd_commit = True;
-	 if (x_rr_to_retire.has_rd)
-	    fa_update_rd (x_rr_to_retire, rd_commit, truncate (mem_rsp.data));
+This rule fields a memory response, but does not send any
+commit/discard message to the store-buffer.  Why not?
 
-	 // Redirect Fetch to correct mispredicted PC
-	 fa_redirect_Fetch ((x_rr_to_retire.predicted_pc != x_rr_to_retire.fallthru_pc),
-			    x_rr_to_retire,
-			    x_rr_to_retire.fallthru_pc);
-      end
-      // Go back to pipeline behavior
-      rg_state <= STATE_PIPE;
-   endrule
-\end{Verbatim}
-}
+\Endexercise
+% ----------------
 
-Note that in this module, when we have a DMem response with
-response-type \verb|MEM_REQ_DEFERRED| we effectively switch from
-pipeline processing to Drum-like FSM processing (one FSM state issues
-a DMem request and another FSM state fields the response and processes
-it).  This is a standard trick: for an instruction that cannot for
-some reason be pipelined, we execute it completely in the Retire
-module in Drum-like FSM mode.  In fact, we shall use exactly this
-trick to implement CSRRxx instructions (in
-Chapter~\ref{ch_Fife_CSRRxx}, because CSRRx instructions are tricky to
-execute in the main pipeline.
+% ================================================================
+
+\subsection{Common Rule to handle exceptions}
+
+\label{Sec_Fife_Exception}
+
+This is a common rule used to handle exceptions.
+
+\input{Code_Extracts/Fife_S5_exc.tex}
+
+In all the previous rules, when an exception is detected, we save
+relevant values in registers \verb|rg_epc|, \verb|rg_cause| and
+\verb|rg_tval| and switch the module mode to \verb|MODE_EXCEPTION|,
+which enables this rule.  It invokes \verb|csrs.mav_exception()| which
+updates the relevant CSRs, and returns the value CSR \verb|mtvec|
+(trap-vector PC).  Here, we simply redirect to that PC, and return to
+pipeline processing in \verb|MODE_PIPE|.
 
 % ================================================================
 
@@ -1142,5 +1149,55 @@ method, and then lifts the various FIFO interfaces into sub-interfaces
 for this module.
 
 \input{Code_Extracts/Fife_mkRetire_ifc.tex}
+
+% ****************************************************************
+
+\section{Conclusion}
+
+And that is the complete Fife CPU!  There is actually very little in
+this chapter that is RISC-V specific; these pipeline structures are
+needed for a pipelined CPU for \emph{any} ISA.  All our
+RISC-V-specific discussions were completed in the chapters leading up
+to Drum, and here we have simply reused all those RISC-V-specific
+common functions.
+
+There is quite a lot scope for performance optimization here, even
+keeping the same pipeline structure.  For example:
+
+\begin{itemize}
+
+\item The sooner we can deliver a redirection from Retire to Fetch,
+      the less time the CPU will waste fetching and discarding
+      wrong-path instructions.
+
+\item In a message from Retire to the Register-Read and Dispatch stage
+      to update rd and release the scoreboard, the sooner we can
+      deliver that value to any waiting instruction, the less time
+      wasted in waiting on the scoreboard.
+
+\item In Retire, the \verb|rl_exception| actions can be folded in to
+      the rule where the exception is detected, avoiding another
+      delay, except possibly in the CSRRxx case, where there may be
+      contention with CSR access.
+
+\end{itemize}
+
+We will discuss how to do some of these optimizations in
+Chapter~\ref{ch_CRegs}.
+
+It is not straightforward to judge whether an optimization is worth it
+or not.  Many optimizations add hardware cost (silicon area and energy
+consumption).  Some optizationw, while reducing the number of clocks
+for a computation, may require slower clock speeds because of longer
+combinational paths, thus negating some of the speed advantage.
+
+Because of the high variability in the mix of instructions across
+different programs, some optimizations may have more effect on some
+programs than on others.
+
+Ultimately, the value of most optimizations cannot be judged in the
+abstract, only in specific contexts: What are the actual application
+programs that will be run? Does this optimization improve the
+performance of those optimizations? At what hardware and energy cost?
 
 % ****************************************************************
