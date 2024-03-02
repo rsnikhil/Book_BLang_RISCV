@@ -573,95 +573,49 @@ It simply lifts the FIFO interfaces to this module's interface.
 
 \label{Sec_Fife_Control_stage}
 
-The code for the Execute Control stage is shown below:
+The interface for the Execute Control stage module is shown below.
+Apart from the \verb|init| method, the remaining sub-interfaces
+correspond to the FIFO-labeled arrows in
+Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the incoming \verb|FIFOF_I|
+interface from the Register-Read and Dispatch stage and the outgoing
+\verb|FIFOF_O| interface to the Retire stage.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S4\_EX\_Control.bsv)]
-(* synthesize *)
-module mkEX_Control (EX_Control_IFC);
-   // Forward in
-   FIFOF #(RR_to_Control)      f_RR_to_Control      <- mkPipelineFIFOF;
-   // Forward out
-   FIFOF #(Control_to_Retire)  f_Control_to_Retire  <- mkBypassFIFOF;
+\input{Code_Extracts/Fife_EX_Control_IFC.tex}
 
-   // ================================================================
-   // BEHAVIOR
+The Execute Control stage module is shown below:
 
-   rule rl_Control;
-      let x <- pop_o (to_FIFOF_O (f_RR_to_Control));
-      let y <- fn_Control (rg_flog, x);
-      f_Control_to_Retire.enq (y);
-   endrule
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      ...
-   endmethod
-
-   // Forward in
-   interface fi_RR_to_Control     = to_FIFOF_I (f_RR_to_Control);
-   // Forward out
-   interface fo_Control_to_Retire = to_FIFOF_O (f_Control_to_Retire);
-endmodule
-\end{Verbatim}
-}
+\input{Code_Extracts/Fife_mkEX_Control.tex}
 
 After instantiating the forward flow input and output FIFOs, the rule
-\verb|rl_Control| simply applies the function \verb|fn_Control| to
+\verb|rl_EX_Control| simply applies the function \verb|fn_Control| to
 each input and enqueues the output.  This function was described in
-Section~\ref{Sec_fn_EX_Control}, and is the same one we use in
-Drum.  Finally, the interface, after the \verb|init| method, simply
-lifts the FIFO interfaces to the interface of this module.
+Section~\ref{Sec_fn_EX_Control}, and is the same one we use in Drum.
+Finally, the interface, after the \verb|init| method, simply lifts the
+FIFO interfaces to the interface of this module.
 
 % ****************************************************************
 
 \section{The Execute Integer Ops stage}
 
-\label{Sec_Fife_IALU_stage}
+\label{Sec_Fife_EX_Int_stage}
 
-The code for the Execute Integer Ops stage is also very simple, and
-shown below:
+The interface for the Execute Integer stage module is shown below.
+Apart from the \verb|init| method, the remaining sub-interfaces
+correspond to the FIFO-labeled arrows in
+Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the incoming \verb|FIFOF_I|
+interface from the Register-Read and Dispatch stage and the outgoing
+\verb|FIFOF_O| interface to the Retire stage.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S4\_EX\_Int.bsv)]
-(* synthesize *)
-module mkEX_Int (EX_Int_IFC);
-   // Forward in
-   FIFOF #(RR_to_EX)      f_RR_to_EX_IALU <- mkPipelineFIFOF;
-   // Forward out
-   FIFOF #(EX_to_Retire)  f_EX_to_Retire  <- mkBypassFIFOF;
+\input{Code_Extracts/Fife_EX_Int_IFC.tex}
 
-   // ================================================================
-   // BEHAVIOR
+The Execute Integer stage module is shown below:
 
-   rule rl_EX_IALU;
-      let x <- pop_o (to_FIFOF_O (f_RR_to_EX_IALU));
-      let y <- fn_EX_IALU (rg_flog, x);
-      f_EX_to_Retire.enq (y);
-   endrule
+\input{Code_Extracts/Fife_mkEX_Int.tex}
 
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      ...
-   endmethod
-
-   // Forward in
-   interface fi_RR_to_EX_IALU = to_FIFOF_I (f_RR_to_EX_IALU);
-
-   // Forward out
-   interface fo_EX_IALU_to_Retire = to_FIFOF_O (f_EX_to_Retire);
-endmodule
-\end{Verbatim}
-}
-
-The structure is just like \verb|mkEX_Control|: forward-flow input and
-output FIFOs, with the rule transforming input to output through the
-function \verb|fn_EX_IALU|, which was discussed in
-Section~\ref{Sec_fn_EX_Int} and is the same one we use in Drum.
+After instantiating the forward flow input and output FIFOs, the rule
+\verb|rl_EX_Int| simply applies the function \verb|fn_EX_Int| to each
+input and enqueues the output.  This function was described in
+Section~\ref{Sec_fn_EX_Int}, and is the same one we use in Drum.
 Finally, the interface, after the \verb|init| method, simply lifts the
 FIFO interfaces to the interface of this module.
 
@@ -674,8 +628,8 @@ FIFO interfaces to the interface of this module.
 There is no explicit code for an Execute Memory Ops stage.  The
 forward-path rule \verb|rl_RR_Dispatch| in the
 Register-Read-and-Dispatch stage, described in
-Section~\ref{Sec_Fife_RR_RW_module}, directly enqueues a memory
-request that goes out to memory.  The Retire stage, to be discussed in
+Section~\ref{Sec_Fife_RR_RW_stage}, directly enqueues a memory request
+that goes out to memory.  The Retire stage, to be discussed in
 Section~\ref{Sec_Fife_Retire_code}, consumes the corresponding memory
 response.
 
@@ -697,178 +651,53 @@ many possible cases as outlined in Figure~\ref{Fig_Fife_Retire_2}
 
 Here is the interface definition for this module:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-interface Retire_IFC;
-   method Action init (Initial_Params initial_params);
+\input{Code_Extracts/Fife_Retire_IFC.tex}
 
-   // Forward in
-   interface FIFOF_I #(RR_to_Retire)       fi_RR_to_Retire;
-   interface FIFOF_I #(Control_to_Retire)  fi_Control_to_Retire;
-   interface FIFOF_I #(EX_to_Retire)       fi_IALU_to_Retire;
+The first four \verb|FIFO_I| sub-interfaces correspond to the black
+arrows entering the Retire module from the execute pipes (left of
+Retire module in the figure).
 
-   // Speculative DMem response and commit/discard
-   interface FIFOF_I #(Mem_Rsp)                fi_DMem_S_rsp;
-   interface FIFOF_O #(Retire_to_DMem_Commit)  fo_DMem_S_commit;
+The next \verb|FIFO_O| interface, \verb|fo_DMem_S_commit|, is the
+purple arrow sending commit/discard messages to the store-buffer.
 
-   // Non-speculative DMem
-   interface FIFOF_O #(Mem_Req)  fo_DMem_req;
-   interface FIFOF_I #(Mem_Rsp)  fi_DMem_rsp;
+The next two sub-interfaces are red arrows connecting the second Exec
+Mem Ops box to memory (non-speculative DMem request and response).
 
-   // Backward out
-   interface FIFOF_O #(F_from_Retire)      fo_F_from_Retire;
-   interface FIFOF_O #(RW_from_Retire)     fo_RW_from_Retire;
-endinterface
-\end{Verbatim}
-}
+The last two \verb|FIFO_O| sub-interfaces are the blue arrow at the
+top of the figure carrying redirections to the Fetch stage, and the
+green arrow carrying Register-Writes to the \verb|RR_RW| module.
 
-The first four \verb|fi_XXX| sub-interfaces correspond to the black
-arrows entering the Retire module from the left in the figure.  The
-next two \verb|fo_XXX| sub-interfaces correspond to the outgoing red
-arrows at the bottom of the module, and the next sub-interface
-(\verb|fi_DMem_rsp|) is the incoming red arrow at the bottom of the
-module returning a non-speculative memory response.  The last two
-sub-interfaces are the black output arrows at the top of the module
-carrying redirections to the Fetch stage and Register-Writes to the
-\verb|RR_RW| module, respectively.
-
-We define a ``state'' for this module:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-typedef enum {STATE_PIPE,        // Normal pipeline operation
-	      STATE_DMEM_RSP     // Handle Non-speculative DMem response
-} Module_State
-deriving (Bits, Eq, FShow);
-\end{Verbatim}
-}
-
-Normally the module is in \verb|STATE_PIPE|, acting as the last stage
-of the pipeline.  However, in certain circumstances we switch into
-non-pipelined ``FSM'' mode, similar to Drum:
+This module has a mixture of modes.  Normally it is in pipeline mode,
+receiving instructions from the Execute stages and retiring them.  In
+certain circumstances, it goes into FSM mode, similar to Drum:
 
 \begin{tightlist}
 
-\item to execute non-speculative DMem ops (MMIO/non-memory-like),
+ \item Execute non-speculative DMem ops (MMIO/non-memory-like),
+        FSM-sequencing through issuing a request to memory and
+        handling the response.
 
-\item to execute traps and interrupts (discussed in a later chapter), and
+ \item Execute a CSRRxx insruction, which may raise an exception,
+       which must then be handled.
 
-\item to execute CSRRx insructions  (discussed in a later chapter).
+ \item Execute traps (for exceptions or interrrupts).
 
 \end{tightlist}
 
-Here we see the code for the \verb|mkRetire| module, the Retire stage
-(we have elided the BEHAVIOR section which will be discussed shortly).
+We define a ``module mode'' to reflect these modes:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-(* synthesize *)
-module mkRetire (Retire_IFC);
-   // For managing speculation, redirection traps, etc.
-   Reg #(Epoch) rg_epoch  <- mkReg (0);
+\input{Code_Extracts/Fife_Retire_Module_Mode.tex}
 
-   // Forward in
-   // Depth of f_RR_to_Retire should be > longest EX pipe
-   FIFOF #(RR_to_Retire)       f_RR_to_Retire      <- mkSizedFIFOF (8);
-   FIFOF #(Control_to_Retire)  f_Control_to_Retire <- mkPipelineFIFOF;
-   FIFOF #(EX_to_Retire)       f_IALU_to_Retire    <- mkPipelineFIFOF;
-   FIFOF #(Mem_Rsp)            f_DMem_S_rsp        <- mkPipelineFIFOF;
+The first part of the Retire stage \verb|mkRetire| module is shown below.
 
-   // Forward out
-   FIFOF #(Retire_to_DMem_Commit) f_DMem_S_commit  <- mkBypassFIFOF;
+\input{Code_Extracts/Fife_mkRetire1.tex}
 
-   // Backward out
-   FIFOF #(F_from_Retire)   f_F_from_Retire  <- mkBypassFIFOF;
-   FIFOF #(RW_from_Retire)  f_RW_from_Retire <- mkBypassFIFOF;
-
-   // Non-speculative DMem reqs and rsps
-   FIFOF #(Mem_Req)  f_DMem_req  <- mkBypassFIFOF;
-   FIFOF #(Mem_Rsp)  f_DMem_rsp  <- mkPipelineFIFOF;
-
-   Reg #(Module_State) rg_state <- mkReg (STATE_PIPE);
-
-   // ================================================================
-   // BEHAVIOR
-
-   ... to be discussed shortly ...
-
-   // ================================================================
-   // INTERFACE
-
-   method Action init (Initial_Params initial_params);
-      ...
-   endmethod
-
-   // Forward in
-   interface fi_RR_to_Retire      = to_FIFOF_I (f_RR_to_Retire);
-   interface fi_Control_to_Retire = to_FIFOF_I (f_Control_to_Retire);
-   interface fi_IALU_to_Retire    = to_FIFOF_I (f_IALU_to_Retire);
-
-   // Speculative DMem
-   interface fi_DMem_S_rsp        = to_FIFOF_I (f_DMem_S_rsp);
-   interface fo_DMem_S_commit     = to_FIFOF_O (f_DMem_S_commit);
-
-   // Non-speculative DMem
-   interface fo_DMem_req       = to_FIFOF_O (f_DMem_req);
-   interface fi_DMem_rsp       = to_FIFOF_I (f_DMem_rsp);
-
-   // Backward out
-   interface fo_F_from_Retire  = to_FIFOF_O (f_F_from_Retire);
-   interface fo_RW_from_Retire = to_FIFOF_O (f_RW_from_Retire);
-endmodule
-\end{Verbatim}
-}
-
-The first section (preceding BEHAVIOR) instantiates register
-\verb|rg_epoch| to keep track of the epoch, and then FIFOs for all the
-incoming and outgoing channels.  Finally, it instantiates register
-\verb|rg_state| to hold the current module state.
-
-The final, INTERFACE, section, as before, has an \verb|init| method,
-and then lifts the various FIFO interfaces into sub-interfaces for
-this module.
-
-The BEHAVIOR section consists of a collection of rules, each handling
-a distinct scenario.  In overview:
-
-\begin{itemize}
-
-  \item Rule \verb|rl_Retire_wrong_path| handles all mis-predicted
-        instructions.
-
-  \item Rules \verb|rl_Retire_normal| and \verb|rl_Retire_exc| handle
-        instructions with \verb|EXEC_TAG_RETIRE|, {\ie} instructions
-        that only have a direct message from the
-        Register-Read-and-Dispatch stage, with nothing in any of the
-        other execution pipelines.
-
-  \item Rules \verb|rl_Retire_Control_normal| and
-        \verb|rl_Retire_Control_exc| handle instructions with
-        \verb|EXEC_TAG_CONTROL|, {\ie} BRANCH and JAL/JALR
-        instructions that came through the Execute Control pipe.
-
-  \item Rules \verb|rl_Retire_Int_normal| and \verb|rl_Retire_Int_exc|
-        handle instructions with \verb|EXEC_TAG_INT|---LUI, AUIPC and
-        Integer Arithmetic/Logic instructions that came through the
-        Execute Int pipe.
-
-  \item Rules \verb|rl_Retire_DMem_S_normal| and
-        \verb|rl_Retire_DMem_S_exc| handle instructions with
-        \verb|EXEC_TAG_DMEM|---LOAD and STORE instructions that came
-        through the Execute DMem pipe---and were executed
-        speculatively (into memory-like addresses).
-
-  \item Rules \verb|rl_Retire_DMem_deferred| and
-        \verb|rl_Retire_DMem_rsp| handle instructions with
-        \verb|EXEC_TAG_DMEM|---LOAD and STORE instructions that came
-        through the Execute DMem pipe---and were deferred (not
-        executed) because they were for MMIO/non-memory-like addresses.
-
-\end{itemize}
-
-Each pair of rules \verb|rl_XXX_normal| and \verb|rl_XXX_exc| handle
-the two cases where the instruction completes normally {\vs} the
-instruction has raised an exception (trap).
+It instantiates the CSR registers (Section~\ref{Sec_RISCV_CSRs}), and
+register \verb|rg_epoch| to keep track of the epoch
+(Section~\ref{Sec_Epochs}), and then FIFOs for all the incoming and
+outgoing channels.  Finally, it instantiates register \verb|rg_mode|
+to hold the current module mode, and a couple of registers to hold
+exception information until we can perform the exception actions.
 
 % ================================================================
 
@@ -876,123 +705,88 @@ instruction has raised an exception (trap).
 
 \label{Sec_Retire_Common}
 
-The following function captures the actions to be taken when we
-discover that the prediction for the successor to this instruction was
-wrong.  The boolean \verb|mispredicted| indicates whether the
-prediction was correct or not.  If the prediction was correct, no
-action is taken.  Otherwise, we increment the epoch, and send a
-redirection message to the Fetch stage with the correct PC and the new
-epoch.  The disposition of this message was discussed in
+Before we study the rules in the module, we first encapsulate, in
+\verb|Action| functions, some common actions performed in many rules.
+
+The following function captures the actions to be taken whenever we
+need to redirect the Fetch stage to start fetching from a different
+PC.  This can be due to a misprediction of the successor of the
+current instruction, or due to an exception or MRET.
+
+\input{Code_Extracts/Fife_fa_redirect_Fetch.tex}
+
+The boolean \verb|mispredicted| indicates whether the prediction was
+correct or not.  If the prediction was correct, no action is taken.
+Otherwise, we increment \verb|rg_epoch|, and send a redirection
+message to the Fetch stage with the correct PC and the new epoch.  The
+consumption of this message in the Fetch stage was discussed in
 Section~\ref{Sec_Fife_Fetch_stage}.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   // Redirect Fetch stage on mispredicted PC
-   function Action fa_redirect_Fetch (Bool         mispredicted,
-				      RR_to_Retire x1,
-				      Bit #(XLEN)  next_pc);
-      action
-	 if (mispredicted) begin
-	    let next_epoch = rg_epoch + 1;
-	    rg_epoch <= next_epoch;
-	    let y = F_from_Retire {inum:       x1.inum,
-				   pc:         x1.pc,
-				   instr:      x1.instr,
-				   next_pc:    next_pc,
-				   next_epoch: next_epoch};
-	    f_F_from_Retire.enq (y);
-	 end
-      endaction
-   endfunction
-\end{Verbatim}
-}
-
 The following function captures the actions to be taken for updating
-an instruction's destination rd register.  It simply assembles a
-\verb|RW_to_Retire| message and sends it to the \verb|RR_RW| module.
-The disposition of this message was discussed in
-Section~\ref{Sec_RR_RW_module}.
+an instruction's destination rd register. If the instruction has an rd
+register, it assembles a \verb|RW_to_Retire| message and sends it to
+the \verb|RR_RW| module.  The consumption of this message in the
+Register-Read and Dispath (and Register-Write) stage was discussed in
+Section~\ref{Sec_RR_RW_stage}.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   // Update Rd for those instructions that have an Rd 
-   function Action fa_update_rd (RR_to_Retire x1, Bool commit, Bit #(XLEN) rd_val);
-      action
-	 let y = RW_from_Retire {inum:       x1.inum,
-				 pc:         x1.pc,
-				 instr:      x1.instr,
-				 rd:         instr_rd (x1.instr),
-				 commit:     commit,
-				 data:       rd_val};
-	 f_RW_from_Retire.enq (y);
-      endaction
-   endfunction
-\end{Verbatim}
-}
+\input{Code_Extracts/Fife_fa_update_rd.tex}
 
-The following definitions examine the first element of the
-\verb|f_RR_to_Retire| (direct path) queue, which controls how incoming
-instructions are merged and disposed of, in the rules that follow.
+The following function sends a commit/discard message to the
+speculative DMem store-buffer, if the instruction writes to memory:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   RR_to_Retire x_rr_to_retire = f_RR_to_Retire.first;
+\input{Code_Extracts/Fife_fa_retire_store_buf.tex}
 
-   Bool wrong_path = (x_rr_to_retire.epoch != rg_epoch);
-   Bool is_Direct  = (x_rr_to_retire.exec_tag == EXEC_TAG_RETIRE);
-   Bool is_Control = (x_rr_to_retire.exec_tag == EXEC_TAG_CONTROL);
-   Bool is_Int     = (x_rr_to_retire.exec_tag == EXEC_TAG_IALU);
-   Bool is_DMem    = (x_rr_to_retire.exec_tag == EXEC_TAG_DMEM);
-\end{Verbatim}
-}
+The \verb|f_RR_to_Retire| (direct path) FIFO contains an entry for
+\emph{every} instruction.  Information in the first element tells us
+how to retire it, including which of the execute pipes need to be
+examined.  The following definitions capture some properties of this
+first element.
+
+\input{Code_Extracts/Fife_triage.tex}
 
 The incoming instruction is a wrong-path instruction if its
-accompanying epoch does not match our \verb|rg_epoch| register.  The
-remaining four definitions summarize the class of the instruction
-based on the execution tag; these control which of the following rules
-will fire.
+accompanying epoch does not match our \verb|rg_epoch| register.
 
 % ================================================================
 
 \subsection{Rule to discard wrong-path instructions}
 
-For a wrong-path instruction, we must dequeue it from
-\verb|f_RR_to_Retire| and any associated Execute queue (Control, Int
-or DMem).  It if is a DMem STORE instruction that was performed
-speculatively, we must also send a ``discard'' message to the head of
-the store-buffer.  Finally, if the instruction has an rd destination
-register, we must send an discard-scoreboard-reservation message to
-the RR-RW module using the \verb|fa_update_rd| function described in
-the Section~\ref{Sec_Retire_Common}.
+For a wrong-path instruction, we dequeue it from \verb|f_RR_to_Retire|.
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=(In file:src\_Fife/S5\_Retire.bsv)]
-   rule rl_Retire_wrong_path ((rg_state == STATE_PIPE)
-			      && wrong_path);
-      f_RR_to_Retire.deq;
+If it has an Rd, we send a discard-scoreboard-reservation message to
+the RR-RW module using \verb|fa_update_rd()|.
 
-      if (is_Control) f_Control_to_Retire.deq;
-      if (is_Int)     f_IALU_to_Retire.deq;
-      if (is_DMem) begin
-	 f_DMem_S_rsp.deq;
+If it was a Control, Int or DMem instruction, we dequeue it from the
+corresponding incoming FIFO.  In the DMem case, if it did a
+speculative STORE, we also send a ``discard'' message to the head of
+the store-buffer using \verb|fa_retire_store_buf()|.
 
-	 // Send discard to Store Buffer, if needed
-	 Bool commit_store_val = ((! is_LOAD (x_rr_to_retire.instr))
-				  && (! is_LR (x_rr_to_retire.instr))
-				  && (f_DMem_S_rsp.first.rsp_type == MEM_RSP_OK));
-	 if (commit_store_val) begin
-	    let y = Retire_to_DMem_Commit{inum:   x_rr_to_retire.inum,
-					  commit: False};
-	    f_DMem_S_commit.enq (y);
-	 end
-      end
+\input{Code_Extracts/Fife_rl_wrong_path.tex}
 
-      // Release rd scoreboard reservation, if has one
-      Bool rd_commit = False;
-      if (x_rr_to_retire.has_rd) fa_update_rd (x_rr_to_retire, rd_commit, ?);
-   endrule
-\end{Verbatim}
-}
+% ================================================================
+
+\subsection{Rules to retire CSRRxx instructions}
+
+The following rule handles CSRRxx instructions, which arrive on the direct path:
+
+\input{Code_Extracts/Fife_rl_CSRRxx.tex}
+
+The rule's explicit condition restricts it to fire only when we are in
+PIPE mode and when the next instruction is not a wrong-path
+instruction (epoch is correct), is a Direct-path instruction, is not
+an exception, and is indeed a CSRRxx instruction.
+
+If so, it applies \verb|csrs.csrrxx()| (described in
+Section~\ref{Sec_RISCV_CSRs}, and the same one we used in Drum).  It
+updates the rd register with the result.
+
+If the CSRRxx operation did not raise an exception, it redirects Fetch
+this instruction's successor was mispredicted.
+
+If the CSRRxx operation did raise an exception, we save the details in
+some registers and exit PIPE mode into EXCEPTION mode, which will
+enable rule \verb|rl_exception| (Section~\ref{Sec_Fife_Exception}) to
+handle it.
 
 % ================================================================
 
@@ -1004,7 +798,7 @@ Execute pipes (Control, Int or DMem).
 
 If it is not an exception, then it must be a CSRRx instruction, which
 we have not yet implemented yet (we will do so in
-Chapter~\ref{ch_Fife_Exception}).  For now, we treat it as a no-op.  We
+Section~\ref{Sec_Fife_Exception}).  For now, we treat it as a no-op.  We
 dequeue the instruction from \verb|f_RR_to_Retire|.  For CSRRx
 instructions, the correct next-PC is the fall-through PC, so we check
 this against the predicted PC, and redirect if necessary using
@@ -1032,7 +826,7 @@ Section~\ref{Sec_Retire_Common}.
 If the first element of \verb|f_RR_to_Retire| is carrying an
 exception, this could be due to a memory-fault during Fetch, or
 detection of an illegal instruction during Decode.  In
-Chapter~\ref{ch_Fife_Exception} we will describe how to handle
+Section~\ref{Sec_Fife_Exception} we will describe how to handle
 exceptions, but for now we use \verb|$finish()| to abort the
 simulation.
 
@@ -1082,7 +876,7 @@ Fetch stage if mispredicted.
 
 If the instruction is carrying an exception this is because the
 BRANCH, JAL or JALR target was misaligned.  In
-Chapter~\ref{ch_Fife_Exception} we will describe how to handle
+Section~\ref{Sec_Fife_Exception} we will describe how to handle
 exceptions, but for now we use \verb|$finish()| to abort the
 simulation.
 
@@ -1134,7 +928,7 @@ mispredicted.
 }
 
 If the instruction is carrying an exception: in
-Chapter~\ref{ch_Fife_Exception} we will describe how to handle
+Section~\ref{Sec_Fife_Exception} we will describe how to handle
 exceptions, but for now we use \verb|$finish()| to abort the
 simulation.
 
@@ -1202,7 +996,7 @@ If the DMem response indicates that it attempted a speculative access
 and encountered an exception, the memory response type will be
 \verb|MEM_RSP_ERR| or \verb|MEM_RSP_MISALIGNED|.  We compute the
 appropriate RISC-V exception \verb|cause| code.  In
-Chapter~\ref{ch_Fife_Exception} we will describe how to handle
+Section~\ref{Sec_Fife_Exception} we will describe how to handle
 exceptions, but for now we use \verb|$finish()| to abort the
 simulation.
 
@@ -1269,7 +1063,7 @@ pop the direct-path information (\verb|f_RR_to_Retire|) and the
 memory-response (\verb|f_DMem_Rsp|).
 
 If the response returned an exception, we compute the RISC-V exception
-\verb|cause|.  In Chapter~\ref{ch_Fife_Exception} we will describe how
+\verb|cause|.  In Section~\ref{Sec_Fife_Exception} we will describe how
 to handle exceptions, but for now we use \verb|$finish()| to abort the
 simulation.
 
@@ -1338,5 +1132,15 @@ module in Drum-like FSM mode.  In fact, we shall use exactly this
 trick to implement CSRRxx instructions (in
 Chapter~\ref{ch_Fife_CSRRxx}, because CSRRx instructions are tricky to
 execute in the main pipeline.
+
+% ================================================================
+
+\subsection{Fife module interface definition}
+
+The final INTERFACE section, as with other modules, has an \verb|init|
+method, and then lifts the various FIFO interfaces into sub-interfaces
+for this module.
+
+\input{Code_Extracts/Fife_mkRetire_ifc.tex}
 
 % ****************************************************************
