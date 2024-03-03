@@ -1,0 +1,45 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{BSV: Rules and Methods I: Clocks and Rule Scheduling}
+
+\markboth{Ch \arabic{chapter}: BSV: Rules I}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_Rules_I}
+
+% ****************************************************************
+
+% ----------------
+\vspace{2ex}
+
+\centerline{\includegraphics[width=1in,angle=0]{Figures/Fig_Under_Construction}}
+
+\vspace{2ex}
+% ----------------
+
+\section{Introduction}
+
+Rules are the fundamental dynamic behavior constructs in BSV.  A rule
+is an infinite process.  Every rule consists of a \emph{condition} and
+an \emph{action}: whenever the condition is true, the action is
+performed; we say the rule ``fires'' whenever its condition is true.
+A rule may not fire even if its condition is true, if it ``conflicts''
+with another rule.
+
+A rule may contain explicit and implicit conditions. 
+
+Every method has an implicit conditions.  For a FIFO, the \emph{enq()}
+method's implicit condition is false when the FIFO is full, {\ie} when
+it does not contain space to enqueue a new item.  We also say the
+method is ``enabled'' when its implicit condition is true.
+
+\section{Rules, Actions and clocks}
+
+\section{Rule semantics}
+
+% ****************************************************************

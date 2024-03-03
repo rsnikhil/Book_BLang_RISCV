@@ -110,10 +110,10 @@ concurrently with the rest of the system (all other rules in the
 system).  Rules realize the independent, concurrent, internal behavior
 of a module.
 
-Rules are discussed in more detail in Chapter~\ref{ch_Rules}.  Before
-that, in Chapter~\ref{ch_FSMs} we will discuss BSV's special notation
-for FSMs (Finite State Machines), which are simpler to use as a first
-step.
+Rules are discussed in more detail in Chapter~\ref{ch_Rules_I}.
+Before that, in Chapter~\ref{ch_FSMs} we will discuss BSV's special
+notation for FSMs (Finite State Machines), which are simpler to use as
+a first step.
 
 % ================================================================
 
@@ -864,7 +864,7 @@ interface follows in {\tt (...)}.
 
 \index{BSV!rule@{\tt rule}: the fundamental behavioral construct in BSV}
 
-The module contains a \emph{rule} (Chapter~\ref{ch_Rules}), which is
+The module contains a \emph{rule} (Chapter~\ref{ch_Rules_I}), which is
 an infinite process.  It binds {\tt x} to {\tt f.first}, the head of
 the {\tt f} queue, and discards it from the queue ({\tt f.deq}).  It
 enqueues the value {\tt x} into {\tt d}.  Being an infinite process,
@@ -933,7 +933,8 @@ heavily in Fife code shown in Chapter~\ref{ch_Fife_code}.
 To first approximation, they can be considered merely as substitutes
 for {\tt mkFIFOF}.  They have subtle \emph{performance} differences
 from {\tt mkFIFOF}, which is why we use them in Fife.  We will discuss
-these performance properties in more detail in Chapter~\ref{ch_Rules}.
+these performance properties in more detail in
+Chapter~\ref{ch_Rules_II}.
 
 % ****************************************************************
 

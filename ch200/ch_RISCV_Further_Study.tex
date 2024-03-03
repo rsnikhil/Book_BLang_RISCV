@@ -1,0 +1,158 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{RISC-V: Suggested further study}
+
+\markboth{Ch \arabic{chapter}: RISC-V: further study}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_RISCV_further_study}
+
+% ****************************************************************
+
+% ----------------
+\vspace{2ex}
+
+\centerline{\includegraphics[width=1in,angle=0]{Figures/Fig_Under_Construction}}
+
+\vspace{2ex}
+% ----------------
+
+% ****************************************************************
+
+\section{Advanced branch prediction}
+
+Is a form of online machine-learning (past history is the ``training data'').
+
+Branch instruction taken/not-taken hints.
+
+Hysteresis in prediction.
+
+Branch-Target buffers (BTBs)
+
+Return-Address Stacks (RASs)
+
+% ****************************************************************
+
+\section{Memory systems: TCMs, Caches, PMPs}
+
+Separate I- and D-caches.
+
+FENCE.I: for ``manual'' I- and D-Mem coherence.
+
+FENCE: flushing caches for for devices.
+
+Multi-level caches and cache hierarchies.
+
+Non-blocking caches.
+
+Cache-coherence.
+
+Memory Protection with PMPs.
+
+% ****************************************************************
+
+\section{M Extension}
+
+Integer Multiply and Divide
+
+% ****************************************************************
+
+\section{A extention}
+
+AMO operations
+
+LR, SC, AMOxxx instructions and their implementation in the memory system.
+
+% ****************************************************************
+
+\section{F and D Extensions}
+
+IEEE single- and double-precision floating point.
+
+% ****************************************************************
+
+\section{C Extension}
+
+Compressed instructions
+
+Implementation: wholly in Decode stage.  Can be shared between Fife and Drum.
+
+Affect of compressed instructions on Fetch.
+
+Affect of compressed instructions on PC-prediction.
+
+Affect of non-32-bit alignment of compressed instructions.
+
+% ****************************************************************
+
+\section{Virtual Memory}
+
+Page Tables, TLBs, Virtual Memory.
+
+% ****************************************************************
+
+\section{Performance measurement}
+
+CSRs TIME, MCYCLE.
+
+Other ``hpmcounter'' CSRs for other events.
+Counter enables.
+
+% ****************************************************************
+
+\section{Testing}
+
+ISA tests. 
+
+Tandem Verification
+
+Sail formal model.
+
+ACTs (sp ?)
+
+% ****************************************************************
+
+\section{Interrupts}
+
+\begin{tightlist}
+  \item General concepts: CSRs MIP and MIE; minimal MSTATUS with interrupt-enable bits
+
+  \item Interrupts are initially disabled using the
+        MSTATUS.interrupt-enable bit immediately; CSRxx can be used to
+        re-enable.
+
+  \item MMIO addresses MTIME, MTIMECMP.
+
+  \item Interrupts are handled just like traps; the only question is:
+        when to check for interrupts and respond.
+
+  \item How does MIE bit return to 0?
+
+\end{tightlist}
+
+PLIC, CLIC
+
+Interrupt/trap delegation.
+
+% ****************************************************************
+
+\section{Linux and server-class capability}
+
+Multiple privilege levels: Machine, Supervisor, User
+
+\subsection{Hypervisor support}
+
+% ****************************************************************
+
+% ****************************************************************
+
+\subsection{RISC-V ISA Formal Specification}
+
+Sail model
+
+% ****************************************************************

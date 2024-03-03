@@ -11,7 +11,7 @@ Rishiyur S. Nikhil, Bluespec, Inc. (c) 2024
 
 // ================================================================
 
-image::Fig_Under_Construction.png[align="left", width=100]
+image::Figures/Fig_Under_Construction.png[align="left", width=100]
 
 [NOTE]
 ====
