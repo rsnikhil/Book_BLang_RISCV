@@ -137,7 +137,7 @@ The interface represents the external view of a module, {\ie} it
 declares a set of \emph{methods} that can be invoked from an external
 context.  Each method declaration only lists its arguments and their
 types, and the method's overall result type.  The \emph{body} of the
-method is defined in the module declaration of each module that offers
+method is defined in the module definition of each module that offers
 this interface type.
 
 Interfaces can be nested (can contain sub-interfaces which themselves
@@ -146,7 +146,7 @@ syntactic abstraction mechanism; ultimately, all interactions with a
 module are through its methods, whether at the top level of the
 interface type, in a sub-interface, in a sub-sub-interface, {\etc}
 
-There can be many module declarations each of which offers the same
+There can be many module definitions each of which offers the same
 interface, {\ie} these are different \emph{implementations} of the
 same interface.  For example, the BSV library contains a repertoire of
 FIFO modules, all of which have the same FIFO interface type.
@@ -161,9 +161,9 @@ library modules: Registers, Register Files and FIFOs, respectively.
 
 % ================================================================
 
-\subsection{Module declarations}
+\subsection{Module definitions}
 
-\label{Sec_Module_Decls}
+\label{Sec_Module_Definitions}
 
 \index{BSV!Module!state}
 \index{BSV!Module!behavior}
@@ -171,8 +171,8 @@ library modules: Registers, Register Files and FIFOs, respectively.
 \index{BSV!Module!constructor}
 \index{BSV!synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
 
-A \emph{module declaration} in BSV describes a module with a
-particular interface type:
+A \emph{module definition} in BSV describes a module with a particular
+interface type:
 
 \begin{quote}
 {\tt (* synthesize *)} \\
@@ -193,11 +193,15 @@ particular interface type:
 The \verb|(* synthesize *)| attribute at the top is optional.  With
 this attribute, the \emph{bsc} compiler create a separate Verilog
 module for this BSV module.  Without the attribute, the compiler will
-``inline'' it into any parent module where it is instantiated.
+``inline'' it into any parent module where it is instantiated.  We
+recommend using this attribute on all modules.\footnote{But see also
+Section~\ref{Sec_Polymorphic_Types_and_Synthesizability} which
+desribes some modules where this attribute is ignored by the
+compiler.}
 
 \index{BSV!Module!instance}
 
-A module declaration declares a module \emph{constructor}. The
+A module definition defines a module \emph{constructor}. The
 constructor can be invoked multiple times to obtain multiple
 \emph{instances} of the module.
 
@@ -1007,11 +1011,11 @@ Write polymorphic versions of these types that are parameterized on
 
 \index{BSV!synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
 
-In Section~\ref{Sec_Module_Decls} we mentioned without discussion that
-the ``{\tt (* synthesize *)}'' attribute preceding a {\tt module}
-declaration controls whether the \emph{bsc} compiler generates a
-Verilog module for this BSV module or whether it is inlined into its
-parent module wherever it is instantiated.
+In Section~\ref{Sec_Module_Definitions} we mentioned without
+discussion that the ``{\tt (* synthesize *)}'' attribute preceding a
+{\tt module} definition controls whether the \emph{bsc} compiler
+generates a Verilog module for this BSV module or whether it is
+inlined into its parent module wherever it is instantiated.
 
 Not all BSV modules can be compiled one-to-one into Verilog modules.
 Broadly speaking, polymorphic modules cannot be separately compiled

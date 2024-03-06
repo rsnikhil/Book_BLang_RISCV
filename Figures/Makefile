@@ -1,3 +1,4 @@
+FIGS += Fig_BSV_Package.png
 FIGS += Fig_Combo_Is_Legal_BRANCH.png
 FIGS += Fig_Combo_Multiplexer.png
 FIGS += Fig_Combo_Multiplexer_Cascade.png
@@ -18,6 +19,8 @@ FIGS += Fig_Instr_Exec_w_structs.png
 FIGS += Fig_Instr_Exec_w_FIFOs.png
 FIGS += Fig_Retire_Layers_1.png
 FIGS += Fig_Retire_Layers_1_2.png
+FIGS += Fig_Rule_Structure.png
+FIGS += Fig_Rule_Actions.png
 
 .PHONY: help
 help:
