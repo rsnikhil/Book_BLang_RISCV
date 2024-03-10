@@ -482,7 +482,7 @@ this computation model: well-known examples include:
  \item TLA+ (Lamport~\cite{Lamport2002a})
 \end{tightlist}
 
-% ================================================================
+% ****************************************************************
 
 \section{Mapping rules to a clock, for real-time behavior}
 
@@ -491,7 +491,7 @@ this computation model: well-known examples include:
 With the rule semantics of Section~\ref{Sec_Rules_Semantics}, we only
 have an abstract view of time---in an execution we can say whether
 this rule firing was \emph{before} that rule firing, or \emph{after};
-no more. In particular, we cannot ascribe any real time to it
+no more. In particular, we cannot ascribe any real-time measure to it
 (microseconds, nanoseconds, ...).
 
 Digital hardware systems are driven by one or more \emph{clock
@@ -522,22 +522,30 @@ the EN input is low (0, false), it does nothing, retaining its
 previous value.  The value in the flip flop is continuously driven on
 its Q output.
 
-As a first approximation, suppose each rule was mapped to clocked
-digital hardware as suggested in Figure~\ref{Fig_Rule_Actions_1_2}.
-Then, conceptually, at each posedge, all enabled rules (whose
-CAN\_FIRE is true) will fire and perform their output actions.
+% ================================================================
+
+\subsection{Constraints on mapping rules to a clock}
+
+\label{Sec_Constraints_on_Mapping_Rules_to_a_Clock}
+
+To map the collection of rules in a BSV design to clocked digital
+hardware, as a first approximation, suppose that each rule was mapped
+as suggested in Figure~\ref{Fig_Rule_Actions_1_2}.  Then,
+conceptually, at each posedge, all enabled rules (whose CAN\_FIRE is
+true) will fire and perform their output actions.
 
 But this would be wrong, for two reasons:
 
 \begin{itemize}
 
- \item \emph{Action conflicts}: Two different rules may invoke the
-       same action/actionvalue method (try to write the same register,
-       or enqueue onto the same FIFO, dequeue the same FIFO, {\etc}.
-       As discussed in Section~\ref{Sec_Parallel_Conflict}, this is
-       clearly not feasible at the same instant (same posedge).
+ \item \emph{Action Conflicts} or {\emph Resource Conflicts}: Two
+       different rules may invoke the same action/actionvalue method
+       (try to write the same register, or enqueue onto the same FIFO,
+       dequeue the same FIFO, {\etc}.  As discussed in
+       Section~\ref{Sec_Parallel_Conflict}, this is clearly not
+       feasible at the same instant (same posedge).
 
- \item \emph{Ordering conflicts}: The \emph{ordering} can be
+ \item \emph{Ordering Conflicts}: The \emph{ordering} can be
        inconsistent with rule semantics.  Consider the execution of
        these two rules:
 
@@ -606,7 +614,7 @@ should be consistent with one-rule-at-a-time semantics.
 
 The \emph{bsc} compiler produces a simple, state-free, combinational
 circuit for the Rule Controller.  First, it produces a \emph{linear}
-ordering of all the rules in the system that results in minimal
+ordering of all the rules in the program, that results in minimal
 conflicts (for example, if rule $rl_1$ reads a register and rule
 $rl_2$ writes the same register, then it tries to place $rl_1$ earlier
 than $rl_2$ in the ordering, because executing the rules
@@ -629,5 +637,61 @@ computed?''  Note, our unit of time is clock cycles, not real-time
 \emph{per se} (seconds), because BSV has no way to know the actual
 speed (1 MHz?  1 GHz?) of the clock you might supply to your hardware
 circuit.
+
+% ================================================================
+
+\subsection{Explicit control of rule ordering, and controller optimizations}
+
+We mentioned in the previous section that the \emph{bsc} compiler
+produces a linear ordering of all the rules in a program, attempting
+to minimize the number of conflicts.  This is a heuristic, because
+producing an ``optimal'' ordering is undecidable.  Further, when the
+compiler sees a conflict between two rules, it may have no criterion
+to choose which one has priority, {\ie} which one will suppress the
+other.  In such situations, the BSV programmer can provide explicit
+\emph{attributes} on rules to guide the compiler's choice.
+
+For example:
+
+{\small
+\begin{Verbatim}[frame=single,label=BSV]
+rule rl_r1 (...);
+   ...
+endrule
+
+(* descending_urgency = "rl_r1, rl_r2" *)
+rule rl_r2 (...);
+   ...
+endrule
+\end{Verbatim}
+}
+
+Here, the \verb|descending_urgency| attributes advises the compiler to
+treat rule \verb|rl_r1| with higher priority.  The attribute is
+written just before a rule; it can name this rule and any rules
+earlier in the source text.
+
+Another attribute advises the compiler, when there is no conflict, to
+force \verb|rl_r1| to suppress \verb|rl_r2|:
+
+{\small
+\begin{Verbatim}[frame=single,label=BSV]
+(* preempts = "rl_r1, rl_r2" *)
+\end{Verbatim}
+}
+
+A third attribute asserts to the compiler that the CAN\_FIRE of two
+rules are mutually exclusive, {\ie} can never simultaneously be true
+(the compiler tries to prove such properties by itself, but cannot
+always do so), which permits the compiler to simplify the controller.
+
+{\small
+\begin{Verbatim}[frame=single,label=BSV]
+(* mutually_exclusive = "rl_r1, rl_r2" *)
+\end{Verbatim}
+}
+
+In this case, the compiler also generates code that checks the
+mutual-exclusivity property during simulation.
 
 % ****************************************************************

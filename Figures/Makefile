@@ -24,6 +24,7 @@ FIGS += Fig_Rule_Actions_1.png
 FIGS += Fig_Rule_Actions_1_2.png
 FIGS += Fig_Clock.png
 FIGS += Fig_Rule_Actions_Controlled.png
+FIGS += Fig_CReg_HW.png
 
 .PHONY: help
 help:
