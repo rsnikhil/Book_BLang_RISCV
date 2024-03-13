@@ -18,7 +18,7 @@
 
 In this chapter we use code Drum's behavior, illustrated in
 Figure~\ref{Fig_Drum_Instr_Exec}, using BSV's \verb|StmtFSM|
-construct.
+construct to code the FSM.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
   \caption{\label{Fig_Drum_Instr_Exec}
@@ -154,85 +154,61 @@ cases where the instruction has an rd (\verb|fn_Decode|, described in
 Section~\ref{Sec_fn_Decode}, computed \verb|has_rd| for each kind of
 instruction):
 
-\input{Code_Extracts/Drum_CPU_upd_rd.tex}
+\input{Code_Extracts/Drum_upd_rd.tex}
+
+The following function is the last action during an instruction's
+execution, updating the PC and the instruction number:
+
+\input{Code_Extracts/Drum_redirect.tex}
 
 The following function saves values into registers \verb|rg_epc|,
 \verb|rg_cause| and \verb|rg_tval|, when a trap is detected.  These
 will later be written into the corresponding CSR registers during
 trap-handling.
 
-\input{Code_Extracts/Drum_CPU_setup_exc.tex}
-
-This function is the last action during an instruction's execution,
-updating the PC and the instruction number:
-
-\input{Code_Extracts/Drum_CPU_redirect.tex}
+\input{Code_Extracts/Drum_setup_exc.tex}
 
 % ****************************************************************
 
-\section{The Drum CPU module behavior}
+\section{The main behavior actions in the Drum CPU module}
 
-\label{Sec_Drum_CPU_module_behavior}
+\label{Sec_Drum_actions}
 
-\index{RISC-V!Drum CPU module behavior}
-\index{Drum!CPU module behavior}
+\index{RISC-V!Drum CPU module actions}
+\index{Drum!CPU module actions}
 
-The Drum CPU module BEHAVIOR is defined in two parts.  First we define
-an FSM specification \verb|exec_one_instr| (of type \verb|Stmt|) for
-executing a single instruction.  Then, we embed that \verb|Stmt| in a
-next-level \verb|Stmt| in an infinite while-loop, preceded by an
-\verb|await| action that waits for the initial PC to be set by the
-\verb|init| method. Finally, we instantiate that \verb|Stmt| using a
-\verb|mkAutoFSM| module that will implement the behavior starting
-immediately when emerging from reset.  The FSM never stops, because of
-the infinite while-loop.
-
-{\small
-\begin{Verbatim}
-module mkCPU (CPU_IFC);
-   // STATE
-   ...
-   // ****************************************************************
-   // BEHAVIOR
-   ...
-\end{Verbatim}
-}
-
-\input{Code_Extracts/Drum_CPU_exec1.tex}
-\input{Code_Extracts/Drum_CPU_mkAutoFSM.tex}
-
-{\small
-\begin{Verbatim}
-   // ****************************************************************
-   // INTERFACE
-   ...
-endmodule
-\end{Verbatim}
-}
+The following sub-sections show the main actions performed by Drum,
+corresponding to the components in Figure~\ref{Fig_Drum_Instr_Exec}.
 
 % ----------------
-\hdivider
+\vspace{2ex}
 
-\Exercise
+\index{BSV!Action@{\tt Action}!as a first-class type}
 
-What might happen if we omitted the ``{\tt await!(rg\_running)}''
-statement in the Drum CPU? (Try it in simulation!)
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
 
-\emph{Hint:} The FSM may start running before the PC has been initialized ...
+In BSV, the type {\tt Action} is a first-class type.  This means we
+can write ``action expressions'' and bind the result (of type {\tt
+Action}) to a name, and then refer to that action later by that name.
+We use this capability below first to define the Drum FSM actions;
+then we will embed these actions in the Drum FSM in
+Section~\ref{Sec_Drum_CPU_module_behavior}.  We also reuse exactly the
+same actions in the alternate specification of Drum's behavior using
+Rules instead of {\tt StmtFSM} in Chapter~\ref{ch_Drum_Rules}.
 
-\Endexercise
+\end{minipage}}
 % ----------------
 
 % ================================================================
 
 \subsection{FSM action for Fetch}
 
-The first action inside \verb|exec_one_instr| is for Fetch:
+\input{Code_Extracts/Drum_Fetch.tex}
 
-\input{Code_Extracts/Drum_CPU_Fetch.tex}
-
-This applies \verb|fn_Fetch()| (Section~\ref{Sec_fn_Fetch}) to the PC,
-stores the \verb|to_D| part of the result in register
+This action applies \verb|fn_Fetch()| (Section~\ref{Sec_fn_Fetch}) to
+the PC, stores the \verb|to_D| part of the result in register
 \verb|rg_Fetch_to_Decode|, and sends the \verb|mem_req| part of the
 result to the Instruction Memory by enqueueing it on the outgoing
 \verb|f_IMem_req| FIFO.  The other end (dequeue end) of the FIFO is in
@@ -243,9 +219,7 @@ dequeue it and forward it to memory.
 
 \subsection{FSM action for Decode}
 
-The next action in the FSM is the Decode step:
-
-\input{Code_Extracts/Drum_CPU_Decode.tex}
+\input{Code_Extracts/Drum_Decode.tex}
 
 We pop the response from IMem (bind \verb|mem_rsp| to the value at
 head of the FIFO, and also remove it from the FIFO), then apply
@@ -254,50 +228,13 @@ head of the FIFO, and also remove it from the FIFO), then apply
 response, and store the function result in register
 \verb|rg_Decode_to_RR|.
 
-Recall that each \verb|Action| is instantaneous, and the FSMs sequence
-actions.  In the code so far, the Fetch action takes place in one
-instant, and the Decode action takes place at a later instant. The
-Decode action is not ``enabled'' until an IMem response is available
-in the \verb|f_IMem_Rsp| FIFO; it will simply wait until a response is
-available.  Thus, the time interval between the Fetch instant and the
-Decode instant is unpredictable; it depends on when the IMem result
-becomes available (see dicussion in Section~\ref{Sec_mem_latency} on
-unpredictable memory latency).
-
-% ----------------
-\vspace{2ex}
-
-NOTE:
-\fbox{\small
-\begin{minipage}{5in}
-
-Looking ahead to a topic we'll discuss in more detail in
-Chapter~\ref{ch_Rules_I}, each module interface method has a so-called
-\emph{implicit condition}, {\ie} an accompanying boolean value value
-that indicates when the method is ``ready'' or not or, to say it
-another way, whether the method is ``enabled'' or not.  For the FIFO
-methods ``{\tt .first}'' and ``{\tt .deq}'', which are used by ``{\tt
-pop\_o}'' above, the methods are ready/enabled only when the FIFO is
-not empty.
-
-\vspace{1ex}
-
-The Decode action in the FSM is translated by the \emph{bsc} compiler
-into a BSV \emph{rule}.  A rule does not ``fire'' until all the
-implicit conditions in its method-calls are enabled.  This is why the
-Decode action implicitly waits until something is available in the
-FIFO.
-
-\end{minipage}}
-% ----------------
-
 % ================================================================
 
 \subsection{FSM action for Dispatch}
 
 The next FSM action is the Register-Read and Dispatch step:
 
-\input{Code_Extracts/Drum_CPU_RRD.tex}
+\input{Code_Extracts/Drum_RRD.tex}
 
 Using the information in \verb|rg_Decode_to_RR| created in the Decode
 step, we read the two registers \verb|rs1| and \verb|rs2|.  We apply
@@ -331,30 +268,13 @@ exception or normal result.  For each flow, the colored ovals show the
 actions may be performed; these correspond exactly to the three
 help-functions discussed earlier in Section~\ref{Sec_Drum_FSM_help_fns}.
 
-The FSM code follows the structure shown in the diagram, and have the
-following broad structure:
-
-% CAUTION! CAUTION! CAUTION! not automatically extracted; label hand-written, may go out of sync!
-{\small
-\begin{Verbatim}[frame=single, numbers=left, label=src\_Drum/CPU\_FSM.bsv: line 192 ...]
-      if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_DIRECT)
-          ...
-      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_CONTROL)
-          ...
-      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_INT)
-          ...
-      else if (rg_Dispatch.to_Retire.exec_tag == EXEC_TAG_DMEM)
-\end{Verbatim}
-}
-
-We next elaborate each of the four flows (the elided arms in the above
-if-then-else).
+We next elaborate each of these four flows.
 
 % ----------------------------------------------------------------
 
 \subsubsection{FSM actions in Direct flow of Execute and Retire}
 
-\input{Code_Extracts/Drum_CPU_Direct.tex}
+\input{Code_Extracts/Drum_Retire_direct.tex}
 
 First, for convenience, we give the value \verb|rg_Dispatch.to_Retire|
 a shorter and more convenient name, \verb|x_direct|, to be used in the
@@ -400,53 +320,56 @@ hardware).
 
 % ----------------------------------------------------------------
 
-\subsubsection{FSM actions in Execute Control flow of Execute and Retire}
+\subsubsection{FSM actions in Execute and Retire Control flow}
 
-\input{Code_Extracts/Drum_CPU_Control.tex}
+The Control path is a sequence of two actions.  First, we have an
+Execute action invokes \verb|fn_EX_Control|
+(Section~\ref{Sec_fn_EX_Control}) on the information provided by
+Dispatch, and stores the result in register
+\verb|rg_EX_Control_to_Retire|:
 
-This sub-FSM is itself an FSM with a sequence of two actions, one to
-execute and one to retire.  The Execute action invokes
-\verb|fn_EX_Control| (Section~\ref{Sec_fn_EX_Control}) on the
-information provided by Dispatch, and stores the result in register
-\verb|rg_EX_Control_to_Retire|.
+\input{Code_Extracts/Drum_EX_Control.tex}
 
-The Retire action checks if that resulted in an exception or not. If
-an exception, it invokes \verb|fa_setup_exception| to record that.  If
-not an exception, it invokes \verb|fa_update_rd| to store the output
-value (this can only be a ``return address'' computed for JAL and
-JALR), and it invokes \verb|fa_redirect_Fetch| to resume execution at
-the \verb|next_pc| value computed by BRANCH/JAL/JALR.
+Then, the Retire action checks if Execute resulted in an exception or
+not. If an exception, it invokes \verb|fa_setup_exception| to record
+that.  If not an exception, it invokes \verb|fa_update_rd| to store
+the output value (this can only be a ``return address'' computed for
+JAL and JALR), and it invokes \verb|fa_redirect_Fetch| to resume
+execution at the \verb|next_pc| value computed by BRANCH/JAL/JALR.
 
-% ----------------------------------------------------------------
-
-\subsubsection{FSM actions in Execute Integer flow of Execute and Retire}
-
-\input{Code_Extracts/Drum_CPU_Int.tex}
-
-This sub-FSM is similar to the Control sub-FSM: it is itself an FSM
-with a sequence of two actions, one to execute and one to retire.  The
-Execute action invokes \verb|fn_EX_Int| (Section~\ref{Sec_fn_EX_Int})
-on the information provided by Dispatch, and stores the result in
-register \verb|rg_EX_to_Retire|.
-
-The Retire action checks if that resulted in an exception or not. If
-an exception, it invokes \verb|fa_setup_exception| to record that.  If
-not an exception, it invokes \verb|fa_update_rd| to store the output
-value and \verb|fa_redirect_Fetch| to resume execution at the
-fall-through PC.
+\input{Code_Extracts/Drum_Retire_Control.tex}
 
 % ----------------------------------------------------------------
 
-\subsubsection{FSM actions in DMem flow of Execute and Retire}
+\subsubsection{FSM actions in Execute and Retire Integer flow}
 
-\input{Code_Extracts/Drum_CPU_DMem.tex}
+This sub-FSM is similar to the Control sub-FSM: it is also a sequence
+of two actions.  The Execute action invokes \verb|fn_EX_Int|
+(Section~\ref{Sec_fn_EX_Int}) on the information provided by Dispatch,
+and stores the result in register \verb|rg_EX_to_Retire|.
 
-This sub-FSM is similar to Control and Integers sub-FSMs: it is itself
-an FSM with a sequence of two actions.  The Execute action just sends
-the memory-request provided by the Dispatch stage to memory by
-enqueueing it on the outgoing \verb|f_DMem_req| FIFO.
+\input{Code_Extracts/Drum_EX_Int.tex}
 
-The Retire action pops the mememory response from the incoming
+Then, the Retire action checks if Execute resulted in an exception or
+not. If an exception, it invokes \verb|fa_setup_exception| to record
+that.  If not an exception, it invokes \verb|fa_update_rd| to store
+the output value and \verb|fa_redirect_Fetch| to resume execution at
+the fall-through PC.
+
+\input{Code_Extracts/Drum_Retire_Int.tex}
+
+% ----------------------------------------------------------------
+
+\subsubsection{FSM actions in Execute and Retire DMem flow}
+
+This sub-FSM is similar to Control and Integers sub-FSMs: it is also a
+sequence of two actions.  The Execute action just sends the
+memory-request provided by the Dispatch stage to memory by enqueueing
+it on the outgoing \verb|f_DMem_req| FIFO.
+
+\input{Code_Extracts/Drum_EX_DMem.tex}
+
+Then, the Retire action pops the mememory response from the incoming
 \verb|f_DMem_rsp| FIFO.  If the memory returned an exception, we
 compute the proper cause code and then invoke
 \verb|fa_setup_exception()| to record it.  If the memory did not
@@ -454,17 +377,132 @@ return an exception, we invoke \verb|fa_update_rd()| to store any
 loaded value into the GPRs, and invoke \verb|fa_redirect_Fetch()| to
 resume execution at the fall-through PC.
 
+\input{Code_Extracts/Drum_Retire_DMem.tex}
+
 % ----------------------------------------------------------------
 
 \subsection{FSM actions for exceptions}
 
-\input{Code_Extracts/Drum_CPU_exc.tex}
+The final action of the Drum FSM is used in case any of the Retire
+flows recorded an exception.  It invokes the \verb|mav_exception()|
+method in the CSRs module, and invokes \verb|fa_redirect_Fetch| so
+that execution resumes at the trap-vector PC provided in CSR
+\verb|mt_vec|.
 
-The final action in the \verb|exec_one_instr| FSM checks register
-\verb|rg_exception| to see if any of the Retire flows recorded an
-exception.  If so, it invokes the \verb|mav_exception()| method in the
-CSRs module, and invokes \verb|fa_redirect_Fetch| so that execution
-resumes at the trap-vector PC provided in CSR \verb|mt_vec|.
+\input{Code_Extracts/Drum_exc.tex}
+
+% ****************************************************************
+
+\section{The Drum CPU module behavior}
+
+\label{Sec_Drum_CPU_module_behavior}
+
+\index{RISC-V!Drum CPU module behavior}
+\index{Drum!CPU module behavior}
+
+Having defined all the actions needed by Drum, we can now assemble
+them into the Drum FSM.  First we define an FSM specification
+\verb|exec_one_instr| (of type \verb|Stmt|) for executing a single
+instruction.
+
+Then, we embed that \verb|Stmt| in a next-level
+\verb|Stmt| in an infinite while-loop, preceded by an \verb|await|
+action that waits for the initial PC to be set by the \verb|init|
+method. Finally, we instantiate that \verb|Stmt| using a
+\verb|mkAutoFSM| module that will implement the behavior starting
+immediately when the circuit emerges from reset.  The FSM never stops,
+because of the infinite while-loop.
+
+{\small
+\begin{Verbatim}
+module mkCPU (CPU_IFC);
+   // STATE
+   ...
+   // ****************************************************************
+   // BEHAVIOR
+   ...
+\end{Verbatim}
+}
+
+\input{Code_Extracts/Drum_exec_one_instr.tex}
+\input{Code_Extracts/Drum_FSM.tex}
+
+{\small
+\begin{Verbatim}
+   // ****************************************************************
+   // INTERFACE
+   ...
+endmodule
+\end{Verbatim}
+}
+
+Recall that each \verb|Action| is instantaneous, and that FSMs
+sequence actions.  In the FSM, the Fetch action \verb|a_Fetch| takes
+place in one instant; the Decode action \verb|a_Decode| takes place at
+a later instant; the \verb|a_Register_Read_and_Dispatch| action takes
+place at an even later instant.  After that, the FSM goes down one of
+four alternative paths (Direct, Control, Int and DMem).  Finally, if
+\verb|rg_exception| is true, it performs \verb|a_exception|.
+
+The \verb|a_Fetch| action tries to enqueue an IMem request to memory
+and enqueue an \verb|Fetch_to_Decode| struct on an output FIFO.  The
+action is not ``enabled'' until both FIFOs have space available (are
+not full).  When the Fetch action fires, both enqueues are performed,
+atomically.
+
+The \verb|a_Decode| action tries to dequeue an IMem response from
+memory, dequeue a \verb|Fetch_to_Decode| struct from an imput FIFO,
+and enqueue a \verb|Decode_to_RR| struct on an output FIFO.  The
+action is not ``enabled'' until the input FIFOs have data available
+(are not empty) and the output FIFO has space available (is not full).
+When the Decode action fires, both dequeues and an the enqueue are
+performed, atomically.
+
+Thus, the time interval between the Fetch instant and the Decode
+instant is unpredictable; it depends on when input FIFOs are not empty
+and output FIFOs are not full (see dicussion in
+Section~\ref{Sec_mem_latency} on unpredictable memory latency).
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+Looking ahead to a topic we'll discuss in more detail in
+Chapter~\ref{ch_Rules_I}, each module interface method has a so-called
+\emph{implicit condition}, {\ie} an accompanying boolean value value
+that indicates when the method is READY or not or, to say it another
+way, whether the method is ENABLED or not.  For the FIFO methods
+``{\tt .first}'' and ``{\tt .deq}'', which are used by ``{\tt
+pop\_o}'' above, the methods are ready/enabled only when the FIFO is
+not empty.  The ``{\tt enq}'' method is ready/enabled only when the
+FIFO is not full.
+
+\vspace{1ex}
+
+The Decode action in the FSM is translated by the \emph{bsc} compiler
+into a BSV \emph{rule}.  A rule does not ``fire'' until all the
+implicit conditions in its method-calls are enabled.  This is why the
+Decode action implicitly waits until something is available in the
+FIFO.
+
+\end{minipage}}
+% ----------------
+
+% ----------------
+\hdivider
+
+\Exercise
+
+What might happen if we omitted the ``{\tt await!(rg\_running)}''
+statement in the Drum CPU? (Try it in simulation!)
+
+\emph{Hint:} The FSM may start running before the PC has been initialized ...
+
+\Endexercise
+% ----------------
 
 % ****************************************************************
 
@@ -536,6 +574,10 @@ this capability, the programmer may need to provide many additional
 directives to the compiler to guide it towards good quality hardware.
 We do not consider this to be a general purpose approach to hardware
 design.
+
+\vspace{1ex}
+
+See also Appendix~\ref{apx_Why_BSV} for more discussion on this topic.
 
 \end{minipage}}
 % ----------------
