@@ -2,6 +2,7 @@ FIGS += Fig_BSV_Package.png
 FIGS += Fig_Combo_Is_Legal_BRANCH.png
 FIGS += Fig_Combo_Multiplexer.png
 FIGS += Fig_Combo_Multiplexer_Cascade.png
+FIGS += Fig_CSRRxx.png
 FIGS += fig_Topics.png
 FIGS += Fig_FIFO.png
 FIGS += Fig_What_is_an_ISA.png

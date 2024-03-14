@@ -14,39 +14,122 @@
 
 % ****************************************************************
 
-% ----------------
-\vspace{2ex}
-
-\centerline{\includegraphics[width=1in,angle=0]{Figures/Fig_Under_Construction}}
-
-\vspace{2ex}
-% ----------------
-
 \section{Introduction}
 
-In this chapter we use show a manual translation of The Drum CPU
-behavior was shown using BSV's \verb|StmtFSM| construct in
-Section~\ref{Sec_Drum_CPU_module_behavior}.  Here we show a manual
-translation of the FSM into Rules, to reinforce the idea that
-\verb|StmtFSM| is just a convenient, higher-level view of rules;
-\verb|StmtFSM| does not add any genuine new semantic power to BSV.
+In Section~\ref{Sec_Drum_CPU_module_behavior} we showed the complete
+behavior of the Drum CPU module, coded using BSV's \verb|StmtFSM|
+construct for FSMs.
 
-construct.
-\begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
-  \caption{\label{Fig_Drum_II_Instr_Exec}
-           Simple interpretation of RISC-V instructions
-	   (same as Fig.~\ref{Fig_Simple_Instr_Exec_w_structs})}
-\end{figure}
+In this short chapter we show a manual translation of that FSM into
+BSV Rules.  Our first objective is to reinforce the fact that
+\verb|StmtFSM| does not add any fundamental new computational
+capability to BSV---anything that could be coded with \verb|StmtFSM|
+can also be coded with Rules.  \verb|StmtFSM| is just a convenient,
+more readable view of rules, when the FSM follows a structured flow.
+
+In other situations, where the FSM does not follow a structured flow,
+and certainly where we have multiple cooperating FSMs, Rules are often
+the more convenient medium of expression.  These ideas are explored in
+the exercises the end of the next section.
 
 % ****************************************************************
 
-\section{The Drum CPU module behavior}
+\section{The Drum CPU module behavior with Rules}
+
+First we define an enumeration type to give symbolic labels to all the
+Drum FSM actions:
+
+\input{Code_Extracts/Drum_Rules_Labels.tex}
+
+Then, we instantiate a register \verb|rg_action| to hold the label of
+the next action to be performed, initialzed to \verb|A_FETCH|.  We
+manually transform each FSM action into a rule.  Each rule's explicit
+condition checks \verb|rg_action|, and the rule-body updates
+\verb|rg_action| to enable the next action.  After the final rule to
+execute an exception, we assign \verb|A_FETCH| again to
+\verb|rg_action|, and the whole process repeats itself, forever.
+
+\input{Code_Extracts/Drum_Rules.tex}
+
+Please study the FSM version (in
+Section~\ref{Sec_Drum_CPU_module_behavior}) and the above code
+side-by-side, to see how straightforward it is manually to translate a
+\verb|StmtFSM| into Rules.
+
+% ================================================================
+
+\subsection{Optimizing the Drum rules}
+
+If we execute the Drum CPU on a RISC-V program and study the detailed,
+cycle-by-cycle execution trace, we will see many possibilities to
+eliminate ``wasted'' cycles.
+
+\begin{itemize}
+
+ \item In rule \verb|rl_Decode| we may detect an exception---the IMem
+       response itself could be an exception; or Decode may find the
+       fetched instruction to be illegal.  In case of an exception,
+       instead of proceeding to Register-Read-and-Dispatch, we could
+       directly process the exception and return to Fetch.
+
+ \item Similarly, rules \verb|rl_EX_Control|, \verb|rl_EX_Int| may
+       raise exceptions; in these cases, too, we could directly deal
+       with the exception and return to Fetch.
+
+ \item The Retire Direct CSRRxx action may raise an exception, which
+       is handled in the final exception action, which also accesses
+       the CSRs (to update trap registers and return the trap-vector
+       PC).  These could be fused into a single method in the CSR
+       module, after which  we could return directly to Fetch.
+
+ \item Because we are using (a subset of) standard CSRs, the only
+       exceptions in a CSRRxx instruction can be because we are
+       addressing an unsupported CSR, or we are attempting to update a
+       read-only CSR.  Both these questions can be decided in Decode,
+       in which case we can assume that, in Retire, the CSRRxx
+       treatment will not raise an exeption, and can go straight to
+       Fetch.
+
+ \item The Decode and Register-Read-and-Dispatch rules could be
+       ``fused'' into a single rule.  Currently, the former rule
+       leaves information in a register which is used by the latter
+       rule.  If fused, the information can be directly passed as a
+       value, and the intervening register could be eliminated.
+
+       Fusing rules together like this comes at a cost: the
+       combinational logic in a rule body becomes more complex.  This,
+       in turn, may require us to clock it at a slower speed.  Thus,
+       while we may have ``saved time'' by eliminating a ``tick'', we
+       may have made the ticks longer (slower clock).  Careful
+       analysis of the actual numbers is needed to judge whether such
+       a transformation is worth it or not.
+
+\end{itemize}
+
+These optimizations are easier to implement in the Rules version of
+Drum (instead of the \verb|StmtFSM| version), because the flow now
+becomes less structured, with ad-hoc jumps from some rules back to
+Fetch, {\etc}.  \verb|StmtFSM| can only express structured,
+properly-nested flows.
+
+% ----------------
+\hdivider
+
+\Exercise
+
+Implement some or all the ideas above and measure the results (circuit
+size, achievable clock speed, application program speed).
+
+\Endexercise
+% ----------------
 
 % ****************************************************************
 
 \section{Conclusion}
 
-And that is the complete Drum CPU!
+And that is the complete Drum CPU behavior, written using Rules!  The
+reason this was so easy, and why this chapter is so short, is that we
+reused all the \verb|Action| definitions defined earlier for the FSM
+version of Drum.
 
 % ****************************************************************

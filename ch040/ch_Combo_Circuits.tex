@@ -262,15 +262,11 @@ Fixed-width integer types all ``wrap-around''.  For example, if we add
 \verb|3'b_000|; if we subtract 1 from a \verb|Bit#(3)| value
 \verb|3'b_000|, the result will be \verb|3'b_111|.
 
-\index{BSV!Identifiers!First letter lower- or upper-case}
-\index{BSV!Identifiers!Type: initial upper-case letter}
-\index{BSV!Identifiers!Enum constant: initial upper-case letter}
-\index{BSV!Identifiers!Ordinary: initial lower-case letter}
-
 Note that all four type names begin with an upper-case letter.  This
 is true of all types in BSV: type names and enumeration constants
 begin with an upper-case letter, other identifiers begin with a
-lower-case letter.
+lower-case letter.  (See also
+Section~\ref{BSV_Syntax_of_Identifiers}.)
 
 % ****************************************************************
 
@@ -1027,16 +1023,22 @@ If-then-elses and conditional expressions can of course be nested:
 function Bool instr_opclass (Bit #(32) instr);
    OpClass result;
    if (is_legal_BRANCH (instr)
-      || is_legal_JAL (instr)
-      || is_legal_JALR (instr))
+       || is_legal_JAL (instr)
+       || is_legal_JALR (instr))
       result = OPCLASS_CONTROL;
-   else if (is_legal_OP (instr))
+   else if (is_legal_OP (instr)
+            || is_legal_OP_IMM (instr)
+            || is_legal_LUI (instr)
+            || is_legal_AUIPC (instr))
       result = OPCLASS_INT;
-   else if (is_legal_OP_IMM (instr))
-      result = OPCLASS_INT;
-   else if (is_legal_Mem (instr))
+   else if (is_legal_LOAD (instr)
+            || is_legal_STORE (instr))
       result = OPCLASS_MEM;
-   ... and so on ...
+   else if (is_legal_ECALL (instr)
+            || is_legal_EBREAK (instr)
+            || is_legal_MRET (instr)
+            || is_legal_CSRRxx (instr))
+      result = OPCLASS_SYSTEM;
    return result;
 endfunction
 \end{Verbatim}
@@ -1057,15 +1059,15 @@ Figure~\ref{Fig_Combo_Multiplexer_Cascade}
 
 \index{BSV!multiplexers!parallel}
 
-The circuit in Figure~\ref{Fig_Combo_Multiplexer_Cascade} has a
-serial structure---the \verb|OPCLASS_CONTROL| branch has priority, and
-only if its condition is False can one of the other results flow
-through.  Also observe that the longest path length increases
-\emph{linearly} with number of classes---here, \verb|OPCLASS_ILLEGAL|
-flows through all three multiplexers.
+The circuit in Figure~\ref{Fig_Combo_Multiplexer_Cascade} has a serial
+structure---the \verb|OPCLASS_CONTROL| branch has priority, and only
+if its condition is False can one of the other results flow through.
+Also observe that the longest path length increases \emph{linearly}
+with number of classes---here, \verb|OPCLASS_SYSTEM| flows through all
+four multiplexers.
 
 But we know from RISC-V instruction encodings that the
-\verb|OPCLASS_CONTROL|, \verb|OPCLASS_IALU| and \verb|OPCLASS_MEM|
+\verb|OPCLASS_CONTROL|, \verb|OPCLASS_INT| and \verb|OPCLASS_MEM|
 conditions are \emph{mutually exclusive}; no instruction
 simultaneously falls into more than one such class.  In such
 situations (mutually exclusive conditions) it is possible to create
@@ -1103,10 +1105,10 @@ are:
       the width of the \verb|OpClass| type and bitwise-AND'ing this
       with \verb|OPCLASS_CONTROL|.
 
-    \item Similarly, define values \verb|x_IALU| and \verb|x_MEM| that
-       is either \verb|OPCLASS_IALU|/\verb|OPCLASS_MEM| or 0 if the
+    \item Similarly, define values \verb|x_INT| and \verb|x_MEM| that
+       is either \verb|OPCLASS_INT|/\verb|OPCLASS_MEM| or 0 if the
        \verb|Bool| value of
-       \verb|is_legal_IALU()|/\verb|is_legal_MEM()| is False.
+       \verb|is_legal_INT()|/\verb|is_legal_MEM()| is False.
 
     \item Define a value \verb|x_ILLEGAL| that is either
       \verb|OPCLASS_ILLEGAL|, or 0 if any of

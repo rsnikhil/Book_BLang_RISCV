@@ -853,26 +853,144 @@ extension).
   \centerline{\frame{\includegraphics[width=6in,angle=0]{Figures/Fig_CSRRxx_spec}}}
   \caption{\label{Fig_CSRRxx_spec} CSRRxx instructions (from Unprivileged Spec)}
 \end{figure}
-
-As the text says, each CSR instruction:
+Each CSRRxx instruction:
 
 \begin{tightlist}
 
- \item reads a value $x$ from a general-purpose register (rs1) or
-       takes the rs1 field itself as a literal 5-bit value;
-
- \item reads a value $y$ from a CSR (whose 12-bit address is given in
+ \item reads a value $y$ from the CSR (whose 12-bit address is given in
        \verb|instr[31:20]|);
 
- \item returns $y$ into a general-purpose register (rd);
+ \item and writes $y$ into a general-purpose register (rd);
 
- \item and writes back a value into the CSR that is some function of
-       $x$ and $y$ (the details vary across the six CSRRxx
-       instructions).
+ \item takes a value $x$ either by reading from a general-purpose
+       register (rs1), or using the rs1 field itself as a literal
+       5-bit value and zero-extending it to XLEN bits;
+
+ \item and updates the value in the CSR using $x$.
 
 \end{tightlist}
-For details, please read the RISV-V Unprivileged ISA specification
-document, Chapter 9.
+
+Figure~\ref{Fig_CSRRxx} illustrates the semantics of CSRRxx instructions.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_CSRRxx}}
+  \caption{\label{Fig_CSRRxx} CSRRxx instruction semantics}
+\end{figure}
+Some important points:
+
+\begin{tightlist}
+
+ \item CSRRW and CSRRWI simply write the value $x$ into the CSR.
+
+ \item CSRRW and CSRRWI do not read the CSR if rd$=0$. Specifically,
+       even \emph{reading} a CSR can have side-effects for certain
+       CSRs, so avoiding this read prevents those side-effects.
+
+ \item In CSRRS and CSRRSI, for each ``1'' bits in $x$, it sets the
+       corresponding bits in the CSR to 1.
+
+ \item In CSRRC and CSRRCI, for each ``1'' bits in $x$, it clears the
+       corresponding bits in the CSR to 0.
+
+ \item CSRRS, CSRRSI, CSRRC and CSRRCI update the CSR only if rs1 is
+       not zero.  Specifically, \emph{writing} a CSR bit can have
+       side-effects for certain CSRs (beyond just writing that bit),
+       so avoiding this write prevents those side-effects.
+
+\end{tightlist}
+
+For more details, please read Chapter 9 of the RISV-V Unprivileged ISA
+specification.
+
+Three CSRs are often used to measure performance of a RISC-V CPU:
+INSTRET, CYCLE and TIME, and these are described in the following
+sections.
+
+% ----------------------------------------------------------------
+
+\subsubsection{CSRs INSTRET and INSTRETH}
+
+\label{Sec_CSRs_INSTRET}
+
+A RISC-V CPU contains a CSR to count the number of instructions that
+have executed completely (the technical term for which is
+``retired'').  The count is maintained by the hardware, incrementing
+on each retired instruction, and can be ready by software using a
+CSRRxx instruction.
+
+The CSR is 64 bits wide, so on RV32 systems, reading the INSTRET CSR
+returns the lower 32 bits and reading the INSTRETH CSR (H for
+``high'') returns the upper 32 bits.
+
+% ----------------------------------------------------------------
+
+\subsubsection{CSRs CYCLE and CYCLEH}
+
+\label{Sec_CSRs_CYCLE}
+
+A RISC-V CPU contains a CSR to count the number of clock cycles that
+have elapsed.  The count is maintained by the hardware, incrementing
+on each clock cycle, and can be ready by software using a CSRRxx
+instruction.
+
+The CSR is 64 bits wide, so on RV32 systems, reading the CYCLE CSR
+returns the lower 32 bits and reading the CYCLEH CSR (H for ``high'')
+returns the upper 32 bits.
+
+% ----------------------------------------------------------------
+
+\subsubsection{CSRs TIME and TIMEH, and memory-mapped location MTIME}
+
+\label{Sec_CSRs_TIME}
+
+Most modern computers have a so-called ``real-time clock'' which is a
+circuit that maintains precise actual elapsed time.  Unlike clock
+cycles, which may vary dynamically based on instantaneous performance
+and power-saving demands, a real-time clock advances at a fixed rate.
+Because real-time clock circuits can be complex and expensive, they
+are not required to be part of a RISC-V CPU itself.  Instead, they are
+memory-mapped devices---the CPU can issue a LOAD instruction to a
+particular address called the ``MTIME'' address to read a number
+representing ``ticks'' of a real-time clock.  By making it a
+memory-mapped device, a real-time clock can also be shared by multiple
+CPUs.
+
+RISC-V specifies the real-time clock to be a 64-bit memory-mapped
+register.  The exact rate at which it advances is not specified, as
+long as it is a constant rate.  Typically it ``ticks'' every few
+nanoseconds.
+
+In addition to accessing the real-time clock via LOAD instructions at
+the MTIME address, the CPU can also access it via CSRRxx instructions
+using the CSR address TIME.  In RV64 this returns the entire 64-bit
+value.  In RV32 it returns the lower 32 bits, and a CSRRxx access to
+the CSR address TIMEH returns the upper 32 bits.
+
+% ----------------------------------------------------------------
+
+\subsubsection{Measuring CPU performance}
+
+\label{Sec_CPU_Performance}
+
+\index{RISCV!IPC: instructions per cycle}
+\index{RISCV!CPI: cycles per instructions}
+
+Using the INSTRET and CYCLE CSRs, software can measure a standard
+metric for CPU implementations, CPI (Cycles per Instruction) or its
+inverse IPC (Instructions per Cycle).  These measures can vary
+depending on the current mix of instructions, because different
+instructions may take a different number of clocks to complete.  For
+example, simple integer-op instructions finish in few cycles, whereas
+the CPU may need more cycles to execute integer multiplication,
+division, and square root, and memory operations, and floating
+operations, and system instructions.  Memory operation may take fewer
+cycles on a cache-hit and TLB-hit and more cycles on a cache-miss or
+TLB-miss.  Further, modern advanced CPUs can dynamically vary their
+clock speeds depending on the instantaneous demand for performance
+and/or power-saving.
+
+By reading the TIME CSR before and after an application, software can
+measure the actual elapsed time to run a particular application on a
+particular input data-set on a particular RISC-V CPU implementation.
 
 % ****************************************************************
 

@@ -83,10 +83,8 @@ it as follows:
 \begin{Verbatim}[frame=single, numbers=left]
 function Result_F
          fn_Fetch (Bit #(XLEN)  pc,
-		   Bit #(XLEN)  predicted_pc,    // \belide{19}
-		   Epoch        epoch,
-		   File         flog,
-		   Bit #(64)    inum);           // \eelide
+		   ...
+		   Bit #(64)    inum);
       Result_F y = ?;
       ...
       return y;
