@@ -21,7 +21,9 @@ were discussed in Chapter~\ref{ch_Fife_Principles}.
 We repeat Figure~\ref{Fig_Instr_Exec_w_FIFOs} here, for reference.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_FIFOs}}
-  \caption{\label{Fig_Instr_Exec_w_FIFOs_2}Pipelined interpretation of RISC-V instructions (Fig.~\ref{Fig_Instr_Exec} with some annotations)}
+  \caption{\label{Fig_Instr_Exec_w_FIFOs_2}
+                  Pipelined interpretation of RISC-V instructions
+		  (Fig.~\ref{Fig_Instr_Exec} with some annotations)}
 \end{figure}
 
 % ****************************************************************
@@ -44,10 +46,10 @@ is sent out directly from \verb|stage_RR_RW| and the DMem response is
 collected directly by \verb|stage_Retire|.
 
 The STATE section then instantiates the ``forward-flow'' connections
-between modules (left to right in the figure), using the
-\verb|mkConnection| module to connect a \verb|FIFOF_O| interface
-(producer) to a \verb|FIFOF_I| interface (consumer), which was
-discussed in Section~\ref{Sec_connecting_FIFOs}.  These module
+between modules (left to right in the figure), using the \emph{bsc}
+library module \verb|mkConnection| to connect a \verb|FIFOF_O|
+interface (producer) to a \verb|FIFOF_I| interface (consumer), which
+was discussed in Section~\ref{Sec_connecting_FIFOs}.  These module
 connections are in the STATE section because, as discussed in
 Section~\ref{Sec_connecting_FIFOs} \verb|mkConnection| is just a
 module instantiation.
@@ -77,6 +79,59 @@ can directly substitute Drum for Fife and vice versa.  Generalizing
 this idea, we can develop other CPUs and substitute them, as well.
 
 We next go through the code for the individual stage modules.
+
+% ****************************************************************
+
+\section{How we connect stages}
+
+\label{Sec_Fife_connections}
+
+Each of the FIFO-labeled black arrows in
+Figure~\ref{Fig_Instr_Exec_w_FIFOs_2} is a FIFO-like connection
+between stages.  The general scheme we use is illustrated in
+Figure~\ref{Fig_Fife_connections}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Composed_FIFO_modularity}}
+  \caption{\label{Fig_Fife_connections} How we connect Fife stages}
+\end{figure}
+
+In the upstream (producer) stage we instantiate a
+\verb|mkPipelineFIFOF|.  The rules in the stage enqueue outgoing
+information into the \verb|FIFO_I| side of the FIFO using the
+\verb|enq| method, and we lift the \verb|FIFO_O| side to the
+stage-module interface.
+
+Conversely, in the downstream (consumer) stage we instantiate a
+\verb|mkBypassFIFOF|.  The rules in the stage consume incoming
+information from the \verb|FIFO_O| side of the FIFO using the
+\verb|first| and \verb|deq| methods, and we lift the \verb|FIFO_I|
+side to the stage-module interface.
+
+Finally, in the parent module (\verb|mkCPU|), we use
+\verb|mkConnection| to connect the exposed \verb|FIFO_O| and
+\verb|FIFO_I| ends of the FIFOs.
+
+PipelineFIFOs, BypassFIFOs and this way of connecting stages are
+discussed in great detail in Section~\ref{Sec_SpecialFIFOs}.  Suffice
+it to say, here, that:
+
+\begin{tightlist}
+
+ \item Despite there being two FIFOs, data can traverse from producer
+       to consumer in 1 tick, as desired.
+
+ \item The structure allows the producer and consumer to be compiled
+       independently by \emph{bsc}, with no ``rule-scheduling''
+       constraints leaking across stage boundaries.
+
+ \item There are no combinational paths crossing the stage boundary
+       (through the two FIFOs).
+
+ \item The structure allows us to reason about (and prove) correctness
+       of each stage completely independently of other stages.
+
+\end{tightlist}
+All of these are pleasing ``modularity'' properties of the design.
 
 % ****************************************************************
 
@@ -258,7 +313,18 @@ the rule fires, it:
        step of Drum, and described in Section~\ref{Sec_fn_Decode}),
        and
 
- \item sends the result on to the Register-Read stage.
+ \item sends the result $y$ of type \verb|Decode_to_RR| on to the
+       Register-Read stage.
+\end{tightlist}
+
+Note that \verb|fn_Decode|'s \verb|Decode_to_RR| output has a boolean
+\verb|has_rd| field which is:
+
+\begin{tightlist}
+ \item false for those instructions that do not have an rd field;
+
+ \item true for those instructions that do have an rd field, \emph{and
+       where {\tt rd} is not zero}.
 \end{tightlist}
 
 The INTERFACE section is again straightforward, just lifting the FIFO
@@ -485,7 +551,9 @@ again the next time the rule fires.
 
 The next several lines compute the stall condition by checking the
 scoreboard for whether rs1, rs2 or rd are busy (if the instruction has
-rs1, rs2 or rd, respectively).
+rs1, rs2 or rd, respectively).  Note that an instruction with an rd
+field, but where rd==0, will not stall because Decode will have set
+\verb|has_rd| to false.
 
 If we stall, the rule takes no action; everything will be retried the
 next time it fires.
@@ -505,8 +573,12 @@ on the direct path (\verb|y.to_Retire|), to Execute Control
 (\verb|y.to_Control|), and to Execute Int and Execute DMem
 (\verb|y.toEX|).
 
-If the instruction has an rd, we mark it on the scoreboard.  We
-enqueue \verb|y.to_Retire| on the direct flow (FIFO
+If the instruction has an rd, we reserve it on the scoreboard.  Note
+that if an instruction has an rd field, but rd=0, Decode would have
+marked \verb|has_rd| false, and so we never take a reservation on
+register \verb|x0|.
+
+We enqueue \verb|y.to_Retire| on the direct flow (FIFO
 \verb|f_RR_to_Retire|).
 
 The remaining code is a nested if-then-else that sends information
