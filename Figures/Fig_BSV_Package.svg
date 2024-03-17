@@ -41,13 +41,13 @@
      inkscape:document-units="mm"
      showgrid="true"
      units="in"
-     inkscape:zoom="4.1799165"
-     inkscape:cx="288.40289"
-     inkscape:cy="263.16315"
+     inkscape:zoom="2.5718919"
+     inkscape:cx="380.84805"
+     inkscape:cy="392.3182"
      inkscape:window-width="2560"
      inkscape:window-height="1499"
      inkscape:window-x="32"
-     inkscape:window-y="61"
+     inkscape:window-y="33"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -507,7 +507,7 @@
      id="layer1"
      style="display:inline">
     <rect
-       style="fill:#ffeeaa;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#ffe680;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect117"
        width="40.542496"
        height="70.079559"
@@ -529,16 +529,16 @@
     <text
        xml:space="preserve"
        style="font-size:2.82222px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;fill:#000000;stroke-width:0.264583"
-       x="51.881195"
+       x="50.076653"
        y="54.932331"
        id="text163"><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Italic';text-align:start;text-anchor:start;fill:#000000;stroke-width:0.264583"
-         x="51.881195"
+         x="50.076653"
          y="54.932331"
-         id="tspan164">file Foo.bsv</tspan></text>
+         id="tspan164">file Phoux.bsv</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 103.46344,114.80593 72.449674,113.69755"
        id="path80" />
     <text
@@ -551,53 +551,45 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="104.6139"
          y="115.09368"
-         id="tspan124">Module definitions (allowed at top-level and inner scopes)</tspan></text>
-    <g
-       id="g56"
-       transform="translate(-10.054167,-3.1750001)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect39"
-         width="18.200151"
-         height="3.8724275"
-         x="50.271252"
-         y="124.83105" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.14344"
-         y="127.45033"
-         id="text3"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.14344"
-           y="127.45033"
-           id="tspan3">endpackage</tspan></text>
-    </g>
-    <g
-       id="g44"
-       transform="translate(-10.054167,-2.9544807)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect31"
-         width="24.964348"
-         height="3.8724275"
-         x="50.271252"
-         y="66.093521" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.060242"
-         y="68.719444"
-         id="text8"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.060242"
-           y="68.719444"
-           id="tspan8">import Baz :: *;</tspan></text>
-    </g>
+         id="tspan124">Module definitions (top-level and inner scopes)</tspan></text>
     <rect
-       style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect39"
+       width="18.200151"
+       height="3.8724275"
+       x="40.217083"
+       y="122.1852" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.089272"
+       y="124.8045"
+       id="text3"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.089272"
+         y="124.8045"
+         id="tspan3">endpackage</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect31"
+       width="24.964348"
+       height="3.8724275"
+       x="40.217083"
+       y="63.139042" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.006073"
+       y="65.764961"
+       id="text8"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.006073"
+         y="65.764961"
+         id="tspan8">import Baz :: *;</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect32"
        width="35.453609"
        height="3.8724275"
@@ -614,190 +606,162 @@
          x="40.089272"
          y="70.747993"
          id="tspan10">export a, M_IFC (..), mkM;</tspan></text>
-    <g
-       id="g48"
-       transform="translate(-10.054167,-1.763736)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect34"
-         width="32.855911"
-         height="3.8724275"
-         x="50.271252"
-         y="79.85186" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.196495"
-         y="82.48381"
-         id="text13"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.196495"
-           y="82.48381"
-           id="tspan17">typedef struct { ... } S;</tspan></text>
-    </g>
-    <g
-       id="g47"
-       transform="translate(-10.054167,-1.9842593)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect33"
-         width="32.855911"
-         height="3.8724275"
-         x="50.271252"
-         y="75.089355" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.196495"
-         y="77.721306"
-         id="text19"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.196495"
-           y="77.721306"
-           id="tspan18">typedef enum { ... } E;</tspan></text>
-    </g>
-    <g
-       id="g54"
-       transform="translate(-10.054167,-2.7681301)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.199999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect38"
-         width="31.42108"
-         height="10.124185"
-         x="50.271252"
-         y="113.18939" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.271252"
-         y="116.05872"
-         id="text20"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="116.05872"
-           id="tspan19">module mkM (M_IFC);</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="119.17089"
-           id="tspan20">  ...</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="122.28307"
-           id="tspan21">endmodule</tspan></text>
-    </g>
-    <g
-       id="g50"
-       transform="translate(-10.054167,-2.07238)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect35"
-         width="24.861858"
-         height="3.8724275"
-         x="50.271252"
-         y="85.143532" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.030094"
-         y="87.769455"
-         id="text22"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.030094"
-           y="87.769455"
-           id="tspan22">Bit #(32) a = 23;</tspan></text>
-    </g>
-    <g
-       id="g51"
-       transform="translate(-10.054167,-2.3810239)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect37"
-         width="37.877811"
-         height="10.021697"
-         x="50.271252"
-         y="90.435204" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.271252"
-         y="93.259315"
-         id="text25"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="93.259315"
-           id="tspan23">function Bit #(32) foo (...);</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="96.371483"
-           id="tspan27">   ...</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="99.483658"
-           id="tspan25">endfunction</tspan></text>
-    </g>
-    <g
-       id="g42"
-       transform="translate(-10.054167,-3.1750001)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect29"
-         width="21.377274"
-         height="3.8724275"
-         x="50.271252"
-         y="61.331013" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.048183"
-         y="63.950302"
-         id="text10"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.048183"
-           y="63.950302"
-           id="tspan1">package Foo;</tspan></text>
-    </g>
-    <g
-       id="g53"
-       transform="translate(-10.054167,-2.6854255)">
-      <rect
-         style="fill:#cccccc;stroke:none;stroke-width:0.199999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-         id="rect40"
-         width="31.42108"
-         height="10.124185"
-         x="50.271252"
-         y="101.8719" />
-      <text
-         xml:space="preserve"
-         style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
-         x="50.271252"
-         y="104.74726"
-         id="text42"><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="104.74726"
-           id="tspan40">interface M_IFC;</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="107.85943"
-           id="tspan41">  ...</tspan><tspan
-           sodipodi:role="line"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
-           x="50.271252"
-           y="110.9716"
-           id="tspan42">endinterface</tspan></text>
-    </g>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect34"
+       width="32.855911"
+       height="3.8724275"
+       x="40.217083"
+       y="78.088127" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.142326"
+       y="80.720078"
+       id="text13"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.142326"
+         y="80.720078"
+         id="tspan17">typedef struct { ... } S;</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect33"
+       width="32.855911"
+       height="3.8724275"
+       x="40.217083"
+       y="73.105095" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.142326"
+       y="75.737045"
+       id="text19"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.142326"
+         y="75.737045"
+         id="tspan18">typedef enum { ... } E;</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.199999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect38"
+       width="31.42108"
+       height="10.124185"
+       x="40.217083"
+       y="110.42126" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.217083"
+       y="113.2906"
+       id="text20"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="113.2906"
+         id="tspan19">module mkM (M_IFC);</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="116.40276"
+         id="tspan20">  ...</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="119.51495"
+         id="tspan21">endmodule</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect35"
+       width="24.861858"
+       height="3.8724275"
+       x="40.217083"
+       y="83.071152" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="39.975925"
+       y="85.697075"
+       id="text22"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="39.975925"
+         y="85.697075"
+         id="tspan22">Bit #(32) a = 23;</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect37"
+       width="37.877811"
+       height="10.021697"
+       x="40.217083"
+       y="88.054176" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.217083"
+       y="90.878288"
+       id="text25"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="90.878288"
+         id="tspan23">function Bit #(32) foo (...);</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="93.990456"
+         id="tspan27">   ...</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="97.102631"
+         id="tspan25">endfunction</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect29"
+       width="21.377274"
+       height="3.8724275"
+       x="40.217083"
+       y="57.626846" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="39.994015"
+       y="60.246136"
+       id="text10"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="39.994015"
+         y="60.246136"
+         id="tspan1">package Phoux;</tspan></text>
+    <rect
+       style="fill:#fff6d5;stroke:none;stroke-width:0.199999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect40"
+       width="31.42108"
+       height="10.124185"
+       x="40.217083"
+       y="99.186478" />
+    <text
+       xml:space="preserve"
+       style="font-size:2.46944px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
+       x="40.217083"
+       y="102.06184"
+       id="text42"><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="102.06184"
+         id="tspan40">interface M_IFC;</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="105.174"
+         id="tspan41">  ...</tspan><tspan
+         sodipodi:role="line"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
+         x="40.217083"
+         y="108.28618"
+         id="tspan42">endinterface</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
@@ -810,16 +774,16 @@
          y="57.993828"
          id="tspan56">Filename and packagename must match (bsc will complain if not)</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
-       d="M 94.696343,57.209623 69.247651,54.057273"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.0999999;stroke-dasharray:none;marker-end:url(#marker2878)"
+       d="M 94.690804,57.209623 70.787561,54.057273"
        id="path56" />
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
-       d="M 94.669383,62.099561 62.112052,61.153232"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       d="M 94.669718,62.155433 62.009324,60.262279"
        id="path65" />
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
-       d="M 94.411913,57.333386 57.328439,59.898164"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       d="M 94.398906,57.353747 62.157272,58.915101"
        id="path66" />
     <text
        xml:space="preserve"
@@ -831,7 +795,9 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="95.509178"
          y="62.756332"
-         id="tspan66">Package statement (with end-package) is optional; if omitted, bsc will use filename</tspan></text>
+         id="tspan66">Package statement (with end-package) is optional; if omitted, <tspan
+   style="font-style:normal;font-weight:bold"
+   id="tspan2">bsc</tspan> will use filename</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:start;letter-spacing:0px;word-spacing:0px;text-anchor:start;stroke-width:0.264583"
@@ -842,21 +808,21 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="98.378838"
          y="68.495651"
-         id="tspan67">import/export statements</tspan></text>
+         id="tspan67">import/export statements (at top-level of packages only)</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 97.409695,67.792963 65.68092,64.640613"
        id="path67" />
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 97.020407,67.932838 75.782006,69.75785"
        id="path68" />
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 103.51679,77.82863 74.048821,75.065399"
        id="path70" />
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.0999998;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 103.19898,77.970899 73.728526,80.535677"
        id="path71" />
     <text
@@ -869,9 +835,9 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="104.19965"
          y="78.549828"
-         id="tspan71">Type declarations (only allowed at top-level pf packages)</tspan></text>
+         id="tspan71">Type declarations (at top-level of packages only)</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 110.72044,91.062009 78.230481,93.626787"
        id="path73" />
     <text
@@ -884,9 +850,9 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="112.13715"
          y="91.72435"
-         id="tspan73">Function definitions (allowed at top-level and inner scopes)</tspan></text>
+         id="tspan73">Function definitions (at top-level and inner scopes)</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.0999999;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.0999999;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="m 112.15549,101.9536 -40.006662,2.40239"
        id="path75" />
     <text
@@ -899,9 +865,9 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="113.05177"
          y="102.44576"
-         id="tspan75">Interface declarations (only allowed at top-level pf packages)</tspan></text>
+         id="tspan75">Interface declarations (at top-level of packages only)</tspan></text>
     <path
-       style="fill:#e9afaf;stroke:#000000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
+       style="fill:#e9afaf;stroke:#d40000;stroke-width:0.1;stroke-dasharray:none;marker-end:url(#marker2878)"
        d="M 105.51704,82.904712 65.760868,85.388253"
        id="path92" />
     <text
@@ -914,7 +880,7 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="106.66404"
          y="83.565369"
-         id="tspan96">Value definitions (allowed at top-level and inner scopes)</tspan></text>
+         id="tspan96">Value definitions (at top-level and inner scopes)</tspan></text>
   </g>
   <g
      inkscape:groupmode="layer"

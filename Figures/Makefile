@@ -1,6 +1,8 @@
 FIGS += Fig_AUIPC.png
 FIGS += Fig_B_imm.png
 FIGS += Fig_BSV_Package.png
+FIGS += Fig_BSV_namespace_control.png
+FIGS += Fig_BSV_program_structure.png
 FIGS += Fig_Clock.png
 FIGS += Fig_Combo_Is_Legal_BRANCH.png
 FIGS += Fig_Combo_Multiplexer.png

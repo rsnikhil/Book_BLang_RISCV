@@ -33,9 +33,34 @@ We will also describe how we can import C code for use by BSV.
 
 Like many programming languages, BSV has facilities to organize large
 programs into separately compilable, meaningful, reusable parts.  A
-BSV program may be organized into one or more \emph{files}.  There is
-a one-to-one correspondence between files and
-packages. Figure~\ref{Fig_BSV_Package} illustrates the typical
+BSV program may be organized into one or more \emph{files} or
+\emph{packages}.  This is illustrated in
+Figure~\ref{Fig_BSV_program_structure}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_program_structure}}
+  \caption{\label{Fig_BSV_program_structure}
+           File-level view of a BSV program}
+\end{figure}
+
+A package can contain a number of top-level statements (more detail
+about this in Section~\ref{Sec_package_contents}).  One kind of
+top-level statment is the ``\verb|import|'' statement, illustrated in
+the diagram.  This allows an importing package $p_1$ to use all the
+identifiers exported by a package $p_2$ (in addition to indentifiers
+defined in $p_1$ itself).
+
+There is a one-to-one correspondence between files and packages.  In
+each import statements in the diagram we provide a package name $p$;
+the \emph{bsc} compiler uses the imported package name $p$ to find a
+file called $p$\verb|.bsv| containing the definition of package $p$.
+
+% ****************************************************************
+
+\section{What's in a Package?}
+
+\label{Sec_package_contents}
+
+Figure~\ref{Fig_BSV_Package} illustrates the typical
 structure and contents of a package/file.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Package}}
@@ -45,24 +70,26 @@ structure and contents of a package/file.
 
 The \verb|package|--\verb|endpackage| brackets---the first and last
 lines of the file---are optional; if omitted, the \emph{bsc} compiler
-will implicitly create a package name.  We recommend always to use
-\verb|package|--\verb|endpackage|, except perhaps for small,
-experimental, one-off programs to test some small concept.
+will implicitly create a package name using the file name.  We
+recommend always to use \verb|package|--\verb|endpackage|, except
+perhaps for small, experimental, one-off programs to test some small
+concept.
 
 At the top-level of a package we find import/export statements, type
 declarations, value definitions, function definitions interface
 declarations and module definitions.
 
 Import/export statements and type and interface declarations are only
-allowed at the top-level of a package and not inside any nested scopes
-An interface declarations is just a kind of type declaration, and
-declared interface identifiers are used just like types.
+allowed at the top-level of a package and not inside any nested
+scopes.  An interface declaration is just a kind of type declaration;
+its declared interface identifier is used just like a type.
 
-Value, function and module definitions can also be inside nested
-scopes (inside function and module definitions, or other local scopes
-like \verb|begin|--\verb|end| and \verb|action|--\verb|endaction|
-blocks).  Function and module definitions are, in fact, just value
-definitions of functional and module type, respectively.
+Value, function and module definitions appear at package top-level,
+but can also be inside nested scopes (inside function and module
+definitions, or other local scopes like \verb|begin|--\verb|end| and
+\verb|action|--\verb|endaction| blocks).  Function and module
+definitions are, in fact, just value definitions of functional and
+module type, respectively.
 
 The top-to-bottom order of entities in a package is not important,
 just that if an entity $x$ is defined in the package and used by
@@ -74,27 +101,36 @@ Each package/file is separately compiled by the \emph{bsc} compiler,
 which saves information about the compilation so that it won't be
 recompiled unless the source file has subsequently been modified.
 
-% ================================================================
+% ****************************************************************
 
-\subsection{Visibility of names, exports and imports}
+\section{Visibility of names, exports and imports}
 
 The \verb|package|, \verb|import| and \verb|export| statements work
 just like in SystemVerilog (in fact, using the same syntax).  The
 \verb|export| and \verb|import| statements control visibility of names
-across packages.
+across packages.  This is illustrated in Figure~\ref{Fig_BSV_namespace_control}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_namespace_control}}
+  \caption{\label{Fig_BSV_namespace_control}
+           Namespace control with imports and exports}
+\end{figure}
 
 \index{BSV!export@{\tt export} statement}
 \index{BSV!import@{\tt export} statement}
 
-A package \verb|Foo| that defines a name $x$ can make it visible
-outside using an \verb|export| statement.  As a shorthand, if there is
-no \verb|export| statement, then \emph{all} the names defined in a
-package are made visible outside.  For convenient readability the
-exported names can be provided in multiple \verb|export| statements.
+A package \verb|P| that defines a name $x$ can make it visible outside
+using an \verb|export| statement.  As a shorthand, if there is no
+\verb|export| statement, then \emph{all} the names defined in a
+package are made visible outside.  For convenient readability, if
+there are many explicitly exported names, they can be provided using
+multiple \verb|export| statements.
 
-If a package \verb|Foo| needs to use a name $x$ defined in some other
-package \verb|Baz|, it must explicitly ``\verb|import|'' the package
-with the syntax:
+A package \verb|Glurph| can also \emph{re-export} names it has
+imported from some other package \verb|Phrym|.
+
+If a package \verb|Phoux| needs to use a name \verb|x| defined in some
+other package \verb|Baz|, it must explicitly ``\verb|import|'' the
+package with the syntax:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -102,7 +138,8 @@ import Baz :: *;
 \end{Verbatim}
 }
 
-which makes all the names exported by Foo available for use.
+which makes all the names exported by \verb|Baz| available for use in
+\verb|Phoux|.
 
 % ----------------
 \vspace{2ex}
@@ -111,13 +148,26 @@ NOTE:
 \fbox{\small
 \begin{minipage}{5in}
 
-In SystemVerilog, in an {\tt import} statement, instead of ``{\tt *}''
-one can list just the names actually needed by the importing package,
-one does not have to make all the names available.  This selective
+In SystemVerilog, in {\tt import} statement, instead of ``{\tt *}''
+one can list just the names actually needed, one does not have to
+import all the names exported by another package.  This selective
 import is not currently supported in BSV.
 
 \end{minipage}}
 % ----------------
+
+% ================================================================
+
+\subsection{Resolving ambiguous imports}
+
+\index{BSV!Fully-qualified imported names}
+
+If a package \verb|Phoux| imports two other packages \verb|Baz| and
+\verb|Glurph|, and both those packages define an identifier \verb|x|,
+then the identifier \verb|x| is ambiguous in \verb|Phoux|.  This can
+always be resolved by replacing any use of \verb|x| in \verb|Phoux| by
+a so-called \emph{fully qualified name}, \verb|Baz::x| or
+\verb|Glurph::x| to identify exactly which \verb|x| is intended.
 
 % ================================================================
 
@@ -126,7 +176,8 @@ import is not currently supported in BSV.
 \index{BSV!Exporting types abstractly}
 
 When exporting a struct type \verb|S| or enum type \verb|E| using
-\verb|export|, there is a difference these two ways of exporting:
+\verb|export|, there is a difference between these two ways of
+exporting:
 
 \begin{center}
  \begin{tabular}{ccc}
@@ -135,14 +186,14 @@ When exporting a struct type \verb|S| or enum type \verb|E| using
  \end{tabular}
 \end{center}
 
-In the left-hand versions the field names of the struct and the labels
-of the enum are also made visible; in the latter, they are not.  The
-latter case useful in defining a so-called ``\emph{abtract data
+In the versions on the left the field names of the struct and the
+labels of the enum are also made visible; on the right, they are not.
+The latter case useful in defining a so-called ``\emph{abtract data
 type}'', {\ie} a type that is known outside the package but whose
 internal details are hidden.
 
 Since an interface is just like a struct type, if we explicitly export
-one we typically use:
+it we typically use:
 
 \begin{center}
 \mbox{\tt export M\_IFC (..);}
@@ -150,19 +201,6 @@ one we typically use:
 
 since we normally want all the interface methods in the interface to
 be visible.
-
-% ================================================================
-
-\subsection{Resolving ambiguous imports}
-
-\index{BSV!Fully-qualified imported names}
-
-If a package imports two other packages \verb|P1| and \verb|P2|, and
-both those packages define an identifier \verb|x|, then the identifier
-\verb|x| is ambiguous in the current package.  This can always be
-resolved by replacing any use of \verb|x| by a so-called \emph{fully
-qualified name}, \verb|P1::x| or \verb|P2::x| to identify exactly
-which \verb|x| is intended.
 
 % ****************************************************************
 
