@@ -159,6 +159,61 @@ Sections~\ref{Sec_Register_interface}, \ref{Sec_RegFile_interface} and
 \ref{Sec_FIFOF_interface} show the interface declaration for BSV
 library modules: Registers, Register Files and FIFOs, respectively.
 
+% ----------------------------------------------------------------
+
+\subsubsection{Hardware for an interface}
+
+\label{Sec_Interface_HW}
+
+An interface method has zero or more arguments.  Its result-type falls
+in one of three categories, as introduced in
+Section~\ref{Sec_Pure_vs_Side_Effect_functions}:
+\begin{tightlist}
+
+ \item Type {\tt Action}: possible side-effect
+
+ \item Type {\tt ActionValue \#($t$)}: possible side-effect
+       that also returns a value of type $t$
+
+ \item Type $t$ (``value'') that is neither of the above: pure (no
+       side-effect) returning a value of type $t$
+
+\end{tightlist}
+
+The types of the method arguments, and the method result type,
+together completely determine the specific hardware (input/output
+wires and buses) at the module interface corresponding to that method.
+This is illustrated in Figure~\ref{Fig_Interface_Buses}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Interface_Buses}}
+  \caption{\label{Fig_Interface_Buses}
+           Hardware wires/buses for interface methods of {\tt ActionValue($t$)}, {\tt Action} and value result types}
+\end{figure}
+
+All methods have a READY output wire corresponding to its
+\emph{implicit condition}.  This is discussed in more detail in
+Chapter~\ref{ch_Rules_I}, but, briefly, it is a boolean value
+indicating when it is meaninful to invoke this interface method.  For
+example consider the ``\verb|first|'' method in a FIFO that returns
+the value at the head of the FIFO.  This method is not meaningful if
+the FIFO is empty.  Thus, its READY method is an indication that there
+is data available in the FIFO.
+
+{\tt Action} and {\tt ActionValue($t$)} methods have an ENABLE input
+wire.  The environment of the module asserts this wire (drive ``1'' on
+the wire) when it wants the module to perform the method's action
+(write a register, enqueue and item, dequeue an item, ...).  Value
+methods do not have any side-effect, {\ie} they do not perform any
+action, and so they do not have any ENABLE input.
+
+{\tt ActionValue($t$)} and value methods have a result-data output bus
+(bundle of wires).  {\tt Action} methods, since they return no result,
+have not result-data output bus.
+
+For all three categories of methods, arguments are treated in the same
+way: each argument of type $t$ has an input data bus of the
+appropriate width to carry values of type $t$.
+
 % ================================================================
 
 \subsection{Module definitions}
@@ -612,6 +667,45 @@ capacities for each FIFO instance as required by its use context.  We
 also want to be able flexibly and transparently to substitute a FIFO
 with another that has greater or less capacity.
 
+% ----------------------------------------------------------------
+
+\subsubsection{{\tt pop}: a useful function combining {\tt first} and {\tt deq}}
+
+\label{Sec_FIFOF_pop}
+
+\index{BSV!FIFOF@{\tt FIFOF}!pop@{\tt pop} method}
+\index{BSV!pop@{\tt pop}!FIFOF@{\tt FIFOF} method}
+
+The reason that the \verb|first| and \verb|deq| methods are separated
+is because there are many situations where we wish to examine the head
+of a FIFO and only consume the value if it matches some condition of
+interest.  But there are many situations where we don't need this
+generality, and we invoke both methods together in the same action.
+For convenience we define a function for this:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function ActionValue #(t) pop (FIFOF #(t) fifo);
+   actionvalue
+      let x = fifo.first;
+      fifo.deq;
+      return x;
+   endactionvalue
+endfunction
+\end{Verbatim}
+}
+
+This must be an {\tt ActionValue} function because it performs a
+side-effect ({\tt deq}) and returns a value (from {\tt first}).  This
+is then invoked with the usual syntax for invoking ActionValues:
+
+{\small
+\begin{Verbatim}[frame=single]
+   let y <- pop (fifo);
+\end{Verbatim}
+}
+
+
 % ================================================================
 
 \subsection{{\tt mkFIFOF}, a FIFO module (constructor) from the BSV library}
@@ -730,6 +824,34 @@ endinterface
 
 There is no extra hardware implied here; these are simply limited
 ``views'', or abstractions of an existing FIFO interface.
+
+\index{BSV!FIFOF\_O@{\tt FIFOF\_O}!pop\_o@{\tt pop\_o} method}
+\index{BSV!pop\_o@{\tt pop\_o}!FIFOF\_O@{\tt FIFOF\_O} method}
+
+It is convenient to define a \verb|pop_o| function to combine the {\tt
+first} and {\tt deq} methods of a {\tt FIFOF\_O}, just like we defined
+the {\tt pop} function on {\tt FIFOF}s in Section~\ref{Sec_FIFOF_pop}.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+function ActionValue #(t) pop (FIFOF_O #(t) fo);
+   actionvalue
+      let x = fo.first;
+      fo.deq;
+      return x;
+   endactionvalue
+endfunction
+\end{Verbatim}
+}
+
+This is then invoked with the usual syntax for invoking ActionValues:
+
+{\small
+\begin{Verbatim}[frame=single]
+   let y <- pop (fo);
+\end{Verbatim}
+}
+
 
 % ================================================================
 

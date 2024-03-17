@@ -18,6 +18,7 @@ FIGS += Fig_FIFO_Producer_Consumer.png
 FIGS += Fig_Instr_Exec.png
 FIGS += Fig_Instr_Exec_w_structs.png
 FIGS += Fig_Instr_Exec_w_FIFOs.png
+FIGS += Fig_Interface_Buses.png
 FIGS += Fig_ISA_Modularity.png
 FIGS += Fig_J_imm.png
 FIGS += Fig_JAL_JALR.png
