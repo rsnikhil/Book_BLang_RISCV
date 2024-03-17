@@ -8,5 +8,7 @@
 *.log
 *.out
 *.toc
+*.lof
+*.lot
 README.html
 Code_Extracts/*.tex
