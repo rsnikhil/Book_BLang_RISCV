@@ -25,14 +25,14 @@ SOURCES = \
 		ch010_intro/ch_intro.tex \
 		ch020_ISA/ch_ISA.tex \
 		ch030_RISCV_Design_Space/ch_RISCV_Design_Space.tex \
-		ch040/ch_Combo_Circuits.tex \
-		ch050/ch_struct_mem_req_rsp.tex \
-		ch060/ch_Core_Functions.tex \
-		ch070/ch_Modules_Interfaces.tex \
-		ch080/ch_GPRs_CSRs.tex \
-		ch090/ch_FSMs.tex \
-		ch100/ch_Drum_CPU.tex \
-		ch110/ch_Top_Packages.tex \
+		ch040/ch_Top_Packages.tex \
+		ch050/ch_Combo_Circuits.tex \
+		ch060/ch_struct_mem_req_rsp.tex \
+		ch070/ch_Core_Functions.tex \
+		ch080/ch_Modules_Interfaces.tex \
+		ch090/ch_GPRs_CSRs.tex \
+		ch100/ch_FSMs.tex \
+		ch110/ch_Drum_CPU.tex \
 		ch120/ch_Drum_Top.tex \
 		ch130/ch_Rules_I.tex \
 		ch140/ch_Drum_Rules.tex \
