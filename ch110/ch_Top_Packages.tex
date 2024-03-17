@@ -16,13 +16,24 @@
 
 \section{Introduction}
 
-In this chapter we describe the BSV facilities for managing large BSV
-programs: organizing them into separately compilable packages,
-controlling which entities in a package are visible outside the
-package (exports), and referring from one package to entities defined
-in another package (imports).
+In this chapter we describe the top-level view of a BSV program.  Like
+any industrial-strength computer language, BSV has facilities for
+managing large BSV programs: organizing them into separately
+compilable, purposeful and often reusable packages.  Each package
+typically defines a collection of entities (types, constants,
+functions, hardware interfaces and hardware modules) that together
+implement some well-defined purpose.  We can control which entities in
+a package are visible outside the package (exports), and which
+external entities are visible inside a package (imports).
 
-We will also describe how we can import C code for use by BSV.
+We will also describe how we can import C code for use by BSV.  This
+facility is only used in simulation (C code does not result in any
+hardware), and it is principally used in \emph{testbenches} for
+designs.
+
+In Drum and Fife code, the whole CPU design is written in BSV.
+However, to test the CPU we need to connect it to a memory system, and
+for that we use imported C.
 
 % ****************************************************************
 
