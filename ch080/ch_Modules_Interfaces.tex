@@ -788,6 +788,8 @@ representation in bits.
 
 \subsection{Semi-FIFO interfaces for each end of a FIFO}
 
+\label{Sec_Semi_FIFOs}
+
 FIFOs are often used to connect two separate modules together, for one
 module to communicate values to the next one.  For example, the Fetch
 step communicates memory requests to memory.  In this situation, one
@@ -867,7 +869,7 @@ a \verb|FIFOF_O| interface can be expressed in a BSV function:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-function FIFO_O #(t) to_FIFOF_O (FIFOF #(t) f);
+function FIFOF_O #(t) to_FIFOF_O (FIFOF #(t) f);
    interface FIFOF_O #(Mem_Req) fo_IMem_req;
       method Bool notEmpty();
          return f.notEmpty;

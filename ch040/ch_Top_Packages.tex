@@ -2,7 +2,7 @@
 
 % ****************************************************************
 
-\chapter{BSV: Packages, Files and Imports; Importing C code}
+\chapter{BSV: Top-level view of a BSV program}
 
 \markboth{Ch \arabic{chapter}: BSV: Packages}{\copyrightnotice}
 
@@ -16,24 +16,30 @@
 
 \section{Introduction}
 
-In this chapter we describe the top-level view of a BSV program.  Like
-any industrial-strength computer language, BSV has facilities for
-managing large BSV programs: organizing them into separately
-compilable, purposeful and often reusable packages.  Each package
-typically defines a collection of entities (types, constants,
-functions, hardware interfaces and hardware modules) that together
-implement some well-defined purpose.  We can control which entities in
-a package are visible outside the package (exports), and which
-external entities are visible inside a package (imports).
+In this chapter we describe the top-level view of a BSV program.  The
+goal is to quickly develop an ability to scan BSV code (from Fife or
+Drum or any other example) and to discern the structure and
+relationships of the components in the code.
 
-We will also describe how we can import C code for use by BSV.  This
-facility is only used in simulation (C code does not result in any
-hardware), and it is principally used in \emph{testbenches} for
-designs.
+At the syntactic level, a BSV design can be organized into multiple
+source files, each containing a BSV ``\verb|package|''.  Packages
+contain top-level definitions of types, values, functions, interfaces
+and modules.  The names of these entities are local to the package.
+Components defined in one package are visible in other packages using
+an ``\verb|import|'' statement.
 
-In Drum and Fife code, the whole CPU design is written in BSV.
-However, to test the CPU we need to connect it to a memory system, and
-for that we use imported C.
+At the semantic level, a BSV design is organized into hardware
+``\verb|module|s''.  Each module presents, to the outside world (the
+environment), an ``\verb|interface|'' containing ``\verb|method|s'',
+which constitute the API by which the environment interacts with the
+module.
+
+A module may contain ``\verb|rule|s'' which are independent processes.
+It can invoke instances of other modules by invoking their interface
+methods.
+
+The sections of this chapter present an overview of these major
+components.
 
 % ****************************************************************
 
@@ -43,7 +49,7 @@ for that we use imported C.
 \index{BSV!endpackage@{\tt endpackage}}
 
 Like many programming languages, BSV has facilities to organize large
-programs into separately compilable, meaningful, reusable parts.  A
+programs into separately compilable, purposeful, reusable parts.  A
 BSV program may be organized into one or more \emph{files} or
 \emph{packages}.  This is illustrated in
 Figure~\ref{Fig_BSV_program_structure}.
@@ -65,9 +71,9 @@ each import statements in the diagram we provide a package name $p$;
 the \emph{bsc} compiler uses the imported package name $p$ to find a
 file called $p$\verb|.bsv| containing the definition of package $p$.
 
-% ****************************************************************
+% ================================================================
 
-\section{What's in a Package?}
+\subsection{What's in a Package?}
 
 \label{Sec_package_contents}
 
@@ -79,12 +85,12 @@ structure and contents of a package/file.
            What's in a BSV package/file?}
 \end{figure}
 
-The \verb|package|--\verb|endpackage| brackets---the first and last
-lines of the file---are optional; if omitted, the \emph{bsc} compiler
-will implicitly create a package name using the file name.  We
-recommend always to use \verb|package|--\verb|endpackage|, except
-perhaps for small, experimental, one-off programs to test some small
-concept.
+The \verb|package|--\verb|endpackage| keywords bracketing the
+text---the first and last items in the file---are optional; if
+omitted, the \emph{bsc} compiler will implicitly create a package name
+using the file name.  We recommend always to use
+\verb|package|--\verb|endpackage|, except perhaps for small,
+experimental, one-off programs to test some small concept.
 
 At the top-level of a package we find import/export statements, type
 declarations, value definitions, function definitions interface
@@ -112,9 +118,9 @@ Each package/file is separately compiled by the \emph{bsc} compiler,
 which saves information about the compilation so that it won't be
 recompiled unless the source file has subsequently been modified.
 
-% ****************************************************************
+% ================================================================
 
-\section{Visibility of names, exports and imports}
+\subsection{Visibility of names, exports and imports}
 
 The \verb|package|, \verb|import| and \verb|export| statements work
 just like in SystemVerilog (in fact, using the same syntax).  The
@@ -215,245 +221,345 @@ be visible.
 
 % ****************************************************************
 
-\section{Importing C/C++ functions into BSV simulations}
+\section{Interface and Module Declarations}
 
-\index{BSV!Importing C and C++ functions}
+\label{Sec_Interface_and_Module_decls}
 
-% ----------------
-\vspace{2ex}
-
-NOTE:
-\fbox{\small
-\begin{minipage}{5in}
-
-In Drum and Fife code, this BSV feature is only used in the testbench,
-specifically the Memory System attached to the CPU.  This section can
-be ignored if that topic is not of interest.
-
-\end{minipage}}
-% ----------------
-
-\vspace{1ex}
-
-There are many reasons to import C functions into BSV simulations
-(whether Verilog simulation or Bluesim simulation):
-
-\begin{itemize}
-
- \item Many applications begin life as a C/C++ model, such as a C/C++
-       algorithm that we are trying to accelerate in hardware, or an
-       algorithm that we are still prototyping in C/C++ while
-       developing the rest of the system.
-
- \item C/C++ is useful for testbench components: They will run much
-       faster than Verilog simulation, and so will not be a
-       performance burden on simulating the Verilog of interest.  They
-       have full-service access to data files and operating-system
-       services.
-
-\end{itemize}
-
-A C function can be imported into BSV with the simple steps described
-in the next sections.
-
-BSV can only import C functions.  If you need to import a C++
-function, write a C wrapper function that is invoked by BSV; that C
-function can then invoke your C++ function.
-
-An imported C function invoked in BSV is semantically instantaneous,
-never a temporal process.  It is imported with \verb|Action| or
-\verb|ActionValue| type or a pure (combinational) type.\footnote{Of
-course an invoked C function, before it returns, could start a C
-``pthread'' which then runs concurrently with the BSV simulation.}
-
-% ================================================================
-
-\subsection{In the BSV code declare a BSV version of the C function}
-
-\index{BSV!import "BDPI"@{\tt import "BDPI"}}
-
-In the BSV code, the imported C function will be invoked exactly like
-a normal BSV function.  We declare the header of this ``BSV'' function
-({\ie} just the result type, function name and arguments with their
-types, and not the function body), preceded by the phrase {\tt import
-"BDPI"}:
-
-\begin{center}
- \fbox{\small
-  \begin{minipage}{5in}
-   \begin{tabbing}
-   {\tt import "BDPI"} \\
-   {\tt function} \hm \emph{BSV-type} \hm \emph{function-name (} \= \emph{BSV-type \hm arg} \\
-                                                                 \> ... \\
-                                                                 \> \emph{BSV-type \hm arg} {\tt );}
-   \end{tabbing}
-  \end{minipage}
- }
-\end{center}
-
-The argument- and result-passing conventions are simple, adjusting for
-the C's limitation that arguments and results be can at most 64-bits
-wide:
-
-\begin{itemize}
-
- \item BSV values of sizes up to 8, 16, 32 or 64 bits are passed as
-       arguments and results of C type \verb|uint8_t|,
-       \verb|uint16_t|, \verb|uint32_t| and \verb|uint64_t|,
-       respectively, for both arguments and results, in the same
-       corresponding positions.
-
- \item For a BSV argument value of size greater than 64 bits, it is
-       passed to C as a pointer to memory containing the BSV value.
-
- \item For a BSV \emph{result value} of size greater than 64 bits, the
-       corresponding C function prototype changes slightly:
-
-       \begin{tightlist}
-
-        \item It gains an extra first argument which gets a pointer to
-              memory which should be filled by the C function with the
-              BSV value to be returned.
-
-        \item Because of this, it has a \verb|void| return type.
-
-       \end{tightlist}
-\end{itemize}
-
-% ================================================================
-
-\subsection{Compile the BSV code with the \emph{bsc} compiler}
-
-If you are compiling for Bluesim, there is no change to how you invoke
-\emph{bsc}.
-
-If you are compiling to Verilog, provide the additional flag
-``\verb|-use-dpi|'' on the command line.  This will generate standard
-SystemVerilog \verb|import "DPI-C"| declarations in the generated
-Verilog.
-
-% ================================================================
-
-\subsection{Linking}
-
-For Bluesim linking, simply provide the C file(s) implementing
-imported C functions as an additional command-line arguments to
-\emph{bsc}.
-
-For Verilog linking, in the imported C code we recommend adding the
-following for each of the imported C functions:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-#ifdef __cplusplus
-// 'C' linkage is necessary for linking with Verilator object files
-extern "C" {
-    ... imported C function's prototype ...
-}
-#endif
-\end{Verbatim}
-}
-
-This directs the C/C++ compiler to compile the C function with C
-argument-passing conventions instead of C++ argument passing, which is
-necessary for SystemVerilog DPI-C.  Verilog simulator tools like
-Verilator compile the C code with a C++ compiler which, by default,
-would use C++ argument-passing.
-
-For Verilator linking, simply provide the C/C++ file(s) implementing
-the imported C functions as additional arguments to the
-\verb|verilator| command.
-
-For other Verilog simulators, the linking details may vary; please
-consult their respective manuals or experts on how to link-in C code
-under the SystemVerilog DPI-C standard.
-
-% ================================================================
-
-\subsection{Recommendations for arguments and results of imported C/C++ functions}
-
-These recommendations circumvent potential complications when using
-imported C code in BSV.
+\index{BSV!module!declaration}
+\index{BSV!interface!declaration}
 
 % ----------------------------------------------------------------
 
-\subsubsection{Only use BSV types corresponding to C types}
+\subsection{What's in an interface declaration?}
 
-The data passed between BSV and C have the standard BSV packed
-representations in bits.  It can be tricky in C to deal with, say, a
-BSV 13-bit value that, in C, is a \verb|uint16_t|.  We recommend only
-using BSV arguments/results whose sizes are multiples of 8-bits so
-that they map exactly to bytes in C.
+\label{Sec_Whats_in_an_interface_declaration}
 
-Even for BSV structs and vectors, only use structs and vectors whose
-elements are 8-bit byte-sized.  Accessing/updating the components in C
-is vastly easier with these constraints.
+\index{BSV!interface@{\tt interface}!declaration (a module's API)!typical components in}
 
-If an original BSV type $T$ does not have ``byte-aligned'' components,
-we often define a new type $T2$ with byte-aligned components and copy
-values from $T$ to $T2$ before the call (for arguments) or from $T2$
-to $T$ (for results).  These is extra, technically unnecessary
-``copying'' of data, but the resulting simplification of the C code is
-well worth it.
+A BSV interface declaration can appear as a top-level declaration in a
+package.  It is a syntactic specification of the ``API'' (Application
+Programming Interface) of one or more BSV modules, {\ie} it names the
+\emph{methods} offered by a module, and their arguments and result
+types.  Figure~\ref{Fig_BSV_whats_in_an_interface_decl} shows examples
+of what one might find in an interface declaration (a top-level
+declaration inside a package).
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_whats_in_an_interface_decl}}
+  \caption{\label{Fig_BSV_whats_in_an_interface_decl}
+           Typical components in an interface declaration}
+\end{figure}
 
-For structs, be careful that C structs may have ``gaps'' or
-``padding'' between fields to improve word-alignment, whereas BSV
-structs are tightly packed.  Thus a BSV struct and a C struct, though
-they may look identical, may have different data representations.
+The example declaration introduces a new interface type,
+\verb|Baz_IFC|.  Interface types may or may not have type parameters;
+the example shows two.  Each type parameter can be of ``numeric'' type
+or ordinary ``value'' type.  Numeric types are typically used for
+``sizes''; for example, the type ``\verb|Bit#(16)|'' applies the type
+constructor ``\verb|Bit|'' to the numeric type ``\verb|16|'' to
+describe the type of bit-vectors of width 16 bits.
+
+In places where we \emph{use} this newly declared interface type, it
+may look something like this: \verb|Baz_IFC#(3,Bool)|.
+
+The order in which the method/sub-interface declarations are given is
+not important.
+
+Some syntax notes for Figure~\ref{Fig_BSV_whats_in_an_interface_decl}:
+\begin{tightlist}
+
+ \item Syntax keywords: \verb|interface|, \verb|endinterface|,
+       \verb|method|, \verb|numeric|, \verb|type|
+
+ \item Type names (begin with an uppercase letter):
+  \begin{tightlist}
+
+   \item \verb|Action|, \verb|ActionValue|, \verb|Bit|, \verb|Int|,
+         \verb|Bool| (all standard types in the \emph{bsc} library)
+
+   \item \verb|FIFO_O| (defined in an additional BSV library,
+          and discussed in Section~\ref{Sec_Semi_FIFOs})
+  \end{tightlist}
+
+ \item Type variables (begin with a lower case letter): \verb|n|, \verb|t|
+
+ \item Ordinary variables (begin with a lower case letter): \verb|m1|,
+       \verb|x|, \verb|y|, \verb|z|, \verb|m2|, \verb|m3|,
+       \verb|fo_tags|
+
+\end{tightlist}
 
 % ----------------------------------------------------------------
 
-\subsubsection{Use {\tt ActionValue\#(t)} for imported C function's result}
+\subsection{What's in a module declaration?}
 
-In an \verb|import "BDPI"| declaration the type of the result the
-function may be \verb|Action|, or \verb|ActionValue#(t)| or some type
-$t$.  As discussed in Section~\ref{Sec_Pure_vs_Side_Effect_functions},
-in BSV the last case (not an action or actionvalue) is taken as a
-strong guarantee of mathematical purity (and absence of side-effects);
-the \verb|bsc| compiler may merge multiple invocations that have the
-same arguments, and it may move a function elsewhere in the code with
-different control conditions.  These optimizations can lead to nasty
-surprises when the C function is not really pure (including core-dumps
-if it relies on prior initializations).
+\label{Sec_Whats_in_a_module_declaration}
 
-We recommend normally using \verb|ActionValue#(t)| for the result of
-any imported C function (or \verb|Action| if the C result is
-\verb|void|) to avoid surprises.
+\index{BSV!module@{\tt module}!declaration!typical components in}
 
-Use a non-action/actionvalue return type \emph{only} if you are
-absolutely sure that the C function is pure and does not need any
-other initializations before invocation ({\eg} the C library
-\verb|toupper| character transfomer or \verb|cos()| trigonometric
-function).  Even for these, be safe and use an actionvalue function.
+A module declaration specifies one of possibly many
+\emph{implementations} of a module interface.  If we think of an
+interface type as an API, then a module declaration describes an
+object (an actual circuit in hardware) that offers that interface.
+Figure~\ref{Fig_BSV_whats_in_a_module_decl} shows the typical contents
+of a module declaration.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_whats_in_a_module_decl}}
+  \caption{\label{Fig_BSV_whats_in_a_module_decl}
+           Typical components in a module declaration}
+\end{figure}
+
+The order in which the components inside the module are given is not
+important except:
+
+\begin{tightlist}
+
+ \item If an item $i_2$ uses an item $i_1$ then $i_1$'s definition
+       should precede $i_2$.
+
+ \item By convention, sub-module instantiations are given first (the STATE section)
+       followed by rules (the BEHAVIOR section).
+
+ \item Method and sub-interface definitions must be the last items in
+       the module (the INTERFACE) section.
+
+\end{tightlist}
+
+Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_module_decl}:
+
+\begin{tightlist}
+
+ \item Syntax keywords: \verb|module|, \verb|endmodule|,
+       \verb|function|, \verb|endfunction|, \verb|rule|,
+       \verb|endrule|, \verb|method|,
+       \verb|endmethod|,\verb|interface|
+
+ \item Type names (begin with an uppercase letter): \verb|Bool|,
+       \verb|Baz_IFC|, \verb|Int|, \verb|Reg|, \verb|FIFOF|
+
+ \item Ordinary variables (begin with a lower case letter): \verb|mkBaz|,
+       \verb|verbosity|, \verb|a|, \verb|x|, \verb|mkReg|, \verb|f_tags|,
+       \verb|mkFIFOF|,
+       \verb|foo|,
+       \verb|rl_R1|,
+       \verb|m1|,
+       \verb|fo_tags|
+
+\end{tightlist}
+
+% ****************************************************************
+
+\section{Rules and Interface Definitions}
+
+\label{Sec_Rules_and_Interface_Defs}
 
 % ================================================================
 
-\subsection{Example: Memory Model for Drum and Fife}
+\subsection{What's in a rule?}
 
-For Fife and Drum, because our focus is on the CPU module, we
-implement the memory system in C for convenience.  In addition to the
-speed reason (not slowing down simulation), C is also more convenient
-for reading in memhex32 and ELF files.
+\index{BSV!rule!typical components in}
 
-\input{Code_Extracts/Mems_Devices}
+An ``\verb|rule|'' is the fundamental behavioral construct in
+BSV\footnote{Whereas ``{\tt always @(posedge CLK)}'' is the
+fundamental behavioral construct in Verilog and SystemVerilog.}. Zero
+or more rules may appear at the top-level of a BSV module.
+Figure~\ref{Fig_BSV_whats_in_a_rule} illustrates the typical
+components of a rule.
 
-The corresponding C function prototype, in a C file is:
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_whats_in_a_rule}}
+  \caption{\label{Fig_BSV_whats_in_a_rule}
+           Typical components of a rule}
+\end{figure}
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-#ifdef __cplusplus
-// 'C' linkage is necessary for linking with Verilator object files
-extern "C" {
-void c_mems_devices_req_rsp (uint8_t        *result_p,
-			     const uint64_t  inum,
-			     const uint32_t  req_type,
-			     const uint32_t  req_size_code,
-			     const uint64_t  addr,
-			     const uint32_t  client,
-			     uint8_t        *wdata_p);
-}
-#endif
-\end{Verbatim}
-}
+A rule condition is also known as its ``explicit condition'' and is
+always an expression of type Bool (and, therefore, by BSV's strong
+type-checking rules, it cannot have a side- effect, {\ie} it cannot
+contain an Action).
+
+The rule body as a whole is an expression of type \verb|Action|, and
+may contain many sub-actions, also of type \verb|Action|
+(\verb|Action| is a recursively defined type).
+
+BSV rules are discussed in more detail in Chapters~\ref{ch_Rules_I}
+and \ref{ch_Rules_II}.  Rules are used in the Fife CPU
+(Chapter~\ref{ch_Fife_code}) and in a version of the Drum CPU
+(Chapter~\ref{ch_Drum_Rules}).
+
+Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_rule}:
+
+\begin{tightlist}
+
+ \item Syntax keywords: \verb|rule|, \verb|endrule|, \verb|let|
+
+ \item All the identifiers in the example are ordinary variables,
+       beginning with a lower case letter.
+
+\end{tightlist}
+
+% ================================================================
+
+\subsection{What's in an interface definition?}
+
+\label{Sec_Whats_in_an_interface_definition}
+
+\index{BSV!interface definition!typical components in}
+
+Section~\ref{Sec_Whats_in_an_interface_declaration} discussed
+interface type \emph{declarations}.  Here we discuss interface
+\emph{definitions}.  The former just specifies the names of the
+interface methods and their argument and result types (like a C
+``function prototype'').  The latter specifies how the methods are
+actually implemented in a particular module (like a full C function).
+
+Interface definitions occur at the top-level of a module body, at the
+end of the module body (just before the \verb|endmodule| keyword).
+Interface definitions must provide a definition for each method and
+sub-interface mentioned in the interface type declaration (the
+\emph{bsc} compiler will issue a warning if any of them are left
+undefined).
+
+Figure~\ref{Fig_BSV_whats_in_an_interface_def} illustrates typical
+components in an interface definition.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_whats_in_an_interface_def}}
+  \caption{\label{Fig_BSV_whats_in_an_interface_def}
+           Typical components of an interface definition}
+\end{figure}
+All method definitions have an \emph{implicit condition} that is
+always an expression of type \verb|Bool|, and using identifiers
+defined earlier inside the module.  If the implicit condition phrase
+is missing (as in the second method in the diagram), it is taken to be
+constantly true.
+
+Action and ActionValue methods can contain Actions ({\eg} method
+\verb|init|).  Value methods cannot contain Actions ({\eg} method
+\verb|read_epc|).
+
+ActionValue and Value-methods must have a \verb|return| statement
+specifying the returned value ({\eg} method \verb|read_epc|).
+
+Some syntax notes for Figure~\ref{Fig_BSV_whats_in_an_interface_def}:
+
+\begin{tightlist}
+
+ \item Syntax keywords: \verb|method|, \verb|endmethod|, \verb|if|, \verb|return|
+
+ \item Type names (begin with an uppercase letter): \verb|Action|, \verb|Bit|
+
+ \item All the remaining identifiers in the example are ordinary
+       variables, beginning with a lower case letter.
+
+\end{tightlist}
+
+% ****************************************************************
+
+\section{Static Elaboration and Hardware Module Structure}
+
+\label{Sec_Static_Elaboration}
+
+\index{BSV!static elaboration}
+\index{BSV!module instance hierarchy}
+
+In developing a piece of software we think of two distinct phases,
+\emph{static} and \emph{dynamic}.  The former is what the compiler
+does: parsing, type-checking, analysis and transformation,
+optimization and code-generation.  The latter is what happens when we
+actually run the object code produced by the compiler: allocate a
+stack-frame for the top-level function, start executing it, and
+allocate and de-allocate stack frames as we call and return functions.
+Even in so-called interpreted languages (such a Python, Tcl, Perl,
+Javascript) these two phases exist, although they may be performed
+adjacently one after the other and may not be distinguishable to the
+user.
+
+In BSV (and in Verilog, SystemVerilog and VHDL), there are
+\emph{three} distinct phases: static (compilation),
+\emph{static-elaboration} and dynamic.  The compilation phase is just
+like in a software language compiler: parsing, type-checking, analysis
+and transformation, optimization and code-generation.
+
+The new phase is static elaboration.  We can think of the input to
+this phase as a collection of (parsed, type-checked) module
+definitions.  One of these is designated as the \emph{top-level
+module}, $M_{top}$.  The static elaboration phase creates a hierarchy
+(a tree-structure) of module \emph{instances}, starting with an
+instance $MI_{top}$ of $M_{top}$ at the root of the hierarchy.
+Effectively, it \emph{unfolds} the module definitions into an actual
+hardware structure.
+
+The tool creates an instance $MI_{top}$ of the $M_{top}$ module
+definition. Inside $M_{top}$, the code may specify instantiations of
+sub-modules $M_1$, $M_2$, ...  The tool creates the instances $MI_1$,
+$MI_2$, ...  and connects them into $MI_{top}$.  This process is
+followed recursively for sub-modules of $M_1$, $M_2$, ... until the
+tool reaches ``leaf'' modules that do not instantiate any sub-modules.
+This is illustrated in Figure~\ref{Fig_BSV_static_elaboration}
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_static_elaboration}}
+  \caption{\label{Fig_BSV_static_elaboration} Static elaboration}
+\end{figure}
+
+Note, as illustrated in the diagram, a module definition $M_j$ may be
+instantiated more than once, $MI_{j\,a}$, $MI_{j\,b}$, $MI_{j\,c}$,
+... in various places in the hierarchy.  In particular, the
+\verb|mkReg| (register) and \verb|mkFIFOF| (FIFO) modules may be
+instantiated dozens of times, in dozens of modules.
+
+In simulation (Bluesim or Verilog simulation), this static elaboration
+is performed once, at the start of the simulation.
+
+When synthesizing to FPGA or ASIC, this static elaboration is
+performed by the synthesis tool once, at the start of its operations.
+
+% ================================================================
+
+\subsection{Module interaction {\via} methods}
+
+\label{Sec_module_interaction_via_methods}
+
+\index{BSV!module!interaction via methods}
+
+Figure~\ref{Fig_BSV_module_interaction} illustrates the fundamental
+\emph{behavioral} structures in hardware produced from BSV.  Modules
+contain rules, and rules interact with other modules by invoking the
+methods in their interfaces.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_module_interaction}}
+  \caption{\label{Fig_BSV_module_interaction}
+           Module interaction {\via} methods}
+\end{figure}
+
+At this level of abstraction, this looks just like objects and
+interaction between objects in an object-oriented programming
+language, and this is reasonable as an approximate mental model of
+what happens in a BSV program.  Some differences in BSV compared to
+traditional object-oriented programming languages:
+
+\begin{itemize}
+
+ \item Objects cannot be allocated dynamically (modules cannot be
+       instantiated dynamically).  All module instantiation is done
+       once, during static elaboration.
+
+ \item Rules in BSV modules are (potentially) infinite processes.  A
+       rule can ``fire'' repeatedly whenever its explicit condition
+       and the implicit conditions of the methods it invokes are true.
+
+ \item All methods in BSV have implicit conditions that dictate when
+       they can be invoked.
+
+ \item Each rule ``firing'' is \emph{atomic}---all its state updates
+       are performed together, conceptually at the same instant, and
+       semantically either before or after all other rule firings,
+       {\ie} there is never any interleaving of the actions in one
+       rule firing with the actions in another rule firing.
+
+       Atomicity is the most powerful principle known in Computer
+       Science for reasoning about correctness in the presence of
+       concurrency (such as rules in a BSV program or multithreading
+       in a concurrent software program).  It is one of the key
+       features that distinguishes BSV from Verilog, SystemVerilog,
+       and VHDL (indeed possibly all other hardware design languages).
+
+\end{itemize}
 
 % ****************************************************************

@@ -44,6 +44,9 @@ SOURCES = \
 		ch200/ch_RISCV_Further_Study.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
+		ch850_apx_Why_BSV/apx_Why_BSV.tex \
+		ch860_apx_Glossary/apx_Glossary.tex \
+		ch870/apx_BSV_importing_C.tex \
 		ch900_back/back.tex
 
 .PHONY: p i p pp pip figs bib extract

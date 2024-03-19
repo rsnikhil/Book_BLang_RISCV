@@ -190,6 +190,15 @@ Verilog code that has been produced by \emph{bsc} from BSV source
 code, a struct will appear as a flat bit-vector that aggregates all
 the fields.
 
+\vspace{1ex}
+
+Experienced BSV coders sometimes (perhaps temporarily for debugging)
+rearrange the order and sizes of fields in a struct so that they are
+well-aligned with 8-bit byte boundaries.  Then, during debugging,
+while printing the values in hexadecimal, or viewing the values in a
+waveform viewer, it becomes easier to read off the field values from
+the displayed hexadecimal digits.
+
 \end{minipage}}
 % ----------------
 
