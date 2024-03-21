@@ -1,0 +1,63 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{RISC-V: Optimization of Drum and Fife}
+
+\markboth{Ch \arabic{chapter}: RISC-V: Optimization}{\copyrightnotice}
+
+\setcounter{page}{1}
+% \renewcommand{\thepage}{\arabic{page}}
+\renewcommand{\thepage}{\arabic{chapter}-\arabic{page}}
+
+\label{ch_Optimization}
+
+% ****************************************************************
+
+% ----------------
+\vspace{2ex}
+
+\centerline{\includegraphics[width=1in,angle=0]{Figures/Fig_Under_Construction}}
+
+\vspace{2ex}
+% ----------------
+
+\section{Introduction}
+
+All of these are potential exercises
+
+% ****************************************************************
+
+\section{Drum: Fusing Decode and RR-Dispatch, fusing some Retire actions}
+
+% ****************************************************************
+
+\section{Fife: Dispatching multiple instructions that write to the same Rd}
+
+\begin{itemize}
+ \item Scoreboard bits can can be a small up-down counter, not just Bool
+ \item In RR, increment Rd and allow instr to go. Stall if rs1/rs2's counter is not zero.
+ \item Current 1-bit is essentially a 1-bit counter.
+\end{itemize}
+
+% ****************************************************************
+
+\section{Bypassing: Save a cycle for Redirect in Fetch PC/epoch update}
+
+% ****************************************************************
+
+\section{Bypassing: Save a cycle for in GPRs and Scoreboard for {\tt update\_rd}}
+
+% ****************************************************************
+
+\section{Saving a cycle in Fife by jamming-together Decode and RR-Dispatch}
+
+% ****************************************************************
+
+\section{Saving cycles in Fife Retire by merging exception-handling into other rules}
+
+% ****************************************************************
+
+\section{Saving FIFO resourced in Fife by jamming-together mkPipelineFIFOF and mkBypassFIFOF}
+
+% ****************************************************************
