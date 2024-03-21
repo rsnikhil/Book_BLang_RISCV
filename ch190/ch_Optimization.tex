@@ -22,9 +22,46 @@
 \vspace{2ex}
 % ----------------
 
+% ****************************************************************
+
 \section{Introduction}
 
 All of these are potential exercises
+
+Many of the techniques described in the previous sections (including
+Tandem Verification) only verify \emph{functional correctness}, {\ie}
+they address the question: does running the program on the
+implementation produce the ``correct'' answer(s)''?
+
+For CPUs implementations, of course, we are also equally interested in
+verifying how \emph{fast} they run: does it produce the answer(s) in
+the expected time?
+
+Ultimately what matters is application performance, not clock speed.
+Application performance is a product of clock speed (cycles/second)
+and instructions/cycle.  These have to be simultaneously optimized for
+the best product.  They are not independent; higher clock speeds
+restrict how much ``circuit work'' can be done in a single clock
+which, in turn, affects microarchitecture, which can affect
+instructions/cycle.
+
+Instructions/cycle depends on microarchitecture.  The more parallelism
+we can exploit, the more instructions/cycle.  Compare Drum
+(unpipelined) vs. Fife (pipelined)
+
+Wasted clocks due to misprediction.
+
+Wasted clocks due to hazard penalty.
+
+Wasted clocks due to cache misses.
+
+Power consumption.
+
+% ================================================================
+
+\subsection{Pipeline visualisation}
+
+TO BE WRITTEN
 
 % ****************************************************************
 
