@@ -17,6 +17,7 @@ FIGS += Fig_Combo_path_in_mkPipelineFIFOF.png
 FIGS += Fig_Combo_path_in_mkBypassFIFOF.png
 FIGS += Fig_Composed_FIFO_Producer_Consumer.png
 FIGS += Fig_Composed_FIFO_modularity.png
+FIGS += Fig_CPU_Simulation.png
 FIGS += Fig_CReg_HW.png
 FIGS += Fig_CSRRxx.png
 FIGS += Fig_FIFO.png
@@ -38,6 +39,9 @@ FIGS += Fig_Rule_Actions_1_2.png
 FIGS += Fig_Rule_Actions_Controlled.png
 FIGS += Fig_Rule_Structure.png
 FIGS += Fig_RV32I_labeled.png
+FIGS += Fig_tandem_verification.png
+FIGS += Fig_tandem_verification_II.png
+FIGS += Fig_Testbench_DUT.png
 FIGS += fig_Topics.png
 FIGS += Fig_What_is_an_ISA.png
 

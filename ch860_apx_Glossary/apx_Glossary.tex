@@ -184,6 +184,17 @@
   order to use the ISA, which is one of the factors behind its wide
   adoption by hundreds of vendors.
 
+\item[\bf RTOS] Real-Time Operating System.  A typically small
+  operating sytem for small embedded systems.  Compared to, say,
+  Linux,
+  \begin{tightlist}
+   \item It may not support multiple privilege levels (Machine, Supervisor, User).
+   \item It may not support multiple processes, or a variable number of processes.
+   \item It may not support virtual memory.
+   \item It may not support memory protection across processes.
+   \item It may only support a limited repertoire of devices.
+  \end{tightlist}
+
 \item[\bf RTL] Register-Transfer Level/Language.  This is a level of
   abstraction of describing hardware that assumes that the available
   primitive components are clocked registers and combinational
@@ -228,12 +239,19 @@
   hardware. Wikipedia has a good discussion:
   \url{https://en.wikipedia.org/wiki/Two%27s_complement}
 
-
 \item[\bf UART] Universal Asynchronous Receiver/Transmitter.  An
   electronic device attached to a computer system through which the
   CPU can read ASCII characters from a keyboard and send ASCII
   characters to a display screen.  Typically used for the main console
   of a computer system.
+
+\item[\bf UVM] Universal Verification Methodology.  A standard
+  methodology and technology in SystemVerilog for testbenches for
+  verification. Exploits the ``object-orientd programming'' aspects of
+  SystemVerilog for reusability. Wikipedia has an introduction
+  (\url{https://en.wikipedia.org/wiki/Universal_Verification_Methodology}).
+  There are dozens of tutorials, textbooks and UVM IP providers, both
+  open-source and proprietary.
 
 \item[\bf Verilog] One of the two grand old HDLs (the other is VHDL).
   Originally created in the 1980s; then an IEEE standard that has gone
@@ -241,6 +259,14 @@
   used for both analog and digital circuits.  Some features can only
   be used in simulation (a ``synthesizable subset'' can be rendered
   into hardware).
+
+\item[\bf VCD] Value Change Dump.  A file written out during
+  simulation (Verilog simulation or Bluesim simulation) that contains
+  a clock-time-stamped record of every change on every bus (bundle of
+  wires) in the hardware design.  This file can then be viewed
+  graphically in any waveform viewer.  Waveform viewers are bundled
+  into most commercial simulators. Alternatively, \emph{gtkwave} is a
+  popular free and open-source waveform viewer.
 
 \item[\bf VHDL] One of the two grand old HDLs (the other is Verilog).
   Originally created in the 1980s; then an IEEE standard that has gone

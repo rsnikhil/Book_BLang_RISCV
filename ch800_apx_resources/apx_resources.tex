@@ -73,6 +73,33 @@ Sail formal-specification language, and can be found at
 
 % ****************************************************************
 
+\section{RISC-V Trusted Simulators and Reference Programs for Testing Implementations}
+
+\label{apx_resources_trusted_simulators}
+
+The most well-known trusted simulator for RISC-V is the Spike
+simulator, a free and open-source simulator that is written in C++ and
+very carefully maintained by the RISC-V community as the standard
+``reference model'' for RISC-V execution. The Spike simulator can be
+found at: \url{https://github.com/riscv-software-src/riscv-isa-sim}
+
+Another trusted simulator is the Sail model (the Sail model is the
+official ``formal specification'' for RISC-V.  The Sail model and
+simulator can be found at: \url{https://github.com/riscv/sail-riscv}.
+
+Spike is usually more up-to-date with the latest ratified ISA
+extensions, compared to the Sail model.
+
+RISC-V International maintains a set of standardized tests that are
+useful in testing new CPU implementations.  The following
+repository---
+\url{https://github.com/riscv-software-src/riscv-tests}--- contains
+several hundred small test programs, written in RISC-V Assembly
+Language, organized by ISA extension: RV32I, RV64I, A, M, F, D and C
+extensions, Machine/Supervisor/User mode, {\etc}
+
+% ****************************************************************
+
 \section{RISC-V Assembly Language Manuals}
 
 \label{apx_resources_asm_manuals}
