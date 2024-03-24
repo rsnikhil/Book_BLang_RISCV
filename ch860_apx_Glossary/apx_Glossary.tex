@@ -45,6 +45,14 @@
   optional syntaxes (choose to one's taste): BSV has traditional
   Verilog-like syntax, BH has traditional Haskell-like syntax.
 
+\item[\bf CISC] Complex Instruction Set Computer (see also, for
+  contrast, ``RISC'').  Refers to an ISA where a single instruction
+  may express quite a bit of computation, such as memory accesses, ALU
+  ops, and even iteration.
+
+\item[\bf CPI] Cycles per Instruction.  Please see entry for its
+  inverse, IPC.
+
 \item[\bf CPU] Central Processing Unit.  The computational element of
   a computer.
 
@@ -137,6 +145,17 @@
   subsets of C/C++ (``simple rectangular loop and array'' algorithms),
   and require certain coding styles and directives.
 
+\item[\bf ILP] Instruction-Level Parallelism.  A measure of how many
+  instructions can be executed in parallel without violating the
+  canonical sequential (one-instruction-at-a-time) semantics of an
+  ISA.
+
+\item[\bf IPC] Instructions Per Clock (or its inverse, CPI, or clocks
+  per instruction).  A component, together with clock speed (cycles
+  per second), of a CPU's application performance.  Application
+  performance depends on clock speed, IPC, and total number of
+  instructions.
+
 \item[\bf ISA] Instruction Set Architecture.  A specification of
   instructions: how an instruction is coded in bits; ``architectural
   state'' (PC, registers {\etc}); what it means to execute an
@@ -168,6 +187,14 @@
   control the device, send data to the device and retrieve data from
   the device.
 
+\item[\bf OOO] Out-Of-Order.  Refers to advanced CPU
+  microarchitectures which replicate functional units (computational
+  and memory access units); and allow each functional unit immediately
+  to execute any instruction that is ``ready'' (because its inputs are
+  available), even if that is not in program order.  Often combined
+  with SuperScalarity, to achieve vastly more instruction-level
+  parallelism (ILP) compared to a simple in-order pipeline.
+
 \item[\bf OS] Operating System.  Can vary from small, embedded,
   real-time OSs such as FreeRTOS, to more capable embedded OSs like
   Zephyr, to secure micro-kernels like seL4, to full-featured OSs like
@@ -178,6 +205,11 @@
   memory addresses (not described in this book).  Requires multiple
   memory references to descend a ``tree'' data structure called the
   Page Table.
+
+\item[\bf RISC] Reduced Instruction Set Computer (see also, for
+  contrast, ``CISC'').  Refers to an ISA that separate memory-access
+  instructions from computational instructions, and where each
+  instruction is amenable to fast pipeline implementations.
 
 \item[\bf RISC-V] A particular standard ISA.  Originated circa
   2008-2010 in research at University of California, Berkeley, and
@@ -223,6 +255,12 @@
 \item[\bf SRAM] Static Random Access Memory.  A kind of silicon chip
   that implements memory.  See DRAM above for comparison.  Usually
   on-chip in an ASIC or an FPGA.
+
+\item[\bf Superscalar].  Refers to advanced CPU microarchitectures
+  which fetch and execute multiple instructions at a time (typically
+  2, 4, 8).  Often combined with OOO (Out-of-order), to achieve vastly
+  more instruction-level parallelism (ILP) compared to a simple
+  in-order pipeline.
 
 \item[\bf SystemVerilog] One of the major HDLs.  Originally created in
   the 2000s as a proper superset of Verilog (and thereby subsuming
