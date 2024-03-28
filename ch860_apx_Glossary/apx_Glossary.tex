@@ -45,6 +45,9 @@
   optional syntaxes (choose to one's taste): BSV has traditional
   Verilog-like syntax, BH has traditional Haskell-like syntax.
 
+\item[\bf BTB] Branch Target Buffer.  A component of a PC-predictor
+  module.  See Section~\ref{Sec_BTBs}.
+
 \item[\bf CISC] Complex Instruction Set Computer (see also, for
   contrast, ``RISC'').  Refers to an ISA where a single instruction
   may express quite a bit of computation, such as memory accesses, ALU
@@ -206,6 +209,9 @@
   memory references to descend a ``tree'' data structure called the
   Page Table.
 
+\item[\bf RAS] Return Address Stack.  A component of a PC-predictor
+  module.  See Section~\ref{Sec_RAS}.
+
 \item[\bf RISC] Reduced Instruction Set Computer (see also, for
   contrast, ``CISC'').  Refers to an ISA that separate memory-access
   instructions from computational instructions, and where each
@@ -247,6 +253,13 @@
 
 \item[\bf RVI] RISC-V International.  See entry for RISC-V.
 
+\item[\bf Slack] A measure in digital circuits for the amount by which
+  a combinational circuit exceeds the delay requirement for a target
+  clock speed.  For example, if the target clock speed is 250 Mhz,
+  {\ie} has a 4 ns period, and a combinational circuit between
+  registers only takes 3.2 ns, then it is said to have a ``positive
+  slack'' of 0.8 ns.
+
 \item[\bf SoC] System-on-a-chip.  Refers to a complete computing
   system on a chip, including one or more CPUs (with MMUs and caches),
   shared caches, interconnects, DRAM interface, JTAG, accelerators and
@@ -255,6 +268,9 @@
 \item[\bf SRAM] Static Random Access Memory.  A kind of silicon chip
   that implements memory.  See DRAM above for comparison.  Usually
   on-chip in an ASIC or an FPGA.
+
+\item[\bf BRAM] Block RAM.  A memory component in an FPGA, usually
+  implemented with SRAM.
 
 \item[\bf Superscalar].  Refers to advanced CPU microarchitectures
   which fetch and execute multiple instructions at a time (typically
@@ -271,6 +287,10 @@
   several versions.  Can be used for both analog and digital circuits.
   Some features can only be used in simulation (a ``synthesizable
   subset'' can be rendered into hardware).
+
+\item[\bf TCM] Tightly Coupled Memory. Usually an SRAM (Static RAM)
+  used directly as the memory of the CPU, with no cache in front of
+  it.
 
 \item[\bf TLB] Translation Look-aside Buffer.  A component used in
   systems supporting virtual memory, to speed up translation of
