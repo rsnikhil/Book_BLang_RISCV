@@ -1105,41 +1105,35 @@ are:
       the width of the \verb|OpClass| type and bitwise-AND'ing this
       with \verb|OPCLASS_CONTROL|.
 
-    \item Similarly, define values \verb|x_INT| and \verb|x_MEM| that
-       is either \verb|OPCLASS_INT|/\verb|OPCLASS_MEM| or 0 if the
-       \verb|Bool| value of
-       \verb|is_legal_INT()|/\verb|is_legal_MEM()| is False.
+    \item Similarly, define values \verb|x_INT|, \verb|x_MEM| and
+       \verb|x_SYSTEM| that are either \verb|OPCLASS_INT|/
+       \verb|OPCLASS_MEM|/ \verb|OPCLASS_SYSTEM| or 0 depending on
+       whether the instruction is an integer, memory or system
+       instruction.
 
-    \item Define a value \verb|x_ILLEGAL| that is either
-      \verb|OPCLASS_ILLEGAL|, or 0 if any of
-      the previous conditions is True.
-
-    \item Finally, just bitwise-OR the four \verb|x_XXX|values
-      together to produce there result.
+    \item Finally, bitwise-OR the four \verb|x_XXX|values
+      together to produce the result.
 
   \end{itemize}
 
-  This kind of MUX is also called an AND-OR mux because of its
-  structure.  Note that it relies for correct operation on
+  Figure~\ref{Fig_Combo_Multiplexer_Cascade}
+  \begin{figure}[htbp]
+    \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Multiplexer_Parallel}}
+    \caption{\label{Fig_Combo_Multiplexer_Parallel}
+             Nested if-then-elses in a parallel MUX (for mutually exclusive conditions)}
+  \end{figure}
+  illustrates the desired circuit structure.
+
+  This kind of MUX is also called an AND-OR MUX or a ``parallel'' MUX
+  because of its structure.  It relies for correct operation on
   \emph{precisely one} of the bitwise-OR arguments being True.  Here,
   we are assured of this because of the mutual exclusivity of the
   conditions.
 
-% ----------------
-\Exercise
-
-Sketch out a schematic diagram for the hardware of the parallel MUX in
-the previous exercise.
-
-The schematic will clearly reveal the parallel nature of the MUX
-compared to the serial nature of the priority MUX shown earlier in the
-schematic in Figure~\ref{Fig_Combo_Multiplexer_Cascade}.
-
-How many multiplexers does each \verb|OPCLASS_XXX| value flow through?
-How many bitwise-OR operators are needed?  Note that we can organize
-the bitwise-OR operators as a balanced binary tree, so that the path
-through the circuit grows \emph{logarithmically}, not linearly, with
-the number of classes.
+  While the circuit-depth in the cascade-of-multiplexers is
+  \emph{linear} in the number of if-then-else arms, for the AND-OR MUX
+  it is \emph{logarithmic} (smaller circuit delay
+  $\Longrightarrow$ possibly higher clock speed).
 
 % ----------------
 \Exercise
@@ -1148,6 +1142,55 @@ Test your new version of the \verb|instr_opclass()| function in your
 testbench.
 
 \Endexercise
+
+% ****************************************************************
+
+\section{Case-expressions}
+
+\label{BSV_case_expressions}
+
+\index[BSV]{case@{\tt case} expression or statement}
+
+In the special case where a nested if-then-else is simply testing a
+value against a series of alternative constant values, we can use a
+\verb|case| expression.  For example:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/Fn\_EX\_Control.bsv]
+Bool branch_taken = case (instr_funct3 (instr))
+                       funct3_BEQ:  (rs1_val == rs2_val);
+                       funct3_BNE:  (rs1_val != rs2_val);
+                       funct3_BLT:  signedLT (rs1_val, rs2_val);
+                       funct3_BGE:  signedGE (rs1_val, rs2_val);
+                       funct3_BLTU: (rs1_val < rs2_val);
+                       funct3_BGEU: (rs1_val >= rs2_val);
+                    endcase;
+\end{Verbatim}
+}
+
+% ----------------
+
+\vspace{1ex}
+
+NOTE: \fbox{\small
+\begin{minipage}{5in}
+
+Note that BSV is like Verilog/SystemVerilog in that exactly one arm of
+the case expression is executed.  This is unlike C/C++, where a case
+arm ``falls through'' to the next case arm, unless one has a {\tt
+break}, {\tt return} or {\tt goto} statement.
+
+\end{minipage}}
+
+\vspace{1ex}
+
+% ----------------
+
+In this example each case-arm is a pure value, and we call the whole
+construct a \verb|case| expression.  Often each case-arm is an
+\verb|Action| (such as a register assignment) in which case we
+sometimes call it a \verb|case| statement.  They are really the same
+thing, differing only in the data types under consideration.
 
 % ****************************************************************
 

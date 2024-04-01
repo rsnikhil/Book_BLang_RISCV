@@ -13,6 +13,7 @@ FIGS += Fig_Clock.png
 FIGS += Fig_Combo_Is_Legal_BRANCH.png
 FIGS += Fig_Combo_Multiplexer.png
 FIGS += Fig_Combo_Multiplexer_Cascade.png
+FIGS += Fig_Combo_Multiplexer_Parallel.png
 FIGS += Fig_Combo_path_in_mkPipelineFIFOF.png
 FIGS += Fig_Combo_path_in_mkBypassFIFOF.png
 FIGS += Fig_Composed_FIFO_Producer_Consumer.png
