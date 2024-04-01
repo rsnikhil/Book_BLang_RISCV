@@ -57,6 +57,8 @@ p: $(SOURCES)
 
 i: $(SOURCES)
 	makeindex $(TOPFILE)
+	makeindex $(TOPFILE).bdx -o $(TOPFILE).bnd
+	makeindex $(TOPFILE).rdx -o $(TOPFILE).rnd
 
 b: $(SOURCES)
 	bibtex  $(TOPFILE)
@@ -70,6 +72,8 @@ pp: $(SOURCES)
 pip: $(SOURCES)
 	pdflatex  $(TOPFILE)
 	makeindex $(TOPFILE)
+	makeindex $(TOPFILE).bdx -o $(TOPFILE).bnd
+	makeindex $(TOPFILE).rdx -o $(TOPFILE).rnd
 	pdflatex  $(TOPFILE)
 
 .PHONY: figs
@@ -92,5 +96,5 @@ clean:
 
 .PHONY: full_clean
 full_clean: clean
-	rm -f  *.aux  *.bbl  *.blg  *.idx  *.ilg  *.ind  *.log  *.toc  *.out  *.dvi  */*.aux
+	rm -f  *.aux  *.bbl  *.blg  *.*dx  *.*lg  *.*nd  *.log  *.toc  *.lof  *.lot  *.out  *.dvi  */*.aux
 	rm -f  $(TOPFILE).pdf

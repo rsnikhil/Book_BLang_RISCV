@@ -40,7 +40,7 @@ can be understood by understanding how rules are mapped to a clock
 
 \section{Syntax of a rule and the data types of its components}
 
-\index{BSV!Rules!Syntax and types}
+\index[BSV]{Rules!Syntax and types}
 
 
 Figure~\ref{Fig_Rule_Structure} shows the syntactic structure of a
@@ -50,7 +50,7 @@ rule, with the keywords \verb|rule| and \verb|endrule|.
   \caption{\label{Fig_Rule_Structure} Syntactic structure of a rule}
 \end{figure}
 
-\index{BSV!Rules!Explicit condition}
+\index[BSV]{Rules!Explicit condition}
 
 The rule's \emph{explicit} condition is an expression of type
 \verb|Bool|.  Recall from
@@ -58,7 +58,7 @@ Section~\ref{Sec_Pure_vs_Side_Effect_functions} that, since it is not
 of \verb|Action| or \verb|ActionValue| type, it is guaranteed by BSV's
 type system therefore to be a pure computation with no side-effects.
 
-\index{BSV!Rules!Body, of type {\tt Action}}
+\index[BSV]{Rules!Body, of type {\tt Action}}
 
 The rule body, as a whole, is an expression of type \verb|Action|.  It
 typically consists of multiple statements, including register-writes,
@@ -68,7 +68,7 @@ Many of the statements/sub-expressions will themselves be of type
 \verb|Action| or \verb|ActionValue|.  The overall action of a rule is
 the set of all sub-actions performed by a rule.
 
-\index{BSV!Rules!Implicit/READY condition}
+\index[BSV]{Rules!Implicit/READY condition}
 
 Both the rule condition and the body may contain invocations of
 methods in interfaces of other modules.  Each method has an ``implicit
@@ -96,7 +96,7 @@ cannot be true if $f$ is empty.
 
 \label{Sec_Single_Rule_Semantics}
 
-\index{BSV!Rules!Semantics of individual rule}
+\index[BSV]{Rules!Semantics of individual rule}
 
 In this section we discuss the semantics of a rule in isolation; in
 Section~\ref{Sec_Rules_Semantics} we will consider the collection of
@@ -370,7 +370,7 @@ Section~\ref{Sec_Mapping_Rules_to_a_Clock}.
 
 \label{Sec_Rules_Semantics}
 
-\index{BSV!Rules!Semantics of collection of rules}
+\index[BSV]{Rules!Semantics of collection of rules}
 
 The semantics of a collection of rules is deceptively simple: it
 simply repeats, forever, the single-rule semantics of

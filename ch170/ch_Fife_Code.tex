@@ -250,7 +250,7 @@ Finally, the INTERFACE section of the module is simple.  After the
 
 \subsection{Prioritizing rule {\tt rl\_Fetch\_from\_Retire} over {\tt rl\_Fetch\_req}}
 
-\index{Rules!prioritizing explicitly}
+\index[BSV]{Rules!prioritizing explicitly}
 
 What would happen if we omit the condition
 ``\verb|(!f_Fetch_from_Retire.notEmpty)|'' in \verb|rl_Fetch_req|?  It
@@ -337,7 +337,7 @@ interfaces to this module's interface.
 
 \label{Sec_Balancing}
 
-\index{RISC-V!Balancing concurrent paths in a pipeline}
+\index[RV]{Balancing concurrent paths in a pipeline}
 
 In Figure~\ref{Fig_Instr_Exec_w_FIFOs_2} we see that there are two
 concurrent FIFO-like paths from Fetch to Decode: one direct, and the
@@ -345,9 +345,9 @@ other via memory (IMem).  Fetch produces two outputs together, one for
 each path.  The paths re-converge at Decode, where Fetch's first
 output ``meets'' the corresponding response from memory.
 
-\index{RISC-V!In-flight memory transactions}
-\index{RISC-V!Memory!pipelined}
-\index{RISC-V!Memory!latency}
+\index[RV]{In-flight memory transactions}
+\index[RV]{Memory!pipelined}
+\index[RV]{Memory!latency}
 
 The path via IMem is also FIFO-like because good memory systems are
 themselves pipelined; it is possible for Fetch to issue several
@@ -449,7 +449,7 @@ module.
 
 \label{Sec_Fife_Scoreboard}
 
-\index{BSV!vector@{\tt vector}!library data type}
+\index[BSV]{vector@{\tt vector}!library data type}
 
 In Section~\ref{Sec_Scoreboards} we discussed the general principles
 of a scoreboard, and described it as an array of 1-bit values.  In BSV
@@ -472,8 +472,8 @@ So, we can define a \verb|Scoreboard| type as follows:
 \hmm typedef  Vector \#(32, Bit \#(1))  Scoreboard;
 \end{tabbing}
 
-\index{BSV!replicate@{\tt replicate} {\tt vector} library function to create a vector value}
-\index{BSV!vector@{\tt vector}!library {\tt replicate} function}
+\index[BSV]{replicate@{\tt replicate} {\tt vector} library function to create a vector value}
+\index[BSV]{vector@{\tt vector}!library {\tt replicate} function}
 
 The BSV Vector-library function:
 
@@ -490,8 +490,8 @@ like this, where all the vector elements are initialized to 0:
 \hmm Reg \#(Scoreboard) rg\_scoreboard <- mkReg (replicate (0));
 \end{tabbing}
 
-\index{BSV!vector@{\tt vector}!of {\tt n} bits \emph{vs.} {\tt Bit\#(n)}}
-\index{BSV!vector@{\tt vector}!representation in bits}
+\index[BSV]{vector@{\tt vector}!of {\tt n} bits \emph{vs.} {\tt Bit\#(n)}}
+\index[BSV]{vector@{\tt vector}!representation in bits}
 
 In hardware, a \verb|Vector#(32,Bit#(1))| value occupies exactly 32
 bits, {\ie} the size of the vector times the size of each element.

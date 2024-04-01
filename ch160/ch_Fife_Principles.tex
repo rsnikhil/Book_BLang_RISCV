@@ -108,11 +108,11 @@ exception).
 
 \subsection{PC Prediction in the Fetch Stage}
 
-\index{RISCV!Branch prediction}
-\index{RISCV!PC prediction}
-\index{RISCV!Prediction}
-\index{RISCV!Misprediction (wrong path instructions)}
-\index{RISCV!Wrong-path due (mispredicted instructions)}
+\index[RV]{Branch prediction}
+\index[RV]{PC prediction}
+\index[RV]{Prediction}
+\index[RV]{Misprediction (wrong path instructions)}
+\index[RV]{Wrong-path due (mispredicted instructions)}
 
 A standard solution is for the Fetch stage to \emph{predict} the next
 PC, {\ie} make a guess about the next PC.  Since all RISC-V RV32
@@ -181,8 +181,8 @@ successor to $i_1$ was predicted correctly or not.
 If we find that the prediction was correct, there is nothing more to
 be done; we allow the pipeline flow to proceed.
 
-\index{RISCV!PC prediction!redirection}
-\index{RISCV!redirection on misprediction}
+\index[RV]{PC prediction!redirection}
+\index[RV]{redirection on misprediction}
 
 If we find that the prediction was wrong, then two things must happen:
 
@@ -200,7 +200,7 @@ If we find that the prediction was wrong, then two things must happen:
 
 \end{itemize}
 
-\index{RISCV!rg\_epoch@{\tt rg\_epoch} register for managing mispredictions}
+\index[RV]{rg\_epoch@{\tt rg\_epoch} register for managing mispredictions}
 
 When the Retire stage starts flushing wrong-path instructions $i_2$,
 $i_3$, $i_4$, ... how does it know when it has reached the end of the
@@ -246,9 +246,9 @@ If \verb|rg_epoch| contains a \verb|Bit #(n)| value, how small can $n$ be?
 
 \subsection{Terminology: Speculative Instructions and Commits}
 
-\index{RISCV!Commit the side-effects of an instruction}
-\index{RISCV!Speculative instruction}
-\index{RISCV!Speculation of instructions}
+\index[RV]{Commit the side-effects of an instruction}
+\index[RV]{Speculative instruction}
+\index[RV]{Speculation of instructions}
 
 Before an instruction has reached the Retire stage, there is always
 the possibility that an earlier instruction that is ahead of it in the
@@ -276,8 +276,8 @@ Section~\ref{Sec_Store_Buffers} and Section~\ref{Sec_Fife_Retire_Principles}.
 
 \label{Sec_Scoreboards}
 
-\index{RISC-V!Scoreboard, to manage register read/write hazards}
-\index{RISC-V!Hazards!Scoreboard for managing}
+\index[RV]{Scoreboard, to manage register read/write hazards}
+\index[RV]{Hazards!Scoreboard for managing}
 
 Suppose instruction $i_1$ writes to register $x_7$, and the following
 instruction $i_2$ reads from register $x_7$.  Instruction $i_1$'s
@@ -307,8 +307,8 @@ scoreboard bit says it is busy, then the Register-Read stage
 ``\emph{stalls}'', {\ie} it waits until the scoreboard condition is
 cleared (by $i_1$ in the Retire stage).
 
-\index{RISCV!Pipeline!Bubble}
-\index{RISCV!Bubble in a pipeline}
+\index[RV]{Pipeline!Bubble}
+\index[RV]{Bubble in a pipeline}
 
 While $i_2$ is waiting in the stalled Register-Read stage, note that
 the following Execute stage may become ``empty'', {\ie} there is no
@@ -381,8 +381,8 @@ be rolled back.
 
 \subsection{Bypassing}
 
-\index{RISCV!Bypassing}
-\index{RISCV!Short-circuiting (bypassing)}
+\index[RV]{Bypassing}
+\index[RV]{Short-circuiting (bypassing)}
 
 Digital hardware usually runs in time units of ``clock cycles''.  The
 Retire stage writes a GPR (possibly) and writes the scoreboard (to
@@ -448,12 +448,12 @@ complexity) would be:
 
 \label{Sec_Reorder_Tags}
 
-\index{RISCV!Tags!for proper instruction ordering}
-\index{RISCV!Tags!EXEC\_TAG\_DIRECT@{\tt EXEC\_TAG\_DIRECT}}
-\index{RISCV!Tags!EXEC\_TAG\_CONTROL@{\tt EXEC\_TAG\_CONTROL}}
-\index{RISCV!Tags!EXEC\_TAG\_IALU@{\tt EXEC\_TAG\_IALU}}
-\index{RISCV!Tags!EXEC\_TAG\_DMEM@{\tt EXEC\_TAG\_DMEM}}
-\index{RISCV!Instruction ordering!tags for}
+\index[RV]{Tags!for proper instruction ordering}
+\index[RV]{Tags!EXEC\_TAG\_DIRECT@{\tt EXEC\_TAG\_DIRECT}}
+\index[RV]{Tags!EXEC\_TAG\_CONTROL@{\tt EXEC\_TAG\_CONTROL}}
+\index[RV]{Tags!EXEC\_TAG\_IALU@{\tt EXEC\_TAG\_IALU}}
+\index[RV]{Tags!EXEC\_TAG\_DMEM@{\tt EXEC\_TAG\_DMEM}}
+\index[RV]{Instruction ordering!tags for}
 
 In Figure~\ref{Fig_Instr_Exec_w_FIFOs}, each yellow box in the Execute
 stage is an independent pipeline handling a certain subset of the
@@ -502,7 +502,7 @@ pipes from later instructions.
 
 \label{Sec_Store_Buffers}
 
-\index{RISCV!Store Buffer}
+\index[RV]{Store Buffer}
 
 Consider the Execute Memory Ops stage in
 Figure~\ref{Fig_Instr_Exec_w_FIFOs}, which issues LOAD and STORE
@@ -540,7 +540,7 @@ memory system (between the CPU and the memory system).
 
 \label{Sec_DMem_MMIO}
 
-\index{RISCV!MMIO (Memory-Mapped Input Output)}
+\index[RV]{MMIO (Memory-Mapped Input Output)}
 
 In RISC-V there are no separate instructions for input and output to
 devices.  Devices contain ``device registers'' which are placed at

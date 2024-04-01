@@ -24,49 +24,21 @@
 
 % ****************************************************************
 
-\section{Advanced branch prediction}
+\section{Introduction}
 
-Is a form of online machine-learning (past history is the ``training data'').
-
-Branch instruction taken/not-taken hints.
-
-Hysteresis in prediction.
-
-Branch-Target buffers (BTBs)
-
-Return-Address Stacks (RASs)
+In this chapter we provide suggestions for further study of RISC-V
+topics.  Each of these can also be seen as suggested exercises for the
+interested student.
 
 % ****************************************************************
 
-\section{Memory systems: TCMs, Caches, PMPs}
-
-Separate I- and D-caches.
-
-FENCE.I: for ``manual'' I- and D-Mem coherence.
-
-FENCE: flushing caches for for devices.
-
-Multi-level caches and cache hierarchies.
-
-Non-blocking caches.
-
-Cache-coherence.
-
-Memory Protection with PMPs.
+\section{Implementing RV64I instead of RV32I}
 
 % ****************************************************************
 
 \section{M Extension}
 
-Integer Multiply and Divide
-
-% ****************************************************************
-
-\section{A extention}
-
-AMO operations
-
-LR, SC, AMOxxx instructions and their implementation in the memory system.
+Integer Multiply and Divide.
 
 % ****************************************************************
 
@@ -90,7 +62,87 @@ Affect of non-32-bit alignment of compressed instructions.
 
 % ****************************************************************
 
-\section{Virtual Memory}
+\section{A extention}
+
+AMO operations
+
+LR, SC, AMOxxx instructions and their implementation in the memory system.
+
+% ****************************************************************
+
+\section{Advanced branch prediction}
+
+Is a form of online machine-learning (past history is the ``training data'').
+
+Branch instruction taken/not-taken hints.
+
+Hysteresis in prediction.
+
+Branch-Target buffers (BTBs)
+
+Return-Address Stacks (RASs)
+
+% ****************************************************************
+
+\section{Register renaming: towards out of order processing}
+
+An alternative to the counter in the scoreboard.
+
+Have more phys regs than 32.  Maintain a table that dynamically maps
+logical register num to phys reg num.  This is "virtualizing" the
+registers.
+
+In S3, for each instruction, allocate a new phys register num for its
+Rd, use that phys num in the instr going forward, and update the
+log-phys map.
+
+In case of trap or misprediction, have to restore the logical-to-physical map.
+
+% ****************************************************************
+
+\section{Advanced bypassing: towards dataflow and out-of-order processing}
+
+In S3, do not stall any instruction for register-hazards, just forward
+each instruction into its appropriate S4 pipe, with each input
+register either having its value or a marker saying "not yet available".
+
+In each S4 pipe, stall if the head of the queue does not yet have its
+input values.
+
+In each S4 pipe, as soon as an output register value is ready,
+broadcast it to the other S4 pipes, which update any entries awaiting
+that register value.  This may release the stalling of the head entry,
+allowing it to execute.
+
+Without register renaming, we have to keep the "counter" from the
+scoreboard.  With register renaming, there is no need, since each
+physical register will have only one outstanding writer.
+
+In each exec unit, we can treat the pending instrs as a set, not FIFO.
+I.e., execute any instr that is "ready".  Then we have OOO dataflow
+processing.
+
+% ****************************************************************
+
+\section{Memory systems: TCMs, Caches, PMPs}
+
+Separate I- and D-caches.
+
+FENCE.I: for ``manual'' I- and D-Mem coherence.
+
+FENCE: flushing caches for for devices.
+
+Multi-level caches and cache hierarchies.
+
+Non-blocking caches.
+
+Cache-coherence.
+
+Memory Protection with PMPs.
+
+% ****************************************************************
+
+\section{Memory Systems: Virtual Memory}
 
 Page Tables, TLBs, Virtual Memory.
 
@@ -146,8 +198,6 @@ Interrupt/trap delegation.
 Multiple privilege levels: Machine, Supervisor, User
 
 \subsection{Hypervisor support}
-
-% ****************************************************************
 
 % ****************************************************************
 

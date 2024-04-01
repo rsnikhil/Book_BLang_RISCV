@@ -16,8 +16,8 @@
 
 \section{Introduction}
 
-\index{BSV!FSMs}
-\index{BSV!Finite State Machines}
+\index[BSV]{FSMs}
+\index[BSV]{Finite State Machines}
 
 So far, we have only been discussing pure combinational functions, for
 which there is no concept of time.  Combinational functions are just
@@ -54,7 +54,7 @@ output something as well to the environment.  In bubble-and-arrow
 diagrams, each arrow is often labeled with the condition that enables
 the transition and any outputs produced by the transition.
 
-\index{Drum!as an FSM}
+\index[BSV]{Drum!as an FSM}
 
 Figure~\ref{Fig_FSMs_Simple_Instr_Exec} can be interpreted as a
 bubble-and-arrow FSM diagram: each yellow rectangle (bubble) is a
@@ -88,8 +88,8 @@ identify a unique possible next state.
 
 \subsection{Sequential FSMs, Concurrent FSMs, and Digital Hardware}
 
-\index{BSV!FSMs!sequential {\vs.} concurrent}
-\index{BSV!FSMs!concurrent {\vs.} sequential}
+\index[BSV]{FSMs!sequential {\vs.} concurrent}
+\index[BSV]{FSMs!concurrent {\vs.} sequential}
 
 Classical FSMs in the literature are \emph{sequential} FSMs---every
 transition is from the current state to a unique, particular next
@@ -115,14 +115,14 @@ communicate with each other {\via} shared state (registers, fifos,
 register files, {\etc}).  This is a more \emph{modular} and
 \emph{scalable} way to think about complex digital systems.
 
-\index{Drum!as a set of concurrent FSMs}
+\index[BSV]{Drum!as a set of concurrent FSMs}
 
 Even though Drum CPU execution is a sequential FSM, the overall system
 can be viewed as a pair of concurrent FSMs: Drum and the Memory
 System.  Each has its own internal FSM and behavior, and they
 communicate memory requests and responses back and forth.
 
-\index{Fife!as a set of concurrent FSMs}
+\index[BSV]{Fife!as a set of concurrent FSMs}
 
 For Fife, we will interpret \emph{each} yellow box in
 Figure~\ref{Fig_FSMs_Simple_Instr_Exec} as its own FSM.  They all run
@@ -195,7 +195,7 @@ granted today.
 \end{minipage}}
 % ----------------
 
-\index{BSV!StmtFSM@{\tt StmtFSM}}
+\index[BSV]{StmtFSM@{\tt StmtFSM}}
 
 \verb|StmtFSM| is a sub-language within BSV for structured FSMs.  It
 takes some basic, ``instantaneous'' actions, from which it builds
@@ -224,8 +224,8 @@ Section~\ref{BSV_small_testbench}.
 
 \section{Actions and the {\tt Action} type}
 
-\index{BSV!Action@{\tt Action}: primitive type of actions}
-\index{BSV!actions}
+\index[BSV]{Action@{\tt Action}: primitive type of actions}
+\index[BSV]{actions}
 
 The fundamental building-block for \verb|StmtFSM| is the ``action'',
 which is a statement/expression of type \verb|Action|.  Some common
@@ -265,7 +265,7 @@ and \verb|deq| methods have return-type \verb|Action|, so the
 statements \verb|f_D_to_RR.enq (v)| and \verb|f_D_to_RR.enq (v)| have
 type \verb|Action|.
 
-\index{BSV!display@{\tt \$display} has {\tt Action} type}
+\index[BSV]{display@{\tt \$display} has {\tt Action} type}
 
 \verb|$display()| is a built-in construct in BSV that also has type
 \verb|Action|.
@@ -274,7 +274,7 @@ type \verb|Action|.
 
 \subsection{{\tt Action} blocks: composing actions into larger actions}
 
-\index{action@{\tt action}-{\tt endaction} blocks}
+\index[BSV]{action@{\tt action}-{\tt endaction} blocks}
 
 The \verb|Action| type is recursive: it is either a primitive action
 (like those described just above), or it is a collection of things of
@@ -307,7 +307,7 @@ meaning/behavior.
 
 \subsection{Binding names in {\tt Action} blocks}
 
-\index{let@{\tt let}-bindings in {\tt Action} blocks}
+\index[BSV]{let@{\tt let}-bindings in {\tt Action} blocks}
 
 It is often convenient to give a meaningful name to a sub-expression
 in an {\tt Action} block.  For example:
@@ -354,7 +354,7 @@ could be written in the opposite order.
 
 \section{{\tt StmtFSM}: sequences of actions}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!seq@{\tt seq .. endseq}: sequences of actions}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!seq@{\tt seq .. endseq}: sequences of actions}
 
 Our first construct that has temporal behavior is the
 \verb|seq|-\verb|endseq| block.  Each item in the block is typically
@@ -372,7 +372,7 @@ one after another.
 \end{Verbatim}
 }
 
-\index{BSV!FSMs!Stmt@{\tt Stmt}: type of argument to FSM module constructors}
+\index[BSV]{FSMs!Stmt@{\tt Stmt}: type of argument to FSM module constructors}
 
 The \verb|seq| block itself has type \verb|Stmt|.  The items in a
 block can have type \verb|Action| or the type \verb|Stmt|, {\ie}
@@ -385,8 +385,8 @@ of a \verb|seq| block.
 
 \section{{\tt StmtFSM}: conditionals (if-then-else)}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!if@{\tt if-then-else}: process conditional}
-\index{BSV!if-then-else: ordinary expression \emph{vs} {\tt StmtFSM} process}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!if@{\tt if-then-else}: process conditional}
+\index[BSV]{if-then-else: ordinary expression \emph{vs} {\tt StmtFSM} process}
 
 Conditional process execution can be expressed with traditional
 if-then-else notation:
@@ -434,7 +434,7 @@ overlap between ordinary expressions and {\tt StmtFSM} constructions.
 
 \section{{\tt StmtFSM}: while-loops}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!while@{\tt while}-loop repetition}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!while@{\tt while}-loop repetition}
 
 Repetitive processes can be expressed with traditional while-loop notation:
 
@@ -449,7 +449,7 @@ Repetitive processes can be expressed with traditional while-loop notation:
 
 \section{{\tt StmtFSM}: pausing until some condition holds}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!await@{\tt await}: pausing until some condition}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!await@{\tt await}: pausing until some condition}
 
 An action in a \verb|StmtFSM| can be the \verb|await(b)| action, which
 simply waits until the boolean expression in its argument evaluates to
@@ -473,8 +473,8 @@ FSM), not this particular \verb|StmtFSM|.
 
 \label{Sec_AutoFSM}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!{\tt mkAutoFSM} module}
-\index{BSV!mkAutoFSM@{\tt mkAutoFSM} module in {\tt StmtFSM} library package}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!{\tt mkAutoFSM} module}
+\index[BSV]{mkAutoFSM@{\tt mkAutoFSM} module in {\tt StmtFSM} library package}
 
 Creating an FSM using \verb|StmtFSM| in BSV is a two-step process:
 
@@ -516,7 +516,7 @@ design that continue running.
 
 \section{{\tt StmtFSM}: many more features}
 
-\index{BSV!StmtFSM@{\tt StmtFSM}!{\tt for}-loop repetition}
+\index[BSV]{StmtFSM@{\tt StmtFSM}!{\tt for}-loop repetition}
 
 Here we have covered all the features of \verb|StmtFSM| that we need
 for coding Drum.  There are many additional features that we skip

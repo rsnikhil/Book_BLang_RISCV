@@ -45,8 +45,8 @@ components.
 
 \section{Packages and files}
 
-\index{BSV!package@{\tt package}}
-\index{BSV!endpackage@{\tt endpackage}}
+\index[BSV]{package@{\tt package}}
+\index[BSV]{endpackage@{\tt endpackage}}
 
 Like many programming languages, BSV has facilities to organize large
 programs into separately compilable, purposeful, reusable parts.  A
@@ -132,8 +132,8 @@ across packages.  This is illustrated in Figure~\ref{Fig_BSV_namespace_control}.
            Namespace control with imports and exports}
 \end{figure}
 
-\index{BSV!export@{\tt export} statement}
-\index{BSV!import@{\tt export} statement}
+\index[BSV]{export@{\tt export} statement}
+\index[BSV]{import@{\tt export} statement}
 
 A package \verb|P| that defines a name $x$ can make it visible outside
 using an \verb|export| statement.  As a shorthand, if there is no
@@ -177,7 +177,7 @@ import is not currently supported in BSV.
 
 \subsection{Resolving ambiguous imports}
 
-\index{BSV!Fully-qualified imported names}
+\index[BSV]{Fully-qualified imported names}
 
 If a package \verb|Phoux| imports two other packages \verb|Baz| and
 \verb|Glurph|, and both those packages define an identifier \verb|x|,
@@ -190,7 +190,7 @@ a so-called \emph{fully qualified name}, \verb|Baz::x| or
 
 \subsection{Exporting types abstractly}
 
-\index{BSV!Exporting types abstractly}
+\index[BSV]{Exporting types abstractly}
 
 When exporting a struct type \verb|S| or enum type \verb|E| using
 \verb|export|, there is a difference between these two ways of
@@ -225,8 +225,8 @@ be visible.
 
 \label{Sec_Interface_and_Module_decls}
 
-\index{BSV!module!declaration}
-\index{BSV!interface!declaration}
+\index[BSV]{module!declaration}
+\index[BSV]{interface!declaration}
 
 % ----------------------------------------------------------------
 
@@ -234,7 +234,7 @@ be visible.
 
 \label{Sec_Whats_in_an_interface_declaration}
 
-\index{BSV!interface@{\tt interface}!declaration (a module's API)!typical components in}
+\index[BSV]{interface@{\tt interface}!declaration (a module's API)!typical components in}
 
 A BSV interface declaration can appear as a top-level declaration in a
 package.  It is a syntactic specification of the ``API'' (Application
@@ -293,7 +293,7 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_an_interface_decl}:
 
 \label{Sec_Whats_in_a_module_declaration}
 
-\index{BSV!module@{\tt module}!declaration!typical components in}
+\index[BSV]{module@{\tt module}!declaration!typical components in}
 
 A module declaration specifies one of possibly many
 \emph{implementations} of a module interface.  If we think of an
@@ -355,7 +355,7 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_module_decl}:
 
 \subsection{What's in a rule?}
 
-\index{BSV!rule!typical components in}
+\index[BSV]{rule!typical components in}
 
 An ``\verb|rule|'' is the fundamental behavioral construct in
 BSV\footnote{Whereas ``{\tt always @(posedge CLK)}'' is the
@@ -401,7 +401,7 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_rule}:
 
 \label{Sec_Whats_in_an_interface_definition}
 
-\index{BSV!interface definition!typical components in}
+\index[BSV]{interface definition!typical components in}
 
 Section~\ref{Sec_Whats_in_an_interface_declaration} discussed
 interface type \emph{declarations}.  Here we discuss interface
@@ -456,8 +456,8 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_an_interface_def}:
 
 \label{Sec_Static_Elaboration}
 
-\index{BSV!static elaboration}
-\index{BSV!module instance hierarchy}
+\index[BSV]{static elaboration}
+\index[BSV]{module instance hierarchy}
 
 In developing a piece of software we think of two distinct phases,
 \emph{static} and \emph{dynamic}.  The former is what the compiler
@@ -516,7 +516,7 @@ performed by the synthesis tool once, at the start of its operations.
 
 \label{Sec_module_interaction_via_methods}
 
-\index{BSV!module!interaction via methods}
+\index[BSV]{module!interaction via methods}
 
 Figure~\ref{Fig_BSV_module_interaction} illustrates the fundamental
 \emph{behavioral} structures in hardware produced from BSV.  Modules

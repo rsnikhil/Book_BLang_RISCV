@@ -24,8 +24,8 @@ verification of CPU implementations.
 
 \section{BSV: Testbenches and DUTs}
 
-\index{BSV!Testbench}
-\index{BSV!DUT}
+\index[BSV]{Testbench}
+\index[BSV]{DUT}
 
 To debug a BSV design, we typically set up a system similar to that
 shown in Figure~\ref{Fig_Testbench_DUT}.
@@ -83,7 +83,7 @@ the DUT using the Verilog produced from a BSV design using the
 
 \section{BSV: ``{\tt printf}''-style Debugging}
 
-\index{BSV!printf@{\tt printf}-style debugging}
+\index[BSV]{printf@{\tt printf}-style debugging}
 
 A popular style of debugging BSV designs is the same as in debugging
 software in any programming language: insert ``print'' statements in
@@ -139,8 +139,8 @@ a serial port.}
 
 \subsection{{\tt FShow} for ``pretty-printing'' enums and structs}
 
-\index{BSV!FShow@{\tt FShow}!Standard Typeclass containing the {\tt fshow()} function}
-\index{BSV!fshow@{\tt fshow}!Standard overloaded function producing {\tt Fmt}
+\index[BSV]{FShow@{\tt FShow}!Standard Typeclass containing the {\tt fshow()} function}
+\index[BSV]{fshow@{\tt fshow}!Standard overloaded function producing {\tt Fmt}
 objects for various types}
 
 In any enum or struct type declaration in BSV, one can attach a
@@ -168,8 +168,8 @@ variants):  Example:
 
 \subsection{{\tt Fmt} formatted values}
 
-\index{BSV!Fmt@{\tt Fmt}!formatted object}
-\index{BSV!Formatted output using {\tt Fmt} objects}
+\index[BSV]{Fmt@{\tt Fmt}!formatted object}
+\index[BSV]{Formatted output using {\tt Fmt} objects}
 
 BSV's formatting facilities are actually more powerful than
 \verb|printf| in C/C++ or \verb|$display| in Verilog/SystemVerilog.
@@ -218,7 +218,7 @@ keeping the \verb|$display| statement short and sweet.
 
 \section{BSV: Dynamic assertions}
 
-\index{BSV!assertions for debugging}
+\index[BSV]{assertions for debugging}
 
 The BSV libraries offer a package:
 
@@ -268,9 +268,9 @@ simulation code.  Thus, one should not hesitate to use them liberally.
 
 \section{BSV: Waveform-style debugging}
 
-\index{BSV!VCD waveform dumping}
-\index{BSV!Waveform dumping (VCDs)}
-\index{BSV!Value Change Dump (VCD) waveform dumping}
+\index[BSV]{VCD waveform dumping}
+\index[BSV]{Waveform dumping (VCDs)}
+\index[BSV]{Value Change Dump (VCD) waveform dumping}
 
 Many hardware designers like to debug designs using ``waveforms'',
 which are a graphical display of how values on buses (bundles of

@@ -1,19 +1,49 @@
 % -*- mode: fundamental -*-
 
 % ****************************************************************
+% General index
+
+% \clearpage
+
+% \markboth{Index of BSV Topics}{\copyrightnotice}
+% \setcounter{page}{1}
+% \renewcommand{\thepage}{INDEX-BSV-\arabic{page}}
+
+% \phantomsection
+
+% No General Index
+% \addcontentsline{toc}{chapter}{Genral Index}
+% {\small \printindex}
+
+% ****************************************************************
+% BSV index
 
 \clearpage
 
 \markboth{Index of BSV Topics}{\copyrightnotice}
 
-\renewcommand{\thepage}{INDEX-BSV-\arabic{page}}
-% \renewcommand{\thepage}{\arabic{page}}
-
 \setcounter{page}{1}
+\renewcommand{\thepage}{INDEX-BSV-\arabic{page}}
 
 \phantomsection
-\addcontentsline{toc}{chapter}{Index of BSV topics}
-{\small \printindex}
+
+\addcontentsline{toc}{chapter}{BSV Index}
+{\small \printindex[BSV]}
+
+% ****************************************************************
+% RISC-V index
+
+\clearpage
+
+\markboth{Index of BSV Topics}{\copyrightnotice}
+
+\setcounter{page}{1}
+\renewcommand{\thepage}{INDEX-RISC-V-\arabic{page}}
+
+\phantomsection
+
+\addcontentsline{toc}{chapter}{RISC-V Index}
+{\small \printindex[RV]}
 
 % ****************************************************************
 

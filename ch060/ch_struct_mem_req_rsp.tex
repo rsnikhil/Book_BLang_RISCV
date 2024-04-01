@@ -17,9 +17,9 @@ RISC-V: Memory requests and responses}
 
 \section{RISC-V: structs communicated between steps}
 
-\index{BSV!struct!hetoregeneous collection of values}
-\index{BSV!field!of a {\tt struct}}
-\index{BSV!member!of a {\tt struct}}
+\index[BSV]{struct!hetoregeneous collection of values}
+\index[BSV]{field!of a {\tt struct}}
+\index[BSV]{member!of a {\tt struct}}
 
 Various kinds of information need to be communicated between the steps
 of Figure~\ref{Fig_Instr_Exec}---program counter values, instructions,
@@ -131,11 +131,11 @@ as a \verb|struct| type:
 
 \label{Sec_struct_D_to_RR}
 
-\index{BSV!struct@{\tt struct}!type declaration}
+\index[BSV]{struct@{\tt struct}!type declaration}
 
 \input{Code_Extracts/Decode_to_RR.tex}
 
-\index{BSV!deriving!Bits}
+\index[BSV]{deriving!Bits}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically work out a representation for \verb|Decode_to_RR|
@@ -154,9 +154,9 @@ values may reside in wires, registers, FIFOs, etc which have no
 ``byte-structured'' bias, and so we do not play any such ``padding''
 games.}
 
-\index{BSV!packing of struct fields and vector elements}
-\index{BSV!structs!packing of fields}
-\index{BSV!vectors!packing of fields}
+\index[BSV]{packing of struct fields and vector elements}
+\index[BSV]{structs!packing of fields}
+\index[BSV]{vectors!packing of fields}
 
 % ----------------
 \vspace{2ex}
@@ -202,7 +202,7 @@ the displayed hexadecimal digits.
 \end{minipage}}
 % ----------------
 
-\index{BSV!deriving!Fshow}
+\index[BSV]{deriving!Fshow}
 
 Because we said ``\verb|deriving(FShow)|'', the \emph{bsc} compiler
 will automatically define an ``\verb|fshow()|'' function for this
@@ -219,7 +219,7 @@ Decode_to_RR {pc=..., exception = ..., instr=..., ... }
 
 \subsection{Creating struct values}
 
-\index{BSV!struct!entire struct values}
+\index[BSV]{struct!entire struct values}
 
 We can create a new value of type \verb|D_to_RR| with syntax like
 this:
@@ -245,8 +245,7 @@ the field values as arguments and returns a struct value). The
 \emph{bsc} compiler's type-analysis is able to infer the type from the
 right-hand side, so we can just use the keyword ``\verb|let|'':
 
-\index{BSV!let@{\tt let}!binding an identifier with implicit type declaration}
-\index{let@{\tt let}: BSV, binding an identifier with implicit type declaration}
+\index[BSV]{let@{\tt let}!binding an identifier with implicit type declaration}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -269,9 +268,6 @@ the struct value.
 
 \label{Sec_Dont_Care_Values}
 
-\index{BSV!Don't care literal value ``?''}
-\index{BSV!?@{\tt ?} (don't care literal value)}
-
 Not all field values need be given in a struct expression.  The
 \emph{bsc} compiler will issue a warning for each unspecified field,
 and insert an ``unspecified'' (and unpredictable) value there.  You
@@ -279,8 +275,9 @@ can indicate that a field is intentionally left unspecified (and
 suppress the compiler warning) using ``\verb|?|'', BSV's notation for
 a ``don't care'' value:
 
-\index{BSV!{\tt ?}, the don't care value}
-\index{BSV!AAAA\_AAAA, the default don't care value}
+\index[BSV]{Don't care literal value {\tt ?}}
+\index[BSV]{?@{\tt ?} (don't care literal value)}
+\index[BSV]{AAAA\_AAAA@{\tt AAAA\_AAAA}, the default don't care value}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -316,7 +313,7 @@ Verilog/SystemVerilog/VHDL).
 % ----------------
 \vspace{2ex}
 
-\index{BSV!X values!Notation for unassigned values in Verilog (no such concept in BSV)}
+\index[BSV]{X values!Notation for unassigned values in Verilog (no such concept in BSV)}
 
 NOTE:
 \fbox{\small
@@ -345,7 +342,7 @@ unpredictable, binary value.
 
 \subsection{Selecting struct fields}
 
-\index{BSV!struct!field selection}
+\index[BSV]{struct!field selection}
 
 Struct fields can be selected using the usual ``dot'' notation common
 to SystemVerilog and C/C++:
@@ -362,7 +359,7 @@ to SystemVerilog and C/C++:
 
 \subsection{Updating struct fields using assignment}
 
-\index{BSV!struct!field assignment/update}
+\index[BSV]{struct!field assignment/update}
 
 Struct fields can be updated with assignment using the usual ``dot''
 notation common to SystemVerilog and C/C++:
@@ -380,7 +377,7 @@ notation common to SystemVerilog and C/C++:
 
 \label{Sec_Tuples}
 
-\index{BSV!Tuples}
+\index[BSV]{Tuples}
 
 Tuples are a built-in set of struct-like constructs in BSV that are
 often convenient.  For example, when a function needs to return a pair
@@ -426,8 +423,8 @@ built-in selector functions:
 Alternatively, to access multiple fields of a tuple at once, one can
 use a ``match'' statement. Example (from \verb|src_Drum/CPU_FSM.bsv|):
 
-\index{BSV!Tuples|match@{\tt match} statement (pattern-matching_)}
-\index{BSV!Pattern matching!match@{\tt match} statement for tuples}
+\index[BSV]{Tuples|match@{\tt match} statement (pattern-matching_)}
+\index[BSV]{Pattern matching!match@{\tt match} statement for tuples}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -457,10 +454,10 @@ and meaningful field names.
 
 \section{RISC-V: Memory Requests and Responses; IMem and DMem}
 
-\index{IMem| Instruction Memory}
-\index{DMem| Data Memory}
-\index{RISC-V!IMem (instruction memory)}
-\index{RISC-V!DMem (data memory)}
+\index[RV]{IMem| Instruction Memory}
+\index[RV]{DMem| Data Memory}
+\index[RV]{IMem (instruction memory)}
+\index[RV]{DMem (data memory)}
 
 In Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, the \verb|Mem_Req|
 and \verb|Mem_Rsp| structs are used in two places.  The Fetch step
@@ -476,8 +473,8 @@ Memory) and ``DMem'' for the latter context (for Data Memory).
 
 \label{Sec_Harvard_architecture}
 
-\index{Harvard architecture}
-\index{Harvard architecture!Self-modifying code}
+\index[RV]{Harvard architecture}
+\index[RV]{Harvard architecture!Self-modifying code}
 
 The separation of memory channels for instructions and data
 (loads/stores) is quite standard in modern CPU architectures, and is
@@ -502,8 +499,8 @@ dynamic behavioral patterns.  In some systems we can also
 \emph{protect} the instruction memory area, {\ie} enforce in hardware
 the policy of not over-writing instructions.
 
-\index{JIT (Just-in-time compiling)}
-\index{Just-in-time compiling (JIT)}
+\index[RV]{JIT (Just-in-time compiling)}
+\index[RV]{Just-in-time compiling (JIT)}
 
 This view of strict separation of IMem and DMem has to be tempered
 somewhat when considering languages like JavaScript, Python {\etc}
@@ -524,7 +521,7 @@ which these new instructions can be fetched.
 
 \label{Sec_Mem_Req}
 
-\index{Memory!Request}
+\index[RV]{Memory!Request}
 
 A memory-request in RV32I is either a LOAD, a STORE or a FENCE.  We
 could define an enum type for this:
@@ -589,8 +586,8 @@ Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
 
 \subsection{Address Alignment}
 
-\index{Address alignment}
-\index{Memory!Address alignment}
+\index[RV]{Address alignment}
+\index[RV]{Memory!Address alignment}
 
 Although nowadays we think of all computer memories in units of 8-bit
 bytes and being byte-addressed,\footnote{Some early computers, until
@@ -670,7 +667,7 @@ not even contain a trap-handler for misaligned accesses.
 
 \label{Sec_Mem_Rsp}
 
-\index{Memory!Response}
+\index[RV]{Memory!Response}
 
 The response from memory for any request may be to report success, an
 alignment error, or some other error.  Examples of ``other errors''

@@ -25,8 +25,8 @@ Purpose Registers) and CSRs (Control and Status Registers).
 
 \label{Sec_RISCV_regfile}
 
-\index{RISC-V!GPRs: general purpose registers}
-\index{RISC-V!x0@{\tt x0}: Special ``always zero'' register}
+\index[RV]{GPRs: general purpose registers}
+\index[RV]{x0@{\tt x0}: Special ``always zero'' register}
 
 In RISC-V, register \verb|x0| (index 0) is defined as ``always zero''.
 Any value written to \verb|x0| is ignored/discarded, and any read from
@@ -59,11 +59,11 @@ RISCV\_GPRs\_IFC} that has some RISC-V specific method and argument
 names, for reading the rs1, rs2 values (register source 1 and 2) and
 writing the rd value (register destination):
 
-\index{RISCV\_GPRs\_IFC@{\tt RISCV\_GPRs\_IFC} interface for {\tt mkRISCV\_GPRs}}
+\index[RV]{RISCV\_GPRs\_IFC@{\tt RISCV\_GPRs\_IFC} interface for {\tt mkRISCV\_GPRs}}
 
 \input{Code_Extracts/RISCV_GPRs.tex}
 
-\index{mkRISCV\_GPRs@{\tt mkRISCV\_GPRs} a module wrapper around library {\tt RegFile}}
+\index[RV]{mkRISCV\_GPRs@{\tt mkRISCV\_GPRs} a module wrapper around library {\tt RegFile}}
 
 Here is the module implementing the interface:
 
@@ -114,7 +114,7 @@ A useful trick is to write a thin, non-polymorphic wrapper for the
 module; being non-polymorphic, it can be compiled without inlining
 into a distinct Verilog module:
 
-\index{mkRISCV\_GPRs\_synth@{\tt mkRISCV\_GPRs\_synth} a module wrapper for {\tt mkRISCV\_GPRs} for synthesizability}
+\index[RV]{mkRISCV\_GPRs\_synth@{\tt mkRISCV\_GPRs\_synth} a module wrapper for {\tt mkRISCV\_GPRs} for synthesizability}
 
 \input{Code_Extracts/mkRISCV_GPRs_synth.tex}
 

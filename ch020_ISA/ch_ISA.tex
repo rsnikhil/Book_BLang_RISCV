@@ -28,7 +28,7 @@ specific to this book.
 
 \section{What is an ISA?}
 
-\index{RISC-V!ISA!Instruction Set Architecture}
+\index[RV]{ISA!Instruction Set Architecture}
 
 The acronym ``ISA'' stands for ``Instruction Set Architecture''.
 Figure~\ref{Fig_What_is_an_ISA} illustrates the role of an ISA as an
@@ -44,10 +44,10 @@ a \emph{specification}, a document defining three things:
 
 \begin{itemize}
 
-  \index{RISC-V!ISA!Architectural State}
-  \index{RISC-V!ISA!Program Counter, PC}
-  \index{RISC-V!ISA!PC, Program Counter}
-  \index{RISC-V!ISA!Register File}
+  \index[RV]{ISA!Architectural State}
+  \index[RV]{ISA!Program Counter, PC}
+  \index[RV]{ISA!PC, Program Counter}
+  \index[RV]{ISA!Register File}
 
   \item \emph{Architectural State}: the registers visible to the
         instructions, such as the program counter (PC) and a register
@@ -58,9 +58,9 @@ a \emph{specification}, a document defining three things:
         identifies a single byte, and where individual bytes may be
         read and written.
 
-  \index{RISC-V!ISA!Instruction Set}
-  \index{RISC-V!ISA!Instruction Set encoding in bits}
-  \index{RISC-V!ISA!Assembly Language}
+  \index[RV]{ISA!Instruction Set}
+  \index[RV]{ISA!Instruction Set encoding in bits}
+  \index[RV]{ISA!Assembly Language}
 
   \item An \emph{Instruction Set}: a collection of instructions.  For
         each instruction, the ISA specifies how it is encoded in bits.
@@ -70,7 +70,7 @@ a \emph{specification}, a document defining three things:
         LOAD/STORE, Arithmetic and Logic, Conditional Branches, Jumps,
         System Instructions, and so on.
 
-  \index{RISC-V!ISA!Instruction semantics}
+  \index[RV]{ISA!Instruction semantics}
 
   \item \emph{Semantics}: a description, for each instruction about
         \emph{how} it executes---what architectural state it observes,
@@ -84,21 +84,21 @@ a \emph{specification}, a document defining three things:
 
 \end{itemize}
 
-\index{RISC-V!ISA!Formal Specification in Sail}
-\index{RISC-V!ISA!Sail Formal Specification language}
+\index[RV]{ISA!Formal Specification in Sail}
+\index[RV]{ISA!Sail Formal Specification language}
 
 The full ISA may be described in ordinary text prose and diagrams, or
 in a semi-formal or formal language.  For example, the RISC-V ISA is
 described both in text prose and diagrams, and in the formal language
 ``Sail''.
 
-\index{RISC-V!Micro-architecture}
-\index{RISC-V!Micro-architecture!Superscalar}
-\index{RISC-V!Micro-architecture!Out-of-order}
-\index{RISC-V!Micro-architecture!Pipelining}
-\index{RISC-V!Micro-architecture!Speculation}
-\index{RISC-V!Micro-architecture!Multi-threaded}
-\index{RISC-V!Micro-architecture!Multi-core}
+\index[RV]{Micro-architecture}
+\index[RV]{Micro-architecture!Superscalar}
+\index[RV]{Micro-architecture!Out-of-order}
+\index[RV]{Micro-architecture!Pipelining}
+\index[RV]{Micro-architecture!Speculation}
+\index[RV]{Micro-architecture!Multi-threaded}
+\index[RV]{Micro-architecture!Multi-core}
 
 Beneath the ISA level are actual \emph{implementations} of the ISA.
 These range from software simulators of the ISA to silicon
@@ -112,7 +112,7 @@ with network and storage stacks), silicon technology (FPGA {\vs} ASIC,
 ASICs with various silicon feature sizes and techniques), and so on.
 Variations in micro-architectures provide product differentiation.
 
-\index{RISC-V!Machine code}
+\index[RV]{Machine code}
 
 Each implementation runs (interprets) machine code, {\ie} an encoding
 of instructions in memory.  The machine codes are typically produced
@@ -127,8 +127,8 @@ definition}.  They can (and do) play all kinds of micro-architectural
 tricks under the covers, but the result of executing any program
 should be explainable purely based on the ISA specification.
 
-\index{RISC-V!ISA!Enables software portability}
-\index{RISC-V!ISA!Contract between software and hardware implementations}
+\index[RV]{ISA!Enables software portability}
+\index[RV]{ISA!Contract between software and hardware implementations}
 
 Thus, and ISA is a \emph{contract} or \emph{API} between software and
 hardware implementations.  People writing software, people writing
@@ -453,7 +453,7 @@ needed to decode an instruction.
 
 \label{Sec_RV32I}
 
-\index{RISC-V!ISA!RV32I base integer instructions}
+\index[RV]{ISA!RV32I base integer instructions}
 
 Figure~\ref{Fig_RV32I_labeled} reproduces the table on page 130 of the
 RISC-V Unprivileged ISA specification, which shows all RV32I
@@ -971,8 +971,8 @@ the CSR address TIMEH returns the upper 32 bits.
 
 \label{Sec_CPU_Performance}
 
-\index{RISCV!IPC: instructions per cycle}
-\index{RISCV!CPI: cycles per instructions}
+\index[RV]{IPC: instructions per cycle}
+\index[RV]{CPI: cycles per instructions}
 
 Using the INSTRET and CYCLE CSRs, software can measure a standard
 metric for CPU implementations, CPI (Cycles per Instruction) or its
@@ -1029,8 +1029,8 @@ ADDW, SUBW, SLLW, SRLW and SRAW to operate on the lower 32-bits of
 
 \section{Continued Evolution of the RISC-V ISA (with your contribution?)}
 
-\index{RISC-V!ISA!Evolution of}
-\index{RISC-V!ISA!Extensions to}
+\index[RV]{ISA!Evolution of}
+\index[RV]{ISA!Extensions to}
 
 The RISC-V ISA is not frozen.  As shown in
 Figure~\ref{Fig_ISA_Modularity}, the ISA has consciously been designed

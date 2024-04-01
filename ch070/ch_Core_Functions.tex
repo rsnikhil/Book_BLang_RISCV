@@ -32,8 +32,8 @@ Figure~\ref{Fig_Core_Simple_Instr_Exec}: \verb|fn_Fetch|,
 
 \label{Sec_fn_Fetch}
 
-\index{fn\_Fetch@{\tt fn\_Fetch} (Fetch function)}
-\index{Fetch function ({\tt fn\_Fetch})}
+\index[RV]{fn\_Fetch@{\tt fn\_Fetch} (Fetch function)}
+\index[RV]{Fetch function ({\tt fn\_Fetch})}
 
 The Fetch function \emph{per se} is fairly simple, even trivial.  Its
 input is the current value of the program counter (PC), which is used
@@ -62,7 +62,7 @@ for debugging, to be able to identify a specific fetched instruction.
 and \verb|epoch|; ignore these for now, they are not used in Drum,
 only in Fife.)
 
-\index{BSV!struct!Nested}
+\index[BSV]{struct!nested}
 
 To pass both results of \verb|fn_Fetch|, we simply use a \emph{nested}
 struct, {\ie} a struct containing the two component structs:
@@ -133,8 +133,8 @@ and \verb|Mem_Req| outputs look correct.
 
 \label{Sec_fn_Decode}
 
-\index{fn\_Decode@{\tt fn\_Decode} (Decode function)}
-\index{Decode function ({\tt fn\_Decode})}
+\index[RV]{fn\_Decode@{\tt fn\_Decode} (Decode function)}
+\index[RV]{Decode function ({\tt fn\_Decode})}
 
 The core function for the Decode step is called \verb|fn_Decode|.  Its
 arguments are a struct of type \verb|Fetch_to_Decode| from the Fetch
@@ -146,7 +146,7 @@ produces some summary information:
 
 \input{Code_Extracts/fn_Decode.tex}
 
-\index{truncate@{\tt truncate}, operation to shrink bit-width}
+\index[BSV]{truncate@{\tt truncate}, operation to shrink bit-width}
 
 In line 6, we extract the instruction from the \verb|Mem_Rsp| memory
 response \verb|data| from the Fetch operation. The \verb|truncate|
@@ -246,8 +246,8 @@ check that the \verb|D_to_RR| outputs look correct.
 
 \label{Sec_fn_Dispatch}
 
-\index{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
-\index{Dispatch function ({\tt fn\_Dispatch})}
+\index[RV]{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
+\index[RV]{Dispatch function ({\tt fn\_Dispatch})}
 
 In the Register-Read and Dispatch step (``RR'', ``RRD''), we first
 read the \verb|rs1| and \verb|rs2| values from the Register File.  We
@@ -368,8 +368,8 @@ component structs.
 
 \label{Sec_fn_EX_Control}
 
-\index{fn\_EX\_Control@{\tt fn\_EX\_Control} (Execute Control function)}
-\index{Execute Control function ({\tt fn\_EX\_Control})}
+\index[RV]{fn\_EX\_Control@{\tt fn\_EX\_Control} (Execute Control function)}
+\index[RV]{Execute Control function ({\tt fn\_EX\_Control})}
 
 This function is a simple one-input one-output function.  The input
 type \verb|RR_to_EX_Control| was described in
@@ -483,8 +483,8 @@ What if this is a JAL or JALR instruction with \verb|rd| = 0?
 
 \label{Sec_fn_EX_Int}
 
-\index{fn\_EX\_Int@{\tt fn\_EX\_Int} (Execute Integer function)}
-\index{Execute Integer function ({\tt fn\_EX\_Int})}
+\index[RV]{fn\_EX\_Int@{\tt fn\_EX\_Int} (Execute Integer function)}
+\index[RV]{Execute Integer function ({\tt fn\_EX\_Int})}
 
 This function is a simple one-input one-output function.  The input
 type \verb|RR_to_EX| was described in Section~\ref{Sec_fn_Dispatch},

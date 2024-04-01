@@ -116,18 +116,18 @@ more cycles.  Fife, which executes many instructions in parallel in
 its pipelined microarchitecture, can often retire one instruction per
 cycle.
 
-\index{RISC-V!superscalar microarchitecture}
-\index{RISC-V!microarchitecture!superscalar}
+\index[RV]{superscalar microarchitecture}
+\index[RV]{microarchitecture!superscalar}
 
 An advanced microarchitecture with more parallelism is the
 \emph{superscalar} microarchitecture, which may fetch and execute 2 or
 4 (or more) instructions at a time.
 
-\index{RISC-V!out-of-order microarchitecture}
-\index{RISC-V!microarchitecture!out-of-order}
+\index[RV]{out-of-order microarchitecture}
+\index[RV]{microarchitecture!out-of-order}
 
-\index{RISC-V!cache!non-blocking}
-\index{RISC-V!cache!hit-under-miss}
+\index[RV]{cache!non-blocking}
+\index[RV]{cache!hit-under-miss}
 
 Another advanced microarchitecture with more parallelism is the
 \emph{out-of-order} microarchitecture which may, for example, have
@@ -151,7 +151,7 @@ Before trying to optimize a CPU, we must first analyze and understand
 the existing implementation thoroughly so that we can then identify
 opportunities for improvement.
 
-\index{RISC-V!Pipeline trace}
+\index[RV]{Pipeline trace}
 
 The first step is to produce a \emph{pipeline trace}, which has more
 fine-grain detail than a mere \emph{instruction trace} (which only
@@ -379,9 +379,9 @@ On the other hand, the depth of the combined step/stage combinational
 circuit is now the sum of the depths in the original two steps/stages;
 this may reduce the clock speed at which we can run it.
 
-\index{RISC-V!Pipeline!balanced and unbalanced}
-\index{RISC-V!Pipeline!slack}
-\index{RISC-V!Timing!slack}
+\index[RV]{Pipeline!balanced and unbalanced}
+\index[RV]{Pipeline!slack}
+\index[RV]{Timing!slack}
 
 Fusion may not reduce the achievable clock speed if some other
 step/stage already limits the achievable speed.  In this case we would
@@ -584,10 +584,10 @@ subsequent instructions thqt have the old epoch, because they are all
 in the ``misprediction shadow'', and resumes normal operation only it
 sees the first instruction carrying the new epoch.
 
-\index{RISC-V!misprediction!penalty}
-\index{RISC-V!misprediction!shadow}
-\index{RISC-V!misprediction!manage with epochs}
-\index{RISC-V!PC-prediction!misprediction}
+\index[RV]{misprediction!penalty}
+\index[RV]{misprediction!shadow}
+\index[RV]{misprediction!manage with epochs}
+\index[RV]{PC-prediction!misprediction}
 
 The time wasted on these discarded instructions is called the
 ``\emph{misprediction penalty}''.  Clearly, we would like to reduce
@@ -719,7 +719,7 @@ sophisticated versions for better prediction.
 
 \label{Sec_BTBs}
 
-\index{RISC-V!PC prediction!BTBs (Branch Target Buffers)}
+\index[RV]{PC prediction!BTBs (Branch Target Buffers)}
 
 One technique is to add a ``\emph{Branch-Target Buffer}'' (BTB), which
 is a table associating the PC of a BRANCH instructions with the
@@ -775,7 +775,7 @@ mispredictions, no matter how many iterations.
 
 \label{Sec_BTBs_w_hysteresis}
 
-\index{RISC-V!PC prediction!BTB with hysteresis}
+\index[RV]{PC prediction!BTB with hysteresis}
 
 Consider executing our example loop a second time (perhaps it is
 nested inside an outer loop, or is in a function that has been called
@@ -823,7 +823,7 @@ loop), that reduction of mispredictions goes from 2000 to 1000.
 
 \label{Sec_BTBs_w_cf_index}
 
-\index{RISC-V!PC prediction!BTB, control-flow-indexed}
+\index[RV]{PC prediction!BTB, control-flow-indexed}
 
 In many RISC-V programs we will find that we can more accurately
 predict the outcome of a BRANCH if we knew how we arrived at that
@@ -840,7 +840,7 @@ PC by itself.
 
 \label{Sec_RAS}
 
-\index{RISC-V!PC prediction!RAS (Return Address Stack)}
+\index[RV]{PC prediction!RAS (Return Address Stack)}
 
 JAL instructions are mostly used for subroutine calls, and JALR
 insructions are mostly used for subroutine returns (also subroutine
@@ -1049,13 +1049,13 @@ response.
 
 \subsubsection{TCMs (Tightly Coupled Memories)}
 
-\index{RISC-V!SRAM (static RAM)}
-\index{RISC-V!Memory!SRAM (static RAM)}
+\index[RV]{SRAM (static RAM)}
+\index[RV]{Memory!SRAM (static RAM)}
 
-\index{RISC-V!Memory!BRAM (Block RAMs in FPGAs, which are SRAMs)}
-\index{RISC-V!BRAM (Block RAMs in FPGAs, which are SRAMs)}
+\index[RV]{Memory!BRAM (Block RAMs in FPGAs, which are SRAMs)}
+\index[RV]{BRAM (Block RAMs in FPGAs, which are SRAMs)}
 
-\index{RISC-V!TCM (tightly coupled memory)}
+\index[RV]{TCM (tightly coupled memory)}
 
 Small computer systems (embedded, IoT) often use a small TCM
 (``Tightly Coupled Memory'') for their memory system.  TCMs are
@@ -1068,12 +1068,12 @@ straightforward to have a 1-tick latench and also sustain a
 
 \subsubsection{Caches}
 
-\index{RISC-V!DRAM (dynamic RAM)}
-\index{RISC-V!Memory!DRAM (dynamic RAM)}
+\index[RV]{DRAM (dynamic RAM)}
+\index[RV]{Memory!DRAM (dynamic RAM)}
 
-\index{RISC-V!Memory!Cache}
-\index{RISC-V!Cache}
-\index{RISC-V!Cache!miss penalty}
+\index[RV]{Memory!Cache}
+\index[RV]{Cache}
+\index[RV]{Cache!miss penalty}
 
 However, most modern systems have large memories based on DRAM
 (Dynamic RAM), which can take many cycles to access both because DRAMs
@@ -1087,8 +1087,8 @@ usually possible to perform the access in 1 tick.  On a cache
 missing data by fetching it from DRAM, and this can take many cycles.
 The delay incurred here is called the ``cache miss penalty''.
 
-\index{RISC-V!Memory!Cache!non-blocking}
-\index{RISC-V!Cache!non-blocking}
+\index[RV]{Memory!Cache!non-blocking}
+\index[RV]{Cache!non-blocking}
 
 Non-blocking caches are able to process another memory request R2
 while it is servicing a cache miss for an earlier request R1, {\ie}
@@ -1099,23 +1099,23 @@ are more complex; simple caches process one request at a time.
 
 \subsubsection{Virtual Memory}
 
-\index{RISC-V!Memory!Virtual Memory}
-\index{RISC-V!Virtual Memory}
+\index[RV]{Memory!Virtual Memory}
+\index[RV]{Virtual Memory}
 
 Computer systems that run operating systems (including Linux, Windows,
 MacOS, ...) typically also support \emph{virtual memory} (RISC-V ``S''
 and ``U'' privilege levels with a virtual memory scheme such as
 ``Sv32'' or ``Sv39'').
 
-\index{RISC-V!Virtual address}
-\index{RISC-V!Memory!Virtual address}
+\index[RV]{Virtual address}
+\index[RV]{Memory!Virtual address}
 
-\index{RISC-V!Physical address}
-\index{RISC-V!Memory!Physical address}
+\index[RV]{Physical address}
+\index[RV]{Memory!Physical address}
 
-\index{RISC-V!Virtual Memory!Page Table}
-\index{RISC-V!Virtual Memory!Page Table Walk}
-\index{RISC-V!Virtual Memory!PTW (Page Table Walk)}
+\index[RV]{Virtual Memory!Page Table}
+\index[RV]{Virtual Memory!Page Table Walk}
+\index[RV]{Virtual Memory!PTW (Page Table Walk)}
 
 When virtual memory is active, every address sent in an IMem or DMem
 request is a ``virtual address'' (VA).  The memory system first map
@@ -1128,9 +1128,9 @@ looked up in a cache.
 
 \subsubsection{TLBs (Translation Lookaside Buffers)}
 
-\index{RISC-V!TLB translation lookaside buffer}
-\index{RISC-V!Virtual Memory!TLB translation lookaside buffer}
-\index{RISC-V!TLB!miss penalty }
+\index[RV]{TLB translation lookaside buffer}
+\index[RV]{Virtual Memory!TLB translation lookaside buffer}
+\index[RV]{TLB!miss penalty }
 
 A single VA-to-PA translation, involving a single PTW, involves
 multiple memory references, and so can take many cycles.  This is an
@@ -1152,7 +1152,7 @@ lookup a VA in the TLB, and use the resulting PA for cache access.
 In these systems, the minimum overall memory access latency is 2 ticks,
 one for each of those two steps.
 
-\index{RISC-V!Virtual Memory!Pages}
+\index[RV]{Virtual Memory!Pages}
 
 Some systems access the TLB and the cache in parallel, reducing
 memory-access latency to 1 tick.  But how can the cache be accessed

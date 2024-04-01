@@ -32,7 +32,7 @@ construct to code the FSM.
 
 \label{Sec_Drum_CPU_interface}
 
-\index{Drum!CPU interface}
+\index[RV]{Drum!CPU interface}
 
 The Drum CPU interface is shown below.
 
@@ -78,10 +78,8 @@ and Drum CPUs are easily interchangeable in any system or testbench.
 
 \label{Sec_Drum_CPU_module}
 
-\index{RISC-V!Drum skeleton module}
-\index{RISC-V!Fife skeleton module}
-\index{Drum!Skeleton module}
-\index{Fife!Skeleton module}
+\index[RV]{Drum!Skeleton module}
+\index[RV]{Fife!Skeleton module}
 
 The STATE and INTERFACE sections of the Drum CPU module are shown
 below (we will discuss the elided BEHAVIOR section shortly).
@@ -174,8 +172,7 @@ trap-handling.
 
 \label{Sec_Drum_actions}
 
-\index{RISC-V!Drum CPU module actions}
-\index{Drum!CPU module actions}
+\index[RV]{Drum!CPU module actions}
 
 The following sub-sections show the main actions performed by Drum,
 corresponding to the components in Figure~\ref{Fig_Drum_Instr_Exec}.
@@ -183,7 +180,7 @@ corresponding to the components in Figure~\ref{Fig_Drum_Instr_Exec}.
 % ----------------
 \vspace{2ex}
 
-\index{BSV!Action@{\tt Action}!as a first-class type}
+\index[BSV]{Action@{\tt Action}!as a first-class type}
 
 NOTE:
 \fbox{\small
@@ -397,8 +394,7 @@ that execution resumes at the trap-vector PC provided in CSR
 
 \label{Sec_Drum_CPU_module_behavior}
 
-\index{RISC-V!Drum CPU module behavior}
-\index{Drum!CPU module behavior}
+\index[RV]{Drum!CPU module behavior}
 
 Having defined all the actions needed by Drum, we can now assemble
 them into the Drum FSM.  First we define an FSM specification

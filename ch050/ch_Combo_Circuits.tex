@@ -81,8 +81,8 @@ learn the BSV concepts needed to code these ideas.
 
 \label{Sec_BSV_Bit_Vectors}
 
-\index{BSV!Bit Vectors}
-\index{BSV!Types!{\tt Bit\#(n)}}
+\index[BSV]{Bit Vectors}
+\index[BSV]{Types!{\tt Bit\#(n)}}
 
 In BSV, as in many programming languages, every value has a
 \emph{type}.  The simplest, and lowest-level type in BSV is the
@@ -117,7 +117,7 @@ The bits in a BSV bit-vector of size $n$ are indexed from $n-1$
 (most-significant bit) to 0 (least-significant bit).  You can extract
 a \emph{slice} of a bit-vector using usual Verilog notation:
 
-\index{BSV!Bit Vectors!slices of}
+\index[BSV]{Bit Vectors!slices of}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -151,8 +151,8 @@ BSV bit-vectors can be compared for equality and inequality.  BSV
 bit-vectors are synonymous with unsigned integers, and so a number of
 other operations are also available on bit-vectors.  Examples:
 
-\index{BSV!Bit Vectors!operators on}
-\index{BSV!Operators on Bit Vectors}
+\index[BSV]{Bit Vectors!operators on}
+\index[BSV]{Operators on Bit Vectors}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -189,9 +189,9 @@ else we'll get a type error, {\eg} we cannot compare a
 Verilog, BSV does not implicitly extend or truncate bit-vectors to
 match sizes.
 
-\index{BSV!Bit Vectors!{\tt truncate}}
-\index{BSV!Bit Vectors!{\tt extend}}
-\index{BSV!Bit Vectors!{\tt zeroExtend}}
+\index[BSV]{Bit Vectors!{\tt truncate}}
+\index[BSV]{Bit Vectors!{\tt extend}}
+\index[BSV]{Bit Vectors!{\tt zeroExtend}}
 
 Two functions are available to zero-extend and truncate bit-vectors.
 
@@ -218,11 +218,11 @@ appropriate amount as demanded by the context.
 
 \label{BSV_ints}
 
-\index{BSV!Integer types {\tt Bit}, {\tt Int}, {\tt UInt}, {\tt Integer}}
-\index{BSV!Bit@{\tt Bit}!Integer type}
-\index{BSV!Int@{\tt Int}!Integer type}
-\index{BSV!UInt@{\tt UInt}!Unsigned integer type}
-\index{BSV!UInt@{\tt Integer}!Unbounded (non-synthesizable) Integer type}
+\index[BSV]{Integer types {\tt Bit}, {\tt Int}, {\tt UInt}, {\tt Integer}}
+\index[BSV]{Bit@{\tt Bit}!Integer type}
+\index[BSV]{Int@{\tt Int}!Integer type}
+\index[BSV]{UInt@{\tt UInt}!Unsigned integer type}
+\index[BSV]{UInt@{\tt Integer}!Unbounded (non-synthesizable) Integer type}
 
 BSV has four integer types, written as follows:
 
@@ -255,7 +255,7 @@ they cannot be represented in any fixed-size hardware.  \verb|Integer|
 is used only for compile-time integers, where we do not need to fix a
 bound.
 
-\index{BSV!Wraparound arithmetic for fixed-width integer types}
+\index[BSV]{Wraparound arithmetic for fixed-width integer types}
 
 Fixed-width integer types all ``wrap-around''.  For example, if we add
 1 to a \verb|Bit#(3)| value \verb|3'b_111|, the result will be
@@ -274,10 +274,10 @@ Section~\ref{BSV_Syntax_of_Identifiers}.)
 
 \label{BSV_hex_bin_literals}
 
-\index{BSV!Literals!Hexadecimal integer notation}
-\index{BSV!Literals!Binary integer notation}
-\index{BSV!Hexadecimal notation for integer literals}
-\index{BSV!Binary notation for integer literals}
+\index[BSV]{Literals!Hexadecimal integer notation}
+\index[BSV]{Literals!Binary integer notation}
+\index[BSV]{Hexadecimal notation for integer literals}
+\index[BSV]{Binary notation for integer literals}
 
 BSV uses the same notation as Verilog and SystemVerilog for
 hexadecimal and binary literal integers.  Some examples:
@@ -318,9 +318,9 @@ then the literal is inferred to be 32 bits wide.
 
 \label{Sec_BSV_Boolean_values}
 
-\index{BSV!{\tt Bool}}
-\index{BSV!Types!{\tt Bool}}
-\index{BSV!Bool@{\tt Bool}!operators on}
+\index[BSV]{Types!{\tt Bool}}
+\index[BSV]{Bool@{\tt Bool}}
+\index[BSV]{Bool@{\tt Bool}!operators on}
 
 In BSV, \verb|Bool| is the type of a Boolean value. It has the usual
 boolean operators \verb|&&| (Boolean/logical AND), \verb'||'
@@ -396,7 +396,7 @@ Figure~\ref{Fig_Combo_Is_Legal_BRANCH} shows the hardware circuit described by t
   \caption{\label{Fig_Combo_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
 \end{figure}
 Some observations:
-\index{BSV!bus (hardware, bundle of wires)}
+\index[BSV]{bus (hardware, bundle of wires)}
 \begin{tightlist}
 
  \item Lines with arrow-heads in the figure represent bundles of one
@@ -415,8 +415,8 @@ Some observations:
 
 \subsection{Combinational circuits and primitives}
 
-\index{BSV!Combinational circuits}
-\index{BSV!Combinational primitives}
+\index[BSV]{Combinational circuits}
+\index[BSV]{Combinational primitives}
 
 Figure~\ref{Fig_Combo_Is_Legal_BRANCH} is an example of a so-called
 \emph{combinational} circuit.  In general, a combinational circuit is
@@ -441,7 +441,7 @@ automatically by excellent so-called ``synthesis'' tools.
 
 \subsubsection{Combinational circuits have no side-effects (are ``pure'')}
 
-\index{BSV!Combinational circuits!purity}
+\index[BSV]{Combinational circuits!purity}
 
 There is no ``storage'' in a combinational circuit, nor any concept of
 ``updating'' any storage (no ``side-effects'').  When a 32-bit value
@@ -453,7 +453,7 @@ instantaneous, mathematical function from intputs to outputs.  If we
 change the 32-bit value presented at the input, conceptually the
 output changes instantaneously in response.
 
-\index{BSV!Propagation delay}
+\index[BSV]{Propagation delay}
 
 % ----------------
 
@@ -477,7 +477,7 @@ this in detail later.
 
 \label{BSV_functions}
 
-\index{BSV!functions!definition}
+\index[BSV]{functions!definition}
 
 The fragments of code shown above can be packaged into BSV functions,
 specifying precise types for argument(s) and result:
@@ -486,7 +486,7 @@ specifying precise types for argument(s) and result:
 \input{Code_Extracts/instr_funct3.tex}
 \input{Code_Extracts/is_Legal_BRANCH.tex}
 
-\index{BSV!functions!application}
+\index[BSV]{functions!application}
 
 Functions are invoked using the ``application'' syntax commonly used
 in most programming languages:
@@ -509,10 +509,10 @@ as in SystemVerilog.
 
 \label{Sec_Pure_vs_Side_Effect_functions}
 
-\index{BSV!Types!{\tt Action}}
-\index{BSV!Types!{\tt ActionValue}}
-\index{BSV!Action@{\tt Action} type of expression with side-effects}
-\index{BSV!ActionValue@{\tt ActionValue} type of experssion with side-effects}
+\index[BSV]{Types!{\tt Action}}
+\index[BSV]{Types!{\tt ActionValue}}
+\index[BSV]{Action@{\tt Action} type of expression with side-effects}
+\index[BSV]{ActionValue@{\tt ActionValue} type of experssion with side-effects}
 
 BSV has a system of data types and type-checking similar to Haskell in
 that it systematically distinguishes expressions which are ``pure''
@@ -548,8 +548,8 @@ BSV used a \emph{monadic} type sytem (the same as in Haskell) to
 systematically track purity/impurity of expressions.  Consider two
 function declarations:
 
-\index{BSV!Haskell, monadic types similarity}
-\index{BSV!Monadic types!Haskell similarity}
+\index[BSV]{Haskell, monadic types similarity}
+\index[BSV]{Monadic types!Haskell similarity}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -589,8 +589,8 @@ synonym for \verb|ActionValue #(void)|, where you can think of
 
 \subsection{Combinational circuits $=$ ``doesn't have {\tt Action} or {\tt ActionValue} type''}
 
-\index{BSV!Combinational circuits!data types}
-\index{BSV!Types!of combinational circuits}
+\index[BSV]{Combinational circuits!data types}
+\index[BSV]{Types!of combinational circuits}
 
 Another pleasing consequence of BSV's type system is that we can
 identify precisely which expressions become combinational circuits.
@@ -620,8 +620,8 @@ chapters.
 
 \label{BSV_small_testbench}
 
-\index{BSV!Testbenches}
-\index{BSV!Testbenches!FSMs}
+\index[BSV]{Testbenches}
+\index[BSV]{Testbenches!FSMs}
 
 Here is a small program to run our \verb|is_legal_BRANCH()| function on
 a few tests:
@@ -775,7 +775,7 @@ Extend the testbench to test more 32-bit values with all the
 
 \label{BSV_enum_types}
 
-\index{BSV!enum@{\tt enum} types}
+\index[BSV]{enum@{\tt enum} types}
 
 In Figure~\ref{Fig_Instr_Exec}, the Register-Read and Dispatch step
 needs to know which of the four alternative downstream paths should be
@@ -798,9 +798,9 @@ memory-access path.
 
 \subsection{{\tt deriving (Bits)}}
 
-\index{BSV!deriving Bits@{\tt deriving Bits}}
-\index{BSV!Typeclasses}
-\index{BSV!Typeclass!instance of}
+\index[BSV]{deriving Bits@{\tt deriving Bits}}
+\index[BSV]{Typeclasses}
+\index[BSV]{Typeclass!instance of}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically represent them with the obvious codes 0, 1, 2, 3
@@ -814,7 +814,7 @@ later).
 
 \subsection{{\tt deriving (Eq)}}
 
-\index{BSV!deriving Eq@{\tt deriving Eq}}
+\index[BSV]{deriving Eq@{\tt deriving Eq}}
 
 Because we said ``\verb|deriving(Eq)|'', the \emph{bsc} compiler will
 automatically define the ``equality'' (and ``inequality'') functions
@@ -828,7 +828,7 @@ equality/inequality explicitly (see ``typeclass instances'', later).
 
 \subsection{{\tt deriving (FShow)}}
 
-\index{BSV!deriving FShow@{\tt deriving FShow}}
+\index[BSV]{deriving FShow@{\tt deriving FShow}}
 
 Given a value \emph{opclass} of type \verb|OpClass|, if we directly
 print it, {\eg}:
@@ -871,17 +871,17 @@ the output will be ``OPCLASS\_MEM'', {\ie} the symbolic name.
 
 \label{BSV_Syntax_of_Identifiers}
 
-\index{BSV!Identifer syntax}
+\index[BSV]{Identifer syntax}
 
 The syntax of an identifier (name) in BSV follows the same conventions
 as in many programming languages: any sequence of alphabets, digits
 and underscore characters, with the first letter always being an
 alphabet.
 
-\index{BSV!Identifiers!First letter lower- or upper-case}
-\index{BSV!Identifiers!Type: initial upper-case letter}
-\index{BSV!Identifiers!Enum constant: initial upper-case letter}
-\index{BSV!Identifiers!Ordinary: initial lower-case letter}
+\index[BSV]{Identifiers!First letter lower- or upper-case}
+\index[BSV]{Identifiers!Type: initial upper-case letter}
+\index[BSV]{Identifiers!Enum constant: initial upper-case letter}
+\index[BSV]{Identifiers!Ordinary: initial lower-case letter}
 
 BSV follows the Haskell system where an identifier has a different
 roles depending on whether its first letter is lower-case or
@@ -907,10 +907,10 @@ variables.
 
 \label{BSV_Syntax_of_comments}
 
-\index{BSV!Comments!to end-of-line, starting with {\tt //}}
-\index{BSV!Comments!block, from {\tt /*} to matching {\tt */}}
-\index{BSV!//@{\tt //}, start of comment-to-end-of-line}
-\index{BSV!/*@{\tt /*}, start of block comment (until-{\tt */})}
+\index[BSV]{Comments!to end-of-line, starting with {\tt //}}
+\index[BSV]{Comments!block, from {\tt /*} to matching {\tt */}}
+\index[BSV]{//@{\tt //}, start of comment-to-end-of-line}
+\index[BSV]{/*@{\tt /*}, start of block comment (until-{\tt */})}
 
 Comments in BSV have the same syntactic conventions as in Verilog,
 SystemVerilog and C/C++:
@@ -938,10 +938,10 @@ SystemVerilog and C/C++:
 
 \label{BSV_Combo_Circuits_if_then_else}
 
-\index{BSV!if-then-else}
-\index{BSV!multiplexers}
-\index{BSV!MUX}
-\index{BSV!multiplexers!cascaded/serial/priority}
+\index[BSV]{if-then-else}
+\index[BSV]{multiplexers}
+\index[BSV]{MUX}
+\index[BSV]{multiplexers!cascaded/serial/priority}
 
 In most programming languages, ``if-then-else''` is a so-called
 ``control'' construct: depending on the boolean condition, either the
@@ -1016,7 +1016,7 @@ producing a final 2-bit result.  The multiplexer, also called a
 
 If-then-elses and conditional expressions can of course be nested:
 
-\index{BSV!if-then-else!nested}
+\index[BSV]{if-then-else!nested}
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -1057,7 +1057,7 @@ Figure~\ref{Fig_Combo_Multiplexer_Cascade}
 
 \label{Sec_MUXes}
 
-\index{BSV!multiplexers!parallel}
+\index[BSV]{multiplexers!parallel}
 
 The circuit in Figure~\ref{Fig_Combo_Multiplexer_Cascade} has a serial
 structure---the \verb|OPCLASS_CONTROL| branch has priority, and only
@@ -1155,7 +1155,7 @@ testbench.
 
 \label{BSV_Paramterizing_XLEN}
 
-\index{BSV!parameterization}
+\index[BSV]{parameterization}
 
 The RISC-V ISA is actually two ISAs---a 32-bit ISA called RV32 and a
 64-bit ISA called RV64.  These are not randomly different ISAs; they
@@ -1202,7 +1202,7 @@ declaration only works in RV32, since the program counter is 64-bits
 wide in RV64 (type \verb|Bit#(64)|).
 
 \label{BSV_numeric_types}
-\index{BSV!Types!numeric}
+\index[BSV]{Types!numeric}
 
 The ``32'' or ``64'' argument to the \verb|Bit#(n)| type is a
 \emph{numeric type}.  Although syntactically they look just like the
@@ -1227,7 +1227,7 @@ later.}
 
 \label{BSV_Type_synonyms}
 
-\index{BSV!Types!synonyms}
+\index[BSV]{Types!synonyms}
 
 In BSV we can define a new symbolic name for an existing type, and
 then we can use that symbolic names in place of the existing
@@ -1260,8 +1260,8 @@ the remaining code will work for RV64 as well.
 
 \label{BSV_value_of_numeric_type}
 
-\index{BSV!valueOf: value of a numeric type}
-\index{BSV!Types!valueOf: value of a numeric type}
+\index[BSV]{valueOf: value of a numeric type}
+\index[BSV]{Types!valueOf: value of a numeric type}
 
 Although BSV keeps a strict separation of numeric types and numeric
 values (and limits the available arithmetic on the former), it is
@@ -1280,7 +1280,7 @@ the same as that expressed by the numeric type \verb|XLEN|.
 
 \label{BSV_Conditional_compilation}
 
-\index{BSV!Conditional compilation}
+\index[BSV]{Conditional compilation}
 
 Just like in Verilog, SystemVerilog and C/C++, the \emph{bsc} compiler
 runs BSV source code through a ``pre-processor'' before compilation,
