@@ -289,7 +289,7 @@ the \verb|mav_csrrxx()| method in the \verb|csrs| module to perform
 the instruction on the relevant CSRs.  The result is a 2-tuple
 (Section~\ref{Sec_Tuples}) and we use a \verb|match| construct bind
 the names \verb|exc| and \verb|rd_val| to the two components.  If the
-CSRRxx instruction failed (\verb|exc| is true, once again we invoke
+CSRRxx instruction failed (\verb|exc| is true), once again we invoke
 \verb|fa_setup_exception()| to record this.  Otherwise, we invoke
 \verb|fa_update_rd()| to write \verb|rd_val| to a GPR, and we invoke
 \verb|fa_redirect_Fetch()| to update the PC to the fall-through PC
@@ -314,6 +314,51 @@ of the Decode and Dispatch steps, it should be impossible to enter
 this clause (this is just a bit of defensive programming and can
 safely be removed; even if not removed, it does not produce any
 hardware).
+
+% ----------------------------------------------------------------
+
+\subsubsection{Counting retired instructions in CSR {\tt minstret}}
+
+The RISC-V specification says that there is a CSR called
+\verb|minstret| that keeps a count of all retired instructions.  This
+is often used for performance measurement; for example \verb|minstret|
+divided by time gives us a measure of CPU speed,
+``instructions/second''.
+
+There are only two nuances for which we must take special care.
+First, any instruction that raises an exception is considered to be
+``not retired'', so we do not increment \verb|minstret| in that case.
+
+Second, suppose \verb|minstret| has the value 1000, and the next
+instruction we retire is a CSRRxx instruction that writes 600 into CSR
+\verb|minstret|.  Should the final value of \verb|minstret| be 1001?
+Or 600? Or 601? Or something else?  The RISV-V spec says it should be
+600, {\ie} an explicit CSRRxx write into \verb|minstret| should
+override any implicit increment of the CSR.
+
+In the Drum code, we invoke:
+
+{\small
+\begin{Verbatim}
+   csrs.ma_incr_instret;
+\end{Verbatim}
+}
+
+to increment \verb|minstret| inside the \verb|csrs| module in almost
+all cases:
+
+\hmm
+\begin{tabular}{ll}
+ in {\tt a\_Retire\_direct}   & for MRET, ECALL and EBREAK but not for CSRRxx \\
+ in {\tt a\_Retire\_Int}      & when not an exception \\
+ in {\tt a\_Retire\_Control}  & when not an exception \\
+ in {\tt a\_Retire\_DMem}     & when not an exception
+\end{tabular}
+
+In the remaining case for {\tt a\_Retire\_direct}, CSRRxx, we invoke
+this method---{\tt csrs.mav\_csrrxx()}---which performs the CSRRxx
+instruction, and increments \verb|minstret| if there is no exception
+and if it did not write to CSR \verb|minstret|.
 
 % ----------------------------------------------------------------
 

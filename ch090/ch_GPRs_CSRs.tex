@@ -21,7 +21,7 @@ Purpose Registers) and CSRs (Control and Status Registers).
 
 % ****************************************************************
 
-\section{A register file for RISC-V GPRs, with special treatment of {\tt x0}}
+\section{A register file for GPRs, with special treatment of {\tt x0}}
 
 \label{Sec_RISCV_regfile}
 
@@ -51,23 +51,23 @@ Regardless of whether we instantiated 31 or 32 registers, RISC-V
 instructions can (and do) use {\tt x0} as a source or destination
 register, so we need circuitry to deal with attempts to read/write
 {\tt x0}.  One possible solution is to make a ``wrapper'' module {\tt
-mkRISCV\_GPRs} around the library register file module.
+mkGPRs} around the library register file module.
 
 Although we could have reused the {\tt RegFile \#(t1,t2)} interface,
-we take the opportunity to define a new interface {\tt
-RISCV\_GPRs\_IFC} that has some RISC-V specific method and argument
-names, for reading the rs1, rs2 values (register source 1 and 2) and
-writing the rd value (register destination):
+we take the opportunity to define a new interface {\tt GPRs\_IFC} that
+has some RISC-V specific method and argument names, for reading the
+rs1, rs2 values (register source 1 and 2) and writing the rd value
+(register destination):
 
-\index[RV]{RISCV\_GPRs\_IFC@{\tt RISCV\_GPRs\_IFC} interface for {\tt mkRISCV\_GPRs}}
+\index[RV]{GPRs\_IFC@{\tt GPRs\_IFC} interface for {\tt mkGPRs}}
 
-\input{Code_Extracts/RISCV_GPRs.tex}
+\input{Code_Extracts/GPRs_IFC.tex}
 
-\index[RV]{mkRISCV\_GPRs@{\tt mkRISCV\_GPRs} a module wrapper around library {\tt RegFile}}
+\index[RV]{mkGPRs@{\tt mkGPRs} a module wrapper around library {\tt RegFile}}
 
 Here is the module implementing the interface:
 
-\input{Code_Extracts/mkRISCV_GPRs.tex}
+\input{Code_Extracts/mkGPRs.tex}
 
 The module instantiates a library register file {\tt rf}.  The methods
 simply invoke the underlying {\tt rf} methods.  The read-methods
@@ -77,26 +77,26 @@ override this by returning 0 when the index is 0.
 \hdivider
 
 \Exercise
-\hm In {\tt mkRISCV\_GPRs} we write the value when \emph{j} is zero,
-but we ignore it on reads.  Write a variant where, in {\tt write\_rd},
-we alway write 0 when the index {\tt rd} is zero, and the read methods
-no longer check if {\tt rs1} or {\tt rs2} are 0.
+\hm In {\tt mkGPRs} we write the value when \emph{j} is zero, but we
+ignore it on reads.  Write a variant where, in {\tt write\_rd}, we
+alway write 0 when the index {\tt rd} is zero, and the read methods no
+longer check if {\tt rs1} or {\tt rs2} are 0.
 
 In this variant, what happens if we try to read {\tt x0} before it is
-written?
+written for the first time?
 
 Compare the circuitry generated in the original and in the variant.
 Why might we choose one over the other?
 
 \Exercise
-\hm In {\tt mkRISCV\_GPRs} suppose we use {\tt mkRegFile(1,31)} instead of
+\hm In {\tt mkGPRs} suppose we use {\tt mkRegFile(1,31)} instead of
 {\tt mkRegFileFull}.  What needs to change to accommodate this?
 
 \Endexercise
 
 % ================================================================
 
-\subsection{Inlined {\vs} separate module {\tt mkRISCV\_GPRs}}
+\subsection{Inlined {\vs} separate module {\tt mkGPRs}}
 
 The above interface and module definitions were parameterized with
 ``\verb|xlen|'' which is a type-variable (starting with a lower-case
@@ -107,22 +107,22 @@ and 64, respectively.
 
 Being polymorphic, it will also be inlined wherever it is
 instantiated.  If you look at the generated Verilog, there will be no
-trace of \verb|mkRISCV_GPRs|; the module code will have been
+sign of any \verb|mkGPRs| module; the module code will have been
 integrated (inlined) into the parent module's code.
 
 A useful trick is to write a thin, non-polymorphic wrapper for the
 module; being non-polymorphic, it can be compiled without inlining
 into a distinct Verilog module:
 
-\index[RV]{mkRISCV\_GPRs\_synth@{\tt mkRISCV\_GPRs\_synth} a module wrapper for {\tt mkRISCV\_GPRs} for synthesizability}
+\index[RV]{mkGPRs\_synth@{\tt mkGPRs\_synth} a module wrapper for {\tt mkGPRs} for synthesizability}
 
-\input{Code_Extracts/mkRISCV_GPRs_synth.tex}
+\input{Code_Extracts/mkGPRs_synth.tex}
 
 Here, we have instantiated the module using \verb|XLEN| which is not a
 type-variable, it is defined specifically as 32 or 64 (see
 Sec~\ref{BSV_Conditional_compilation}).  The \verb|(*synthesize*)|
 attribute can now be respected by the \emph{bsc} compiler and it will
-produce a Verilog module \verb|mkRISCV_GPRs_synth|.
+produce a Verilog module \verb|mkGPRs_synth|.
 
 % ****************************************************************
 

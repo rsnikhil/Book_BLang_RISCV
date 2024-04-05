@@ -917,7 +917,7 @@ the impact on hardware complexity in the \verb|mkCSRs| module?
 
 % ----------------------------------------------------------------
 
-\subsubsection{Rules to retire MRET instructions (direct path)}
+\subsubsection{Rule to retire MRET instructions (direct path)}
 
 The following rule handles MRET instructions, which arrive on the direct path:
 
@@ -934,7 +934,7 @@ MEPC (Section~\ref{Sec_Traps}).
 
 % ----------------------------------------------------------------
 
-\subsubsection{Rules to retire ECALL and EBREAK instructions (direct path)}
+\subsubsection{Rule to retire ECALL and EBREAK instructions (direct path)}
 
 The following rule handles ECALL and EBREAK instructions, which arrive on the direct path:
 
@@ -975,7 +975,7 @@ depend on the RISC-V program being run, of course).
 
 % ----------------------------------------------------------------
 
-\subsubsection{Rules to retire exceptions from the direct path}
+\subsubsection{Rule to retire exceptions from the direct path}
 
 The following rule handles exceptions which arrive on the direct path:
 
@@ -992,7 +992,7 @@ that the exception will be handled by \verb|rl_exception|.
 
 % ================================================================
 
-\subsection{Rules to retire from the Execute Control path}
+\subsection{Rule to retire from the Execute Control path}
 
 \label{Sec_Fife_Retire_Control}
 
@@ -1021,13 +1021,13 @@ if mispredicted.  At this point we know both what was predicted as the
 successor PC and what is the actual successor PC for this instruction,
 so we can compare these to determine if there was a misprediction.
 
-If there was a Execute Control exception, we save relevant values in
+If there was an Execute Control exception, we save relevant values in
 registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|
 which will enable \verb|rl_exception| to perform the required actions.
 
 % ================================================================
 
-\subsection{Rules to retire from the Execute Integer path}
+\subsection{Rule to retire from the Execute Integer path}
 
 \label{Sec_Fife_Retire_Int}
 
@@ -1068,14 +1068,22 @@ which will enable \verb|rl_exception| to perform the required actions.
 \label{Sec_Fife_S5_DMem}
 
 The following rules handle instructions that arrive on the Execute
-DMem path.  This path could have raised an exception (bad address,
-misaligned, memory-permission violation).  Or, it could have performed
-a speculative LOAD/STORE/AMO successfully, but if it wrote to memory,
-the value is still sitting in the store-buffer and needs to be
-committed.  Or, it could have been deferred because the memory address
-was a non-memory-like location ({\eg} MMIO) that did not allow
-speculation.  The first two cases are handled by the first rule below;
-the deferred case is handled by rules described subsequently.
+DMem path.  This path:
+
+\begin{itemize}
+ \item could have raised an exception (bad address,
+       misaligned, memory-permission violation);
+ \item or, it could have performed
+       a speculative LOAD/STORE/AMO successfully, but if it wrote to memory,
+       the value is still sitting in the store-buffer and needs to be
+       committed;
+ \item or, it could have been deferred because the memory address
+       was a non-memory-like location ({\eg} MMIO) that did not allow
+       speculation.
+\end{itemize}
+
+The first two cases are handled by the first rule below; the deferred
+case is handled by rules described subsequently.
 
 % ----------------------------------------------------------------
 
@@ -1104,17 +1112,21 @@ scoreboard reservation will be released, and no register value will be
 written.
 
 If there was no Execute Dmem exception, we send a ``commit'' message
-to the store buffer and redirect the Fetch stage if mispredicted.  We
-can compare the predicted successor PC for this instruction with its
-fall-through PC to determine if there was a misprediction.  Note that
-``\verb|fa_retire_store_buf()|'' will send a commit message only if
-the instruction wrote memory (Section~\ref{Sec_Retire_Common}).
+to the store buffer and redirect the Fetch stage if mispredicted.
+Note that ``\verb|fa_retire_store_buf()|'' will send a commit message
+only if the instruction wrote memory
+(Section~\ref{Sec_Retire_Common}).  We can compare the predicted
+successor PC for this instruction with its fall-through PC to
+determine if there was a misprediction.
 
 If there was an Execute DMem exception, we save relevant values in
 registers and move from \verb|MODE_PIPE| to \verb|MODE_EXCEPTION|
 which will enable \verb|rl_exception| to perform the required actions.
 The RISC-V ``cause code'' is computed based on the kind of DMem
-exception and the kind of instruction.
+exception and the kind of instruction.  We do not need to use
+``\verb|fa_retire_store_buf()|'' to send a ``discard'' message to the
+store-buffer because a DMem instruction, if it raises an exception,
+will not perform any speculative stores.
 
 % ----------------
 
@@ -1129,7 +1141,7 @@ was no exception.  Justify this.
 
 % ----------------------------------------------------------------
 
-\subsubsection{Rule handle deferred DMem requests (from Execute DMem path)}
+\subsubsection{Rule to handle deferred DMem requests (from Execute DMem path)}
 
 \label{Sec_Fife_DMem_deferred}
 
