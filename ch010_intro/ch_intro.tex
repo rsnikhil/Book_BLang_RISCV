@@ -38,11 +38,11 @@ ISA (with many commerical implementations).  Our designs will be
 simple (typical of small, embedded systems and micro-controllers, not
 laptops/workstations or servers).
 
-Figure~\ref{fig_Topics} shows the broad range of topics in which a CPU
+Figure~\ref{Fig_Topics} shows the broad range of topics in which a CPU
 designer needs to engage.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/fig_Topics}}
-  \caption{\label{fig_Topics}Topics covered in this book (in red text in red box)}
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Topics}}
+  \caption{\label{Fig_Topics}Topics covered in this book (in red text in red box)}
 \end{figure}
 Some of the early topics are not RISC-V implementation-specific:
 
@@ -148,9 +148,14 @@ implementations.
 
 % ================================================================
 
-\subsection{Drum and Fife, the two RISC-V implementations designed in this book}
+\section{Drum and Fife, the two RISC-V implementations designed in this book}
 
-We will create two hardware RISC-V designs, called Drum and Fife:
+We will create two hardware RISC-V designs, called Drum and Fife,
+illustrated in Figure~\ref{Fig_Two_Microarchitectures}:
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Two_Microarchitectures}}
+  \caption{\label{Fig_Two_Microarchitectures}Two CPU implementations (microarchitectures)}
+\end{figure}
 
 \begin{itemize}
 
@@ -158,7 +163,7 @@ We will create two hardware RISC-V designs, called Drum and Fife:
         familiarize us with all the basic concepts and flows (the
         RISC-V ISA, preparing and running a RISC-V binary to run on
         the design, analysing traces), without being distracted by the
-        complexities of pipelineing for high performance.
+        complexities of pipelining for high performance.
 
   \item Fife is a 5-6 stage pipelined design, which is a
         microarchitectural change focused on higher performance

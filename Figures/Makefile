@@ -1,9 +1,11 @@
 FIGS += Fig_AUIPC.png
 FIGS += Fig_B_imm.png
-FIGS += Fig_BSV_Package.png
+FIGS += Fig_BSV_Digital_Circuits.png
 FIGS += Fig_BSV_module_interaction.png
 FIGS += Fig_BSV_namespace_control.png
+FIGS += Fig_BSV_Package.png
 FIGS += Fig_BSV_program_structure.png
+FIGS += Fig_BSV_Split_Phase_Mem.png
 FIGS += Fig_BSV_static_elaboration.png
 FIGS += Fig_BSV_whats_in_an_interface_decl.png
 FIGS += Fig_BSV_whats_in_an_interface_def.png
@@ -43,7 +45,8 @@ FIGS += Fig_RV32I_labeled.png
 FIGS += Fig_tandem_verification.png
 FIGS += Fig_tandem_verification_II.png
 FIGS += Fig_Testbench_DUT.png
-FIGS += fig_Topics.png
+FIGS += Fig_Topics.png
+FIGS += Fig_Two_Microarchitectures.png
 FIGS += Fig_What_is_an_ISA.png
 
 .PHONY: help

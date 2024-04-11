@@ -1,0 +1,336 @@
+% -*- mode: fundamental -*-
+
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L2: Overview of the RISC-V ISA}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
+ \end{center}
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What is an ISA?}
+
+\begin{center}
+\includegraphics[height=0.8\textheight]{../Figures/Fig_What_is_an_ISA}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Architectural State}
+
+The ``architectural state'' is the state that is visible to
+instructions.  For RV32I, these are:
+
+{\footnotesize
+  \begin{itemize}
+  \item The PC (program counter)
+  \item 32 General-Purpose Registers (GPRs, the ``register file'')
+  \item Memory (byte-addressed)
+  \end{itemize}}
+
+{\footnotesize (More architectural state is defined for RV64I, and for
+  most extensions A, F, D, Vector, ...)}
+
+\vspace{1ex}
+
+The architectural state \emph{does not include} other registers,
+buffers, FIFOs, memories that may be present in an implementation
+(they are not visible to instructions).
+
+As such, the architectural state is present in every RISC-V
+implementation, from tiny CPUs for IoT devices to massive
+warehouse-scale servers.
+
+Compilers only care about/know about architectural state.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Modularity of the RISC-V ISA}
+
+\begin{center}
+\includegraphics[height=0.6\textheight]{../Figures/Fig_ISA_Modularity}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RISC-V Instruction Encodings}
+
+From the RISC-V specification documents:
+
+\begin{center}
+\frame{\includegraphics[height=0.55\textheight]{../Figures/Fig_Instr_Encodings}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RISC-V Instruction Encodings; J-type immediates}
+
+\begin{center}
+\frame{\includegraphics[height=0.35\textheight]{../Figures/Fig_J_imm}}
+\end{center}
+
+\vfill
+
+For JAL instruction
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RISC-V Instruction Encodings; B-type immediates}
+
+For BRANCH set of instructions (BEQ, BNE, BLT, BGE, BLTU, BGEU)
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[height=0.35\textheight]{../Figures/Fig_B_imm}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RV32I Instructions}
+
+\begin{center}
+\includegraphics[height=0.85\textheight]{../Figures/Fig_RV32I_labeled}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Example specifications}
+
+Excerpt from text of ISA specification document for LUI and AUIPC instructions
+
+\begin{center}
+\frame{\includegraphics[height=0.75\textheight]{../Figures/Fig_LUI_AUIPC}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Execution semantics: example}
+
+Execution semantics of LUI instruction
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[width=\textwidth]{../Figures/Fig_LUI}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Execution semantics: example}
+
+Execution semantics of AUIPC instruction
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[width=\textwidth]{../Figures/Fig_AUIPC}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Execution semantics: example}
+
+Execution semantics of JAL and JALR instructions (unconditional jumps)
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[width=\textwidth]{../Figures/Fig_JAL_JALR}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Control and Status Registers (CSRs) for Trap-Handling}
+
+\begin{center}
+\frame{\includegraphics[width=\textwidth]{../Figures/Fig_Trap_CSRs}}
+\end{center}
+
+\vspace{1ex}
+
+These CSRs are implicitly read and written when taking and returning from a trap.
+
+These CSRs can be explicitly read and written by CSRRxx instructions.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Trap and Trap-return flow}
+
+\begin{center}
+\frame{\includegraphics[width=\textwidth]{../Figures/Fig_Trap_Return}}
+\end{center}
+
+\vspace{1ex}
+
+There are many possible causes for exceptions and traps; \\
+the illustration is for an illegal instruction.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Exception causes}
+
+On a trap, a cause-code is written into the {\tt mcause} CSR:
+
+\begin{center}\small
+ \begin{tabular}{|c|l|}
+  \hline
+  Exception-Cause code & Description \\
+  \hline
+  0 & Instruction address misaligned \\
+  1 & Instruction access fault \\
+  2 & Illegal instruction \\
+  3 & Breakpoint \\
+  4 & Load address misaligned \\
+  5 & Load access fault \\
+  6 & Store/AMO address misaligned \\
+  7 & Store/AMO access fault \\
+  ... & ... \\
+  11 & Environment call M-mode \\
+  ... & ... \\
+  \hline
+ \end{tabular}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{CSRRxx Instructions}
+
+For reading and writing CSRs from RISC-V code \\
+(from the RISC-V ISA specifications document)
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[width=0.8\textwidth]{../Figures/Fig_CSRRxx_spec}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{CSRRxx Instruction Semantics}
+
+\begin{center}
+\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_CSRRxx}}
+\end{center}
+
+{\footnotesize
+\begin{itemize}
+\item They all move potentially data into a CSR, and from a CSR to a GPR
+\item The non ``I'' variants take input from GPR[rs1] (unless rs1 is zero)
+\item The ``I'' variants use rs1 itself as input (unless rs1 is zero)
+\end{itemize}}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RV64I instructions}
+
+From the RISC-V ISA specifications document
+
+\vspace{1ex}
+
+\begin{center}
+\frame{\includegraphics[width=0.6\textwidth]{../Figures/Fig_RV64I}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{RV64I instructions}
+
+In RV64, the 32 GPRs (General Purpose Registers) are each 64-bits wide.
+
+\vspace{1ex}
+
+\begin{itemize}
+
+\item Most of the RV32I instruction have identical RV64I counterparts
+
+  {\footnotesize (here they operate on 64-bit values).}
+
+\item A few instructions (SLLI, SRLI, SRAI) are slightly different
+
+  {\footnotesize (allowing 6 bits instead of 5 for the shift amount).}
+
+\item A few instructions are new, to opoerate on 32-bit values in the
+  64-bit registers.
+  {\footnotesize
+    \begin{itemize}
+    \item LWU to move a 32-bit value from memory into a 64-bit register
+    \item LD to load a 64-bit value from memory to a 64-bit register
+    \item SD to store a 64-bit value to memory from 64-bit register
+    \item ADDIW, SLLIW, ... SRAW to operate on 32-bits of 64-bit registers
+    \end{itemize}}
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\end{document}

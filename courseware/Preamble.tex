@@ -1,0 +1,78 @@
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\documentclass[10pt, aspectratio=169]{beamer}
+
+% \documentclass[17pt]{beamer}
+
+% Avail. font sizes: 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt.
+% Default font size is 11pt (= 22pt in full screen mode).
+
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+
+% ================================================================
+% Themes
+
+\usetheme{Madrid}          % Line at bottom: Author (affiliation), OptTitle, Conf, page 
+
+% \usetheme{Copenhagen}    % Same as Madrid except bottom line: Author, OptTitle
+
+% \usetheme{Berkeley}    % Takes up 1-inch border on left and top
+
+% ----------------
+% colorthemes
+% (default), beaver, beetle, seahorse, wolverine
+
+\usecolortheme{seahorse}
+
+% ================================================================
+% Customization: show table of contents before each section
+% Use \AtBeginSubsection    to show before each subsection
+
+% \AtBeginSection[]
+% {
+%   \begin{frame}
+%     \frametitle{Table of Contents}
+%     \tableofcontents[currentsection]
+%   \end{frame}
+% }
+
+% ================================================================
+
+% ----------------
+% ITALICISE WORDS
+\newcommand{\ie}{\emph{i.e.,}}
+\newcommand{\eg}{\emph{e.g.,}}
+\newcommand{\Eg}{\emph{E.g.,}}
+\newcommand{\etc}{\emph{etc.}}
+\newcommand{\via}{\emph{via}}
+\newcommand{\vs}{\emph{vs.}}
+
+% ----------------
+% Convenient widths
+
+\newlength{\hlessmmm}
+\setlength{\hlessmmm}{\textwidth}
+\addtolength{\hlessmmm}{-3em}
+
+\newlength{\hlessmmmm}
+\setlength{\hlessmmmm}{\textwidth}
+\addtolength{\hlessmmmm}{-4em}
+
+% ================================================================
+% Title page
+
+\title[Learn CPU design \& BSV]{Learn RISC-V CPU Implementation and BSV}
+
+\subtitle{(BSV: a High-Level Hardware Design Language)}
+
+\author[{\copyright} R.S.Nikhil]{Rishiyur S.~Nikhil}
+% \institute{Bluespec, Inc.}
+
+% Date is set differently in each slide deck
+
+% \logo{\includegraphics[height=0.6cm]{../Figures/Bluespec_Logo_2022-10}}
+
+% End of preamble
+% ****************************************************************
