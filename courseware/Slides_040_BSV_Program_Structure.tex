@@ -1,0 +1,158 @@
+% -*- mode: fundamental -*-
+
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L4: Structure of BSV Programs}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
+ \end{center}
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{First: a Minimal (trivial!) BSV program}
+
+\begin{examples}
+Demo: please see directory {\tt Ex\_O4\_01}, code and {\tt Makefile}
+\end{examples}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{File-level view of a BSV program}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_program_structure}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What's in a BSV package/file?}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_Package}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Namespace control with package imports and exports}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_namespace_control}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Extending our Minimal BSV program to two packages/files}
+
+\begin{examples}
+Demo: please see directory {\tt Ex\_O4\_02}, code and {\tt Makefile}
+\end{examples}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What's in an Interface Declaration?}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_whats_in_an_interface_decl}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What's in a Module Declaration?}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_whats_in_a_module_decl}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Extending our Minimal BSV program to define a module with an interface}
+
+\begin{examples}
+Demo: please see directory {\tt Ex\_O4\_04}, code and {\tt Makefile}
+\end{examples}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What's in a Rule?}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_whats_in_a_rule}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{What's in an Interface Definition?}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_whats_in_an_interface_def}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Static elaboration}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_static_elaboration}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Module interaction}
+
+\begin{center}
+\includegraphics[width=\textwidth]{../Figures/Fig_BSV_module_interaction}
+\end{center}
+
+\end{frame}
+
+% ****************************************************************
+
+\end{document}

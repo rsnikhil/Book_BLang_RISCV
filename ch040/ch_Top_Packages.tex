@@ -39,7 +39,96 @@ It can invoke instances of other modules by invoking their interface
 methods.
 
 The sections of this chapter present an overview of these major
-components.
+components, after first showing a simple (even trivial) example BSV
+program.
+
+% ****************************************************************
+
+\section{A Minimal BSV program}
+
+Here is a minimal BSV program (though it is not very interesting as
+hardware!).  We can simulate in Bluesim or in Verilog simulation,
+where it just prints ``Hello World!'' and exits.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_01/Top.bsv]
+module mkTop (Empty);
+
+   rule rl_once;
+      $display ("Hello, World!");
+      $finish (0);
+   endrule
+      
+endmodule
+\end{Verbatim}
+}
+
+It defines one module, \verb|mkTop|, with an \verb|Empty| interface,
+{\ie} the module has no inputs or outputs.  The module contains one
+rule, which here can be regarded as an infinitely repeating loop.  The
+rule contains two statements, a \verb|$display()| expression that
+prints the message and a \verb|$finish(0)| which terminates the
+simulation with a final exit value of 0.  Rules normally execute
+repeatedly, but here the \verb|$finish()| terminates it after one
+execution. Rules are described in more detail in
+Chapters~\ref{ch_Rules_I} and Chapters~\ref{ch_Rules_II}.
+
+We can compile and link it for Bluesim using the free and open-source
+\emph{bsc} compiler, and then run the executable:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+  $ bsc -sim  -g mkTop  Top.bsv                          # compile
+  $ bsc -sim  -e mkTop  -o exe_HW_bsim                   # link
+  $ ./exe_HW_bsim                                        # run
+  Hello, World!                                          # output
+\end{Verbatim}
+}
+
+We can compile it to Verilog, then compile the Verilog and link it for
+Verilog simulation using the free and open-source \emph{verilator}
+compiler, and then run the executable:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+  $ bsc -verilog  -g mkTop  Top.bsv                      # compile -> mkTop.v
+  $ bsc -vsim verilator  -e mkTop  -o exe_HW_vsim        # link
+  $ ./exe_HW_vsim                                        # run
+  Hello, World!                                          # output
+  - mkTop.v:41: Verilog $finish
+\end{Verbatim}
+}
+
+In both the Bluesim and Verilator cases, the ``\verb|-g|'' flag tells
+\emph{bsc} the name of the top-level module for which to generate
+code, ``\verb|-e|'' tells it which is the top-level module for
+simulation, and ``\verb|-e|'' tells it the desired name for the final
+executable.
+
+In Bluesim compile-link, ``\verb|-sim|'' tells \emph{bsim} that our
+target is Bluesim.
+
+In Verilog compile-link, ``\verb|-verilog|'' tells \emph{bsim} to
+generate Verilog, and it produces the Verilog file \verb|mkTop.v|.
+The ``\verb|-vsim|'' flag tells \emph{bsc} to use the Verilator
+compiler to compile the generated Verilog into a Verilog simulation
+executable.
+
+\hdivider
+
+% ----------------
+\Exercise
+
+Do the compile-link-run steps described above, in both Bluesim
+simulation and in Verilator Verilog simulation.
+
+For your convenience, the code is in directory \verb|Ex_04_01/Top.bsv|, and a
+\verb|Makefile| contains all the commands shown above.
+
+Please consult your instructor and/or Appendix~\ref{apx_resources} for
+information on installing \emph{bsc} and \emph{verilator}.
+
+\Endexercise
 
 % ****************************************************************
 
@@ -117,6 +206,141 @@ the file.
 Each package/file is separately compiled by the \emph{bsc} compiler,
 which saves information about the compilation so that it won't be
 recompiled unless the source file has subsequently been modified.
+
+\hdivider
+
+% ----------------------------------------------------------------
+
+\subsection{Extending our example minimal BSV program}
+
+Let us extend our minimal BSV program into one that is split into two
+packages/files.  We create a new file \verb|DUT.bsv| that just defines
+some top-level scalar constants (strings, bit-vectors).
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_02/DUT.bsv]
+package DUT;
+
+String title   = "The C Programming Language";
+String authors = "Kernighan and Ritchie";
+
+Bit #(11) year = 1978;
+
+Bit #(4)  month = 2;
+
+Bit #(5)  day = 22;
+
+endpackage
+\end{Verbatim}
+}
+
+The first and last lines specify that this is a package called
+\verb|DUT|.  This was not strictly necessary since \emph{bsc} will use
+the package name \verb|DUT| anyway from the filename \verb|DUT.bsv|,
+but we prefer always to have package names in our files.
+
+In each line we have a \emph{type}, a
+\emph{variable}/\emph{identifier}/\emph{name}, and a value; it
+declares the variable to have that type and that value.
+
+Next, we extend our \verb|mkTop| module from the previous example:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_02/Top.bsv]
+package Top;
+
+import DUT :: *;
+
+module mkTop (Empty);
+
+   rule rl_once;
+      $display ("Hello, World!");
+      $display ("  (From the book: %s", title);
+      $display ("   which was first published on: %4d-%02d-%02d)", year, month, day);
+      $finish (0);
+   endrule
+
+endmodule
+
+endpackage
+\end{Verbatim}
+}
+
+We have explicitly named the package \verb|Top|.  We \verb|import| the
+\verb|DUT| package so we can use the variables/identifiers/names
+defined in that package.  In the rule, we have added two more
+\verb|$display()| statements to print values from the \verb|DUT|
+package.
+
+We can compile and link it for Bluesim using the \emph{bsc} compiler,
+and then run the executable:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+  $ bsc  -u  -sim  -g mkTop  Top.bsv                     # compile
+  $ bsc  -sim  -e mkTop  -o exe_HW_bsim                  # link
+  $ ./exe_HW_bsim                                        # run
+  Hello, World!                                          # output
+    (From the book: The C Programming Language
+     by:            Kernighan and Ritchie
+     which was first published on: 1978-02-22)
+\end{Verbatim}
+}
+
+We can compile it to Verilog, then compile the Verilog and link it for
+Verilog simulation using the \emph{verilator} compiler, and then run
+the executable:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+  $ bsc -u  -verilog  -g mkTop  Top.bsv                  # compile -> mkTop.v
+  $ bsc -vsim verilator  -e mkTop  -o exe_HW_vsim        # link
+  $ ./exe_HW_vsim                                        # run
+  Hello, World!                                          # output
+    (From the book: The C Programming Language
+     by:            Kernighan and Ritchie
+     which was first published on: 1978-02-22)
+  - mkTop.v:47: Verilog $finish
+\end{Verbatim}
+}
+
+In both, for the compile step, we added the ``\verb|-u|'' flag, which
+tells \emph{bsc} to automatically compile any imported files.  This is
+why we never had to mention the \verb|DUT.bsv| source file in the
+above commands.
+
+% ----------------
+\Exercise
+
+Do the compile-link-run steps described above, in both Bluesim
+simulation and in Verilator Verilog simulation.
+
+For your convenience, the code is in directory \verb|Ex_04_02/|, files
+\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains all the
+commands shown above.
+
+% ----------------
+\Exercise
+
+Try the compile steps above after removing the ``\verb|-u|'' flag and
+see what happens.
+
+\Endexercise
+
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+From this point on we are not going to show the compile-and-link steps
+for each example.  Please consult the \emph{Bluespec Compiler (BSC)
+User Guide}~\cite{bsc_user_guide} for full details on how to use the
+\emph{bsc} compiler.
+
+\end{minipage}}
+% ----------------
 
 % ================================================================
 
@@ -344,6 +568,111 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_module_decl}:
        \verb|fo_tags|
 
 \end{tightlist}
+
+% ----------------------------------------------------------------
+
+\subsection{Extending our example minimal BSV program further}
+
+Let us extend our minimal BSV program so that the DUT contains a
+module with an interface.
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_04/DUT.bsv]
+package DUT;
+
+export DUT_IFC (..), mkDUT;
+
+String title   = "The C Programming Language";
+String authors = "Kernighan and Ritchie";
+
+Bit #(11) year = 1978;
+
+Bit #(4)  month = 2;
+
+Bit #(5)  day = 22;
+
+interface DUT_IFC;
+   method Tuple2 #(String, String)                m_title_authors;
+   method Tuple3 #(Bit #(11), Bit #(4), Bit #(5)) m_date;
+endinterface
+
+module mkDUT (DUT_IFC);
+   method m_title_authors = tuple2 (title, authors);
+   method m_date          = tuple3 (year, month, day);
+endmodule
+
+endpackage
+\end{Verbatim}
+}
+
+The ``\verb|interface|'' definition contains 2 methods,
+\verb|m_title_authors| and \verb|m_date|.  The first returns a
+``2-tuple'' (a pair) of values, both of type \verb|String|.  The
+second returns a 3-tuple (a triple) of bit-vector values
+
+The ``\verb|export|'' statement makes \verb|DUT_IFC| and its methods,
+and \verb|mkDUT| visible outside the module.  The variables
+\verb|title|, \verb|authors|, \verb|year|, \verb|month| and \verb|day|
+are no longer visible outside the module.
+
+The module \verb|mkDUT| simply defines the two methods in its interface.
+
+Next, we modify our \verb|mkTop| module from the previous example:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_04/Top.bsv]
+package Top;
+
+import DUT :: *;
+
+module mkTop (Empty);
+
+   DUT_IFC dut <- mkDUT;
+
+   rule rl_once;
+      match { .title, .authors }   = dut.m_title_authors;
+      match { .year, .month, .day} = dut.m_date;
+
+      $display ("Hello, World!");
+      $display ("  (From the book: %s", title);
+      $display ("   by:            %s", authors);
+      $display ("   which was first published on: %4d-%02d-%02d)", year, month, day);
+      $finish (0);
+   endrule
+
+endmodule
+
+endpackage
+\end{Verbatim}
+}
+
+The module \verb|mkTop| \emph{instantiates} the module \verb|mkDUT|
+and binds the name \verb|dut| to its interface.  In the rule, we
+invoke \verb|dut|'s methods and, using a ``pattern-matching''
+statement, bind the names \verb|title|, \verb|authors|, ... {\etc} to
+the tuple components.
+
+We can compile and link it for Bluesim and Verilator as before;
+running it produces the same outputs as before.
+
+% ----------------
+\Exercise
+
+Do the compile-link-run steps described above, in both Bluesim
+simulation and in Verilator Verilog simulation.
+
+For your convenience, the code is in directory \verb|Ex_04_04/|, files
+\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains
+commands to compile, link and run.
+
+% ----------------
+\Exercise
+
+Define a third string, say ``publisher'', in the DUT package; add it
+as a third tuple component to the \verb|m_title_authors| method
+output; add a \verb|$display()| line in \verb|mkTop| to print it.
+
+\Endexercise
 
 % ****************************************************************
 
