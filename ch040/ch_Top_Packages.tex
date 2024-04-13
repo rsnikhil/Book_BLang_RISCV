@@ -2,7 +2,7 @@
 
 % ****************************************************************
 
-\chapter{BSV: Top-level view of a BSV program}
+\chapter{BSV: Overview of the structure of BSV programs}
 
 \markboth{Ch \arabic{chapter}: BSV: Packages}{\copyrightnotice}
 
@@ -114,19 +114,26 @@ The ``\verb|-vsim|'' flag tells \emph{bsc} to use the Verilator
 compiler to compile the generated Verilog into a Verilog simulation
 executable.
 
-\hdivider
+% ----------------------------------------------------------------
+\Beginexercise
 
 % ----------------
 \Exercise
 
-Do the compile-link-run steps described above, in both Bluesim
+Build-and-run, using the steps described above, in both Bluesim
 simulation and in Verilator Verilog simulation.
 
-For your convenience, the code is in directory \verb|Ex_04_01/Top.bsv|, and a
-\verb|Makefile| contains all the commands shown above.
+For your convenience, the code is in directory \verb|Ex_04_A/Top.bsv|,
+and a \verb|Makefile| contains all the commands shown above.
 
 Please consult your instructor and/or Appendix~\ref{apx_resources} for
-information on installing \emph{bsc} and \emph{verilator}.
+information on installing \emph{bsc} and Verilator.
+
+% ----------------
+\Exercise
+
+Comment-out the \verb|$finish ()| statement from the code, rebuild and
+run, and observe the behavior.
 
 \Endexercise
 
@@ -256,7 +263,8 @@ module mkTop (Empty);
    rule rl_once;
       $display ("Hello, World!");
       $display ("  (From the book: %s", title);
-      $display ("   which was first published on: %4d-%02d-%02d)", year, month, day);
+      $display ("   which was first published on: %4d-%02d-%02d)",
+                year, month, day);
       $finish (0);
    endrule
 
@@ -309,23 +317,47 @@ tells \emph{bsc} to automatically compile any imported files.  This is
 why we never had to mention the \verb|DUT.bsv| source file in the
 above commands.
 
-% ----------------
-\Exercise
-
-Do the compile-link-run steps described above, in both Bluesim
-simulation and in Verilator Verilog simulation.
-
-For your convenience, the code is in directory \verb|Ex_04_02/|, files
-\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains all the
-commands shown above.
+% ----------------------------------------------------------------
+\Beginexercise
 
 % ----------------
 \Exercise
 
-Try the compile steps above after removing the ``\verb|-u|'' flag and
-see what happens.
+Build-and-run in either Bluesim simulation or in Verilator Verilog
+simulation.
+
+For your convenience, the code is in directory \verb|Ex_04_B/|, files
+\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains all
+the commands shown above.
+
+% ----------------
+\Exercise
+
+Try the compile steps above after removing the ``\verb|-u|''
+command-line flag and observe the behavior.
+
+% ----------------
+\Exercise
+
+Change \verb|Bit#(11)| to \verb|Bit#(8)| in \verb|DUT.bsv|, retry the
+build-and-run, and observe the behavior.
+
+% ----------------
+\Exercise
+
+Write down a BSV hexadecimal integer literal whose value is equal to
+decimal 22 (hexadecimal integers in BSV use the same notation as in
+Verilog and SystemVerilog, see Section~\ref{BSV_hex_bin_literals}).
+
+% ----------------
+\Exercise
+
+Add another \verb|$display| statement that reports the number of years
+that have elapsed from the publication of Kernighan and Ritchie's book
+to today.
 
 \Endexercise
+% ----------------------------------------------------------------
 
 % ----------------
 \vspace{2ex}
@@ -636,7 +668,8 @@ module mkTop (Empty);
       $display ("Hello, World!");
       $display ("  (From the book: %s", title);
       $display ("   by:            %s", authors);
-      $display ("   which was first published on: %4d-%02d-%02d)", year, month, day);
+      $display ("   which was first published on: %4d-%02d-%02d)",
+                year, month, day);
       $finish (0);
    endrule
 
@@ -647,23 +680,36 @@ endpackage
 }
 
 The module \verb|mkTop| \emph{instantiates} the module \verb|mkDUT|
-and binds the name \verb|dut| to its interface.  In the rule, we
-invoke \verb|dut|'s methods and, using a ``pattern-matching''
-statement, bind the names \verb|title|, \verb|authors|, ... {\etc} to
-the tuple components.
+and binds the name \verb|dut| to its interface.  Module instantiation
+is described in more detail in
+Section~\ref{Sec_Module_instantiation_and_method_invocation}
+
+In the rule, we invoke \verb|dut|'s methods and, using a
+``pattern-matching'' statement, bind the names \verb|title|,
+\verb|authors|, ... {\etc} to the tuple components. The \verb|match|
+statement is described in more detail in Section~\ref{Sec_Tuples}
 
 We can compile and link it for Bluesim and Verilator as before;
 running it produces the same outputs as before.
 
+% ----------------------------------------------------------------
+\Beginexercise
+
 % ----------------
 \Exercise
 
-Do the compile-link-run steps described above, in both Bluesim
-simulation and in Verilator Verilog simulation.
+Build-and-run in either Bluesim simulation or in Verilator Verilog
+simulation.
 
-For your convenience, the code is in directory \verb|Ex_04_04/|, files
+For your convenience, the code is in directory \verb|Ex_04_C/|, files
 \verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains
 commands to compile, link and run.
+
+% ----------------
+\Exercise
+
+In ``\verb|DUT_IFC (..)|'', remove ``\verb|(..)|''.  Try to
+build-and-run, and observe the behavior.
 
 % ----------------
 \Exercise

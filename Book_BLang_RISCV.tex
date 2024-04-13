@@ -116,8 +116,12 @@
 % ----------------
 % EXERCISES
 \newcounter{exercise}[chapter]
+
+\newcommand{\Beginexercise}{\hdivider \\ \makebox[\textwidth][c]{\bf Exercises}}
+
 % \newcommand{\Exercise}{$\bullet$ {\bf Exercise}:}
 \newcommand{\Exercise}{\addtocounter{exercise}{1}{\bf Exercise \arabic{chapter}.\arabic{exercise}:}}
+
 \newcommand{\Endexercise}{\hfill {\normalsize$\Box$} \\ \hdivider}
 % \newcommand{\Endexercise}{\makebox[2in]{\hrulefill} \bigskip}
 

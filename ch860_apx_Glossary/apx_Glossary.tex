@@ -41,6 +41,9 @@
   in silicon and has been fabricated for that purpose (not
   customizable and general-purpose like an FPGA).
 
+\item[\bf BRAM] Block RAM.  A memory component in an FPGA, usually
+  implemented with SRAM.
+
 \item[\bf BSV, BH] An open-source, modern, High-Level HDL.  Two
   optional syntaxes (choose to one's taste): BSV has traditional
   Verilog-like syntax, BH has traditional Haskell-like syntax.
@@ -209,8 +212,13 @@
   memory references to descend a ``tree'' data structure called the
   Page Table.
 
+\item[\bf RAM] Random Access Memory.  So called because successive
+  addresses can be unrelated (in contrast with memory technologies
+  that might only support, for example, sequential address accesses).
+
 \item[\bf RAS] Return Address Stack.  A component of a PC-predictor
-  module.  See Section~\ref{Sec_RAS}.
+  module.  See Section~\ref{Sec_RAS}.  (Within the field of DRAM
+  technology can also stand for Row Address Strobe.)
 
 \item[\bf RISC] Reduced Instruction Set Computer (see also, for
   contrast, ``CISC'').  Refers to an ISA that separate memory-access
@@ -268,9 +276,6 @@
 \item[\bf SRAM] Static Random Access Memory.  A kind of silicon chip
   that implements memory.  See DRAM above for comparison.  Usually
   on-chip in an ASIC or an FPGA.
-
-\item[\bf BRAM] Block RAM.  A memory component in an FPGA, usually
-  implemented with SRAM.
 
 \item[\bf Superscalar].  Refers to advanced CPU microarchitectures
   which fetch and execute multiple instructions at a time (typically

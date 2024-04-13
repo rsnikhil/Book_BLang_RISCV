@@ -216,7 +216,197 @@ text-editor, in which you can simultaneously view the actual sources.
 
 % ================================================================
 
-\subsection{Additional Resources}
+\section{General structure and operation of digital circuits}
+
+In this section we provide some general intuitions of how digital
+circuits operate, sufficient to allow us to proceed with design.
+
+Digital hardware is driven by a clock, an electrical signal that
+oscillates between a low voltage and a high voltage, with sharp
+transitions between the two, at regular intervals (it is therefore
+sometimes called a ``square'' wave).  This is illustrated in
+Figure~\ref{Fig_Clock_1}.
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Clock}}
+  \caption{\label{Fig_Clock_1}A clock signal}
+\end{figure}
+
+Nowadays, clock cycle times/periods are typically measured in
+nanoseconds. For example, a 100 MHz clock has a 10ns cycle time.
+
+Any value that must be visible from one clock to the next must be
+stored in a \emph{state element} (a component that can ``remember''
+values, {\ie} has \emph{state}, like a register, FIFOF, buffer,
+memory, ...).
+
+Digital circuits are composed of state elements and
+\emph{combinational circuits} connecting outputs of state elements to
+inputs of state elements, as illustrated in
+Figure~\ref{Fig_BSV_Digital_Circuits}.  State elements are
+\emph{storage} elements.  Combinational circuits are \emph{acyclic}
+networks of \emph{logic gates}.  A logic gate is a circuit that
+``instantaneously'' computes a boolean function (such as AND, OR, NOT,
+XOR, ...) of its boolean inputs.
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Digital_Circuits}}
+  \caption{\label{Fig_BSV_Digital_Circuits}
+           Digital circuits consist of state elements interconnected
+	   with acyclic combinational circuits}
+\end{figure}
+
+Any digital circuit repeatedly performs the following:
+
+\begin{itemize}
+
+\item After each ``posedge'' (positive edge of a clock), the
+      combinational circuits compute new inputs for all state
+      elements, based on the current values in state elements
+
+\item At the next posedge, these new input values are stored into the
+      state elements.
+
+\end{itemize}
+
+The above description is a simplification, or an idealization.
+Physics and circuit silicon technology dictates how long an electrical
+signal takes to propagate from the output of a state element and
+through a combinational circuit before it arrives at the input of a
+state element.  For correct operation, the clock period needs to be
+greater than this, to allow signals that are inputs to state elements
+to ``settle down'' and be steady when they are captured on the next
+clock edge.
+
+\index[BSV]{Digital Abstraction, The}
+
+In the \emph{Digital Abstraction} we assume this condition is met, and
+we idealize wire and combinational circuit delays as taking zero time.
+
+% ----------------
+
+\vspace{1ex}
+
+NOTE: \fbox{\small
+\begin{minipage}{5in}
+
+\begin{itemize}
+
+ \item Advanced digital ciruits may have multiple clocks driving
+       different parts of the circuit.
+
+ \item Advanced digital ciruits may vary the clock speed dynamically,
+       to match power consumption to current performance demands
+       (higher speeds $\Rightarrow$ more power consumption).
+
+ \item Some digital ciruits use the negative edge (``negedge'') of the
+       clock insted of the posedge.
+
+ \item Advanced digital ciruits may use both the posedge and the
+       negedge of the clock.
+
+\end{itemize}
+
+\end{minipage}}
+
+\vspace{1ex}
+
+% ----------------
+
+% ----------------------------------------------------------------
+
+\subsection{Computer memories; split-phase and pipelined acces}
+
+A computer memory is a packaged device:
+\begin{itemize}
+
+ \item To read memory, we present a \emph{read request} at its inputs,
+       with an \emph{address}; \\
+       the memory provides a \emph{read response} at its outputs,
+       containing the addressed data.
+
+ \item To write memory, we present a \emph{write request} at its
+       inputs, with an address and data; \\
+       the memory provides a \emph{write response} at its outputs,
+       containing an ``ok'' status.
+
+\end{itemize}
+
+\index[BSV]{RAM (Random Access Memory)}
+\index[BSV]{Memory!RAM (Random Access Memory)}
+
+Because we access memory by presenting an address identifying a
+location in memory, they are called RAMs (Random Access Memories).
+Memories are, nowadays, typically byte-addressed, {\ie} each address
+identifies a particular byte in memory.  Memory access instructions in
+the CPU can typically specify a \emph{size} in bytes, typically 1, 2,
+4 or 8 bytes.
+
+\index[BSV]{SRAM (Static RAM)}
+\index[BSV]{DRAM (Dynamic RAM)}
+
+\index[BSV]{Memory!SRAM (Static RAM)}
+\index[BSV]{Memory!DRAM (Dynamic RAM)}
+
+\index[BSV]{Memory Hierarchy}
+
+All computers contain RAMs of various kinds.  Two major categories are
+SRAMs (Static Random Access Memories) and DRAMs (Dynamic Random Access
+Memories).  For the same size, SRAMs are more expensive (more silicon
+area, more power consumption) and faster (less time to access a
+location) compared to DRAMs.  Thus, computers typically use SRAMs for
+smaller memories ``closer'' to the CPU (such as caches) and DRAMs for
+``main memory'' which is ``more distant'' from the CPU.  These
+arrangements are also referred to as a ``memory hierarchy''.  Cache
+sizes typically range from the 10s of kilobytes to 100 megabytes,
+whereas main memories can range into several gigabytes.
+
+\index[BSV]{Split-phase memory access}
+\index[BSV]{Memory!split-phase access}
+
+Typically, (for any memory larger than a few kilobytes), the response
+is available \emph{one or more clocks after} the inputs were
+presented.  We also say that memory accesses are
+\emph{split-phase}---requiring temporally separated request-production
+and response-consumption.  This is illustrated in
+Figure~\ref{Fig_BSV_Split_Phase_Mem}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Split_Phase_Mem}}
+  \caption{\label{Fig_BSV_Split_Phase_Mem} Split-phase memory access}
+\end{figure}
+
+Memory systems are also often pipelined: the CPU can issue a
+continuous stream of requests, and the the memory sends back a
+continuous stream of responses.  The CPU does not have to wait for the
+first response before issuing its second request.  Thus, in
+Figure~\ref{Fig_BSV_Split_Phase_Mem}, we have labeled the arrows to
+and from memory with little red symbols representing \emph{queues} or
+FIFOs (First-In-First-Out).  The whole path from the CPU to memory and
+back can be regarded as a queue, with requests entering and responses
+exiting the queue.
+
+\index[BSV]{Memory!latency}
+
+The delay from when the CPU issues a request until it receives the
+corresponding response is called \emph{memory latency}.  This is
+typically measured in clock cycles or in real-time units (nanoseconds,
+microseconds).
+
+\index[BSV]{Memory!bandwidth}
+
+The rate at which requests and responses are pumped through the memory
+system is called \emph{memory bandwidth}.  This is usually measured in
+transactions-per-second, or requests-per-second, or in
+bytes-per-second where the bytes usually refer to data bytes
+transferred, excluding address bytes and other overhead bytes.
+
+Both latency or bandwidth can vary, based on the byte-size of the
+access, whether or not requests encounter cache-misses, virtual-memory
+page faults, cache-coherence delays, and so on.
+
+% ================================================================
+
+\section{Additional Resources for this Textbook/Course}
 
 Chapter~\ref{ch_BSV_further_study} has suggestions for further study
 of BSV.

@@ -64,8 +64,9 @@ functionality (``external API''; \emph{what} a module does; a module
 \emph{specification}) {\vs} internal implementation details
 (\emph{how} the module does it).
 
-BSV modules are typically organized in a \emph{hierarchy}---a top-level module, which instantiates sub-modules which, in turn, instantiate lower-level modules, and so on.
-In Drum and Fife:
+BSV modules are typically organized in a \emph{hierarchy}---a
+top-level module, which instantiates sub-modules which, in turn,
+instantiate lower-level modules, and so on. In Drum and Fife:
 \begin{tabbing}
 \hmm \= Top-level module \\
      \> \hmm \= CPU module \\
@@ -282,6 +283,8 @@ persistent values) uniformly as modules with interfaces.
 % ================================================================
 
 \subsection{Module instantiation and method invocation}
+
+\label{Sec_Module_instantiation_and_method_invocation}
 
 \index[BSV]{Module!instantiation}
 
