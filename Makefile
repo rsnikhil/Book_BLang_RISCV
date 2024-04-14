@@ -22,27 +22,26 @@ SOURCES = \
 		$(TOPFILE).tex \
 		bibliography.bib \
 		ch000_front/front.tex \
-		ch010_intro/ch_intro.tex \
-		ch020_ISA/ch_ISA.tex \
-		ch030_RISCV_Design_Space/ch_RISCV_Design_Space.tex \
-		ch040/ch_Top_Packages.tex \
-		ch050/ch_Combo_Circuits.tex \
-		ch060/ch_struct_mem_req_rsp.tex \
-		ch070/ch_Core_Functions.tex \
-		ch080/ch_Modules_Interfaces.tex \
-		ch090/ch_GPRs_CSRs.tex \
-		ch100/ch_FSMs.tex \
-		ch110/ch_Drum_CPU.tex \
-		ch120/ch_BSV_Verification.tex \
-		ch130/ch_RISCV_Verification.tex \
-		ch140/ch_Rules_I.tex \
-		ch150/ch_Drum_Rules.tex \
-		ch160/ch_Fife_Principles.tex \
-		ch170/ch_Fife_Code.tex \
-		ch180/ch_Rules_II.tex \
-		ch190/ch_Optimization.tex \
-		ch200/ch_BSV_Further_Study.tex \
-		ch210/ch_RISCV_Further_Study.tex \
+		ch010/ch_intro.tex \
+		ch020/ch_ISA.tex \
+		ch030/ch_Top_Packages.tex \
+		ch040/ch_Combo_Circuits.tex \
+		ch050/ch_struct_mem_req_rsp.tex \
+		ch060/ch_Core_Functions.tex \
+		ch070/ch_Modules_Interfaces.tex \
+		ch080/ch_GPRs_CSRs.tex \
+		ch090/ch_FSMs.tex \
+		ch100/ch_Drum_CPU.tex \
+		ch110/ch_BSV_Verification.tex \
+		ch120/ch_RISCV_Verification.tex \
+		ch130/ch_Rules_I.tex \
+		ch140/ch_Drum_Rules.tex \
+		ch150/ch_Fife_Principles.tex \
+		ch160/ch_Fife_Code.tex \
+		ch170/ch_Rules_II.tex \
+		ch180/ch_Optimization.tex \
+		ch190/ch_BSV_Further_Study.tex \
+		ch200/ch_RISCV_Further_Study.tex \
 		ch800_apx_resources/apx_resources.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \

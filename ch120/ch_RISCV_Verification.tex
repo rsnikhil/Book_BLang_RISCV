@@ -24,9 +24,9 @@ verification of CPU implementations.
 
 Debugging and verifying a CPU implementation (whether it is a hardware
 implementation or a software simulator) is hard because, as discussed
-in Chapter~\ref{ch_RISCV_Design_Space}, it is not just a program, but
-is itself an \emph{interpreter} of programs.  Thus we are confronted
-with two levels, not one.  The first-level program (P1) is the CPU
+in Section~\ref{Sec_Interpreters}, it is not just a program, but is
+itself an \emph{interpreter} of programs.  Thus we are confronted with
+two levels, not one.  The first-level program (P1) is the CPU
 implementation (the BSV program), which we are simulating or running
 in hardware.  P1, in turn, is interpreting the RISC-V program (P2)
 that was loaded into the RISC-V CPU's memory. When we observe an error
