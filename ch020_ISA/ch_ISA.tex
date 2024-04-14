@@ -1027,6 +1027,90 @@ ADDW, SUBW, SLLW, SRLW and SRAW to operate on the lower 32-bits of
 
 % ****************************************************************
 
+\section{Abstract algorithm for interpreting an ISA}
+
+\label{Sec_ISA_Exec_Algorithm}
+
+\index[RV]{Architectural state}
+
+From our previous study of the RISC-V ISA, we know that the basic
+integer ``architectural state'' of a RISC-V CPU is very simple:
+
+\begin{itemize}
+
+\item A ``program counter'' (PC) indicating the address in memory of
+the next instruction to be executed.
+
+\item A ``register file'' consisting of 32 general purpose registers
+(GPRs), each containing data.
+
+\end{itemize}
+
+The PC and each register are either 32-bits wide (in the RV32 option
+of RISC-V) or 64-bits wide (in the RV64 option).  For simplicity,
+we'll focus on RV32 here, but everything we discuss also applies to
+RV64.
+
+Interpreting a program involves the repetition of a few simple
+steps,\footnote{We prefer the word ``step'' here instead of ``stage'',
+which we will reserve to refer to stages in a hardware pipeline such
+as Fife.}  illustrated in Figure~\ref{Fig_Instr_Exec}:
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec}}
+  \caption{\label{Fig_Instr_Exec}Simple interpretation of RISC-V instructions}
+\end{figure}
+\begin{itemize}
+
+\item The ``Fetch'' step reads the current value of the PC and uses
+  that value as an address in memory from which to read an
+  instruction.  Then, we proceed to the ``Decode'' step.
+
+\item The ``Decode'' step examines the fetched instruction to check if
+  it is legal, to classify its major category (such as Control,
+  Integer Arithmetic/Logic, or Memory), and to extract some properties
+  such as which GPRs it reads (if any) and which GPR it writes (if
+  any).  Then, we proceed to the ``Register-Read and Dispatch'' step.
+
+\item The ``Register-Read and Dispatch'' step reads the GPRs for the
+instruction's inputs.  Then, we proceed to one of the ``Execute''
+steps, based on the category of the opcode in the instruction
+(Branch/Jump, Integer Arithmetic/Logic, or Memory).
+
+\item The ``Execute Control'' step is used for conditional-branch and
+jump instructions.  For the former it evaluates the branch condition
+and, if true, and updates the PC to the branch-target PC.  For jump
+instructions it updates the PC to the jump-target PC. Then, it goes
+back to the Fetch step to interpret the next instruction.
+
+\item The ``Execute Integer Arithmetic and Logic'' step is used for
+integer arithmetic and logic operations (addition, subtraction,
+boolean ops, shifts, {\etc}).  Then, we proceed to the
+``Register-Write and Dispatch'' step.
+
+\item The ``Execute Memory Ops'' step calculates a memory address
+based on an input value (that was read from a GPR) and reads or writes
+memory at that address.  Then, we proceed to the ``Register-Write and
+Increment PC'' step.
+
+\item The ``Register-Write and Increment PC'' step writes the result
+from the previous Execute step back into a GPR, and increments the PC.
+Then, it goes back to the Fetch step to interpret the next
+instruction.
+
+\end{itemize}
+
+Thus, we repeat these steps forever, instruction after instruction,
+starting each time at the Fetch step.
+
+In Figure~\ref{Fig_Instr_Exec}, note that the memory accesses,
+Fetch$\longrightarrow$Memory$\longrightarrow$Decode and Execute
+DMem$\longrightarrow$Memory$\longrightarrow$Execute DMem, are each
+shown with two arrows, one going to and another returning from memory.
+This is because, as discussed in Section~\ref{Sec_mem_split_phase}
+memory-access is always a split-phase operation.
+
+% ****************************************************************
+
 \section{Continued Evolution of the RISC-V ISA (with your contribution?)}
 
 \index[RV]{ISA!Evolution of}

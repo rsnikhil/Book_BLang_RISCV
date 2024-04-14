@@ -25,25 +25,40 @@
 % ****************************************************************
 
 \begin{frame}
-\frametitle{Goals for this course}
+\frametitle{Goals for this book/course}
 
+\begin{center}
+ \includegraphics[width=0.9\textwidth]{../Figures/Fig_Goals}
+\end{center}
+
+These goals are complementary:
 \begin{itemize}
-\item Learn how to design, verify and optimize a pipelined RISC-V CPU
-  \begin{itemize}
-  \item Using actual BSV code that can run in a hardware simulator and on FPGAs
-  \end{itemize}
 
-\pause
+ \item One cannot really learn CPU design without actually doing it,
+       for which we need an HDL.
 
-\item Learn BSV to design the CPUs
-  \begin{itemize}
-  \item BSV is a high-level hardware design language (HL-HDL)
-  \item Modern (features on par with modern software programming languages)
-  \item More than 20 years usage in industry and academia for major hardware designs
-  \end{itemize}
+ \item One cannot really learn an HDL without actually doing it, for
+       which we need interesting examples.
+
 \end{itemize}
 
-\vfill
+\end{frame}
+
+% ****************************************************************
+
+\begin{frame}
+\frametitle{BSV}
+
+Learn BSV to design the CPUs
+
+\begin{itemize}
+
+ \item BSV is a high-level hardware design language (HL-HDL)
+
+ \item Modern (features on par with modern software programming languages)
+
+ \item More than 20 years usage in industry and academia for major hardware designs
+\end{itemize}
 
 \end{frame}
 
@@ -198,10 +213,11 @@ Debugging and optimization:
 \begin{frame}
 \frametitle{Teaching methodology: an unconventional approach}
 
-Most courses on hardware design spend a lot of initial time on circuit
-diagrams and schematics, gates (AND, OR, NOT, XOR, ...), combinational
-circuits, flip flops, registers, binary number representations (twos
-complement), and so on.
+Most courses on hardware design spend a lot of time on
+circuit diagrams and schematics, boolean logic gates (AND, OR, NOT,
+XOR, ...), combinational circuits, logic minimization, flip flops,
+registers, binary number representations (twos complement), FSMs
+(Finite State Machines), and so on.
 
 \vspace{1ex}
 
@@ -337,7 +353,7 @@ the following:
 % ================================================================
 
 \begin{frame}
-\frametitle{Split-phase memory access}
+\frametitle{Computer Memories}
 
 \begin{center}
 \frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
@@ -345,13 +361,17 @@ the following:
 
 \vspace*{2ex}
 
-A computer memory is a packaged device:
+A computer memory is a packaged device providing \emph{random access}
+to a sequence of locations:
+
 \begin{itemize}
 
  \item To read memory, we present a \emph{read request} at its inputs,
        with an \emph{address}; \\
        the memory provides a \emph{read response} at its outputs,
        containing the addressed data.
+
+ \pause
 
  \item To write memory, we present a \emph{write request} at its
        inputs, with an address and data; \\
@@ -360,13 +380,99 @@ A computer memory is a packaged device:
 
 \end{itemize}
 
-\vspace*{2ex}
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Kinds of Computer Memory}
+
+\begin{center}
+\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\end{center}
+
+{\footnotesize
+\begin{itemize}
+ \item SRAMs (Static Random Access Memories)
+       \begin{itemize}
+        \item Typically from a few kilobytes to a few megabytes
+	\item Faster than DRAM
+	\item More power-consumption than DRAM
+	\item Often used for ``caches'' close to the CPU.
+       \end{itemize}
+
+ \item DRAMs (Dynamic Random Access Memories)
+       \begin{itemize}
+        \item Typically from a few megabytes to gigabytes
+	\item Slower than SRAM
+	\item Less power-consumption than SRAM
+	\item Often used for caches and ``main memory'' further away from the CPU.
+       \end{itemize}
+\end{itemize}}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Split-phase Memory Access}
+
+\begin{center}
+\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\end{center}
+
+\vspace*{1ex}
 
 Typically (for any memory larger than a few kilobytes), the response
 is available \emph{one or more clocks after} the inputs were
 presented.  We also say that memory accesses are
 \alert{split-phase}---requiring temporally separated request-production
 and response-consumption.
+
+\vspace*{1ex}
+
+\pause
+
+The delay from when the CPU issues a request until when it can collect
+the response is called \emph{memory latency} (units: clock cycles,
+nanoseconds).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Pipelined Memory Access}
+
+\begin{center}
+\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\end{center}
+
+\vspace*{1ex}
+
+The CPU $\Rightarrow$ memory $\Rightarrow$ CPU path is often pipelined
+and behaves like a queue:
+
+{\footnotesize
+\begin{itemize}
+
+ \item The CPU can pump in requests towards memory without waiting for responses.
+
+ \item Concurrently, another part of the CPU can pump out responses from memory.
+\end{itemize}}
+
+\pause
+
+The rate at which the CPU can pump requests is called \emph{memory
+bandwidth} (units: transactions/second, requests/second, bytes/second).
+
+\vspace*{1ex}
+
+\pause
+
+Latency and bandwidth can vary (may depend on size of memory request,
+cache misses, virtual memory page faults, cache coherence traffic,
+...).
 
 \end{frame}
 
