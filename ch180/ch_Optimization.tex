@@ -156,8 +156,8 @@ opportunities for improvement.
 The first step is to produce a \emph{pipeline trace}, which has more
 fine-grain detail than a mere \emph{instruction trace} (which only
 records the trace of instructions retired).  We record, for every
-instruction, its transit through \emph{each} step/stage of the FSM
-(Drum) or pipeline (Fife).
+instruction, its transit through \emph{each} stage of the FSM (Drum)
+or pipeline (Fife).
 
 For example, if we examine the Fife code for \verb|rule rl_Decode| we
 see an invocation of a chain of functions:
@@ -237,15 +237,15 @@ Fife, respectively:
   \vspace*{1ex}
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_PipeViz_Fife}}
   \caption{\label{Fig_PipeViz}
-           Visualization of the per-instruction step/stage events in Drum and Fife}
+           Visualization of the per-instruction stage events in Drum and Fife}
 \end{figure}
 
 In both displays, the vertical axis, going downwards, shows
 instruction number 1, 2, 3, ...  The horizontal axis, going to the
 right, shows the PC and disassembled instruction in the first two
 columns, followed by clock ticks.  For each instruction, we see its
-instruction numbrer, PC and dissassembly, and then the Drum step/Fife
-stage events at the clock tick where the event happened.
+instruction numbrer, PC and dissassembly, and then the Drum/Fife stage
+events at the clock tick where the event happened.
 
 We can clearly see the difference between FSM sequenced (Drum) and
 pipelined (Fife) behavior.  In Drum, after the first instruction has
@@ -291,17 +291,16 @@ BSV concepts beyond what has already been covered.
 
 \label{Sec_Fuse_Decode_RR}
 
-More FSM steps in Drums or more stages in Fife (longer pipelines)
-will, in general, enable higher clock speeds (because the circuits in
-each step have less to do, and so have less delay).  But more
-steps/stages increase the latency (number of ticks) of each
-instruction, and the resources (more register or FIFO buffering
-between stages).
+More FSM steps in Drum or more stages in Fife (longer pipelines) will,
+in general, enable higher clock speeds (because the circuits in each
+stage have less to do, and so have less circuit delay).  But more
+stages increase the latency (number of ticks) for each instruction,
+and the resources (more register or FIFO buffering between stages).
 
 In some cases it is worthwhile going in the opposite direction, fusing
-what used to be two steps/stages into one.  A functionally easy pair
-to fuse is Decode and RR-Dispatch.  In Drum, the Decode action looks
-like this:
+what used to be two stages into one.  A functionally easy pair to fuse
+is Decode and RR-Dispatch.  In Drum, the Decode action looks like
+this:
 
 {\small
 \begin{Verbatim}[frame=single, label=src\_Drum/CPU.bsv]
@@ -375,19 +374,19 @@ In both cases, we reduce, by 1 tick, the transit through Decode and
 Register-Read-and-Dispatch, and we eliminate the intermediate buffer
 (register or FIFOs), both of which appear to be improvements.
 
-On the other hand, the depth of the combined step/stage combinational
-circuit is now the sum of the depths in the original two steps/stages;
-this may reduce the clock speed at which we can run it.
+On the other hand, the depth of the combined stage combinational
+circuit is now the sum of the depths in the original two stages; this
+may reduce the clock speed at which we can run it.
 
 \index[RV]{Pipeline!balanced and unbalanced}
 \index[RV]{Pipeline!slack}
 \index[RV]{Timing!slack}
 
-Fusion may not reduce the achievable clock speed if some other
-step/stage already limits the achievable speed.  In this case we would
-say that the pipeline was originally ``unbalanced'' and that fusion
-has brought it closer to balance (all stages having approximately the
-same combinational delay).  Fusion has merely utilized some timing
+Fusion may not reduce the achievable clock speed if some other stage
+already limits the achievable speed.  In this case we would say that
+the pipeline was originally ``unbalanced'' and that fusion has brought
+it closer to balance (all stages having approximately the same
+combinational delay).  Fusion has merely utilized some timing
 ``slack'' that was already available in the two stages.
 
 % ================================================================
@@ -417,7 +416,7 @@ very much.
 
 % ================================================================
 
-\subsection{Drum (rules version): short-circuiting steps}
+\subsection{Drum (rules version): short-circuiting stages}
 
 In the ``rules'' version of Drum (\verb|src_Drum/Drum_Rules.bsv| and
 described in Chapter~\ref{ch_Drum_Rules}), the ``retire'' rules
@@ -456,7 +455,7 @@ allows structured compositions of sequencing and if-then-else.
 
 % ================================================================
 
-\subsection{Drum: using narrower inter-step/stage buffers}
+\subsection{Drum: using narrower inter-stage buffers}
 
 Consider the output of the \verb|fn_Dispatch| in
 \verb|src_Common/Fn_Dispatch.bsv|, with the following type:

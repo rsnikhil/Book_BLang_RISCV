@@ -101,16 +101,16 @@ GPRs module (desribed in Section~\ref{Sec_RISCV_regfile}) and the CSRs
 modules (described in Section~\ref{Sec_RISCV_CSRs}).  Then, it
 instantiates a set of registers to hold values between temporal FSM
 steps (with struct types shown in Figure~\ref{Fig_Drum_Instr_Exec}).
-For example, the Fetch step will write a value into
-\verb|rg_Fetch_to_Decode| which will be read later by the Decode step.
-Then, it instantiates four FIFOFs for IMem requests (outgoing) and
-responses (incoming), and for DMem requests (outgoing) and responses
-(incoming). As mentioned before, we do not make any assumption about
-the \emph{latency} of memory requests, {\ie} how long it takes the
-external memory subsystem to consume a request from one of the request
-FIFOs and enqueue a response into the corresponding response FIFO.
-Finally, it instantiates the four registers needed for trap-handling,
-described in Section~\ref{Sec_Traps}.
+For example, the Fetch stage will write a value into
+\verb|rg_Fetch_to_Decode| which will be read later by the Decode
+stage.  Then, it instantiates four FIFOFs for IMem requests (outgoing)
+and responses (incoming), and for DMem requests (outgoing) and
+responses (incoming). As mentioned before, we do not make any
+assumption about the \emph{latency} of memory requests, {\ie} how long
+it takes the external memory subsystem to consume a request from one
+of the request FIFOs and enqueue a response into the corresponding
+response FIFO.  Finally, it instantiates the four registers needed for
+trap-handling, described in Section~\ref{Sec_Traps}.
 
 In the display above we have elided the BEHAVIOR section of the
 module, which we will describe shortly.
@@ -222,7 +222,7 @@ dequeue it and forward it to memory.
 We pop the response from IMem (bind \verb|mem_rsp| to the value at
 head of the FIFO, and also remove it from the FIFO), then apply
 \verb|fn_Decode()| (Section~\ref{Sec_fn_Decode}) to the
-\verb|Fetch_to_Decode| value from the Fetch step and the IMem
+\verb|Fetch_to_Decode| value from the Fetch stage and the IMem
 response, and store the function result in register
 \verb|rg_Decode_to_RR|.
 
@@ -230,20 +230,20 @@ response, and store the function result in register
 
 \subsection{FSM action for Dispatch}
 
-The next FSM action is the Register-Read and Dispatch step:
+The next FSM action is the Register-Read and Dispatch stage:
 
 \input{Code_Extracts/Drum_RRD.tex}
 
 Using the information in \verb|rg_Decode_to_RR| created in the Decode
-step, we read the two registers \verb|rs1| and \verb|rs2|.  We apply
+stage, we read the two registers \verb|rs1| and \verb|rs2|.  We apply
 the function \verb|fn_Dispatch| (Section~\ref{Sec_fn_Dispatch}) and
 store the result in register \verb|rg_Dispatch|.
 
 Note that we blindly read both registers \verb|rs1| and \verb|rs2|,
 even though many instructions do not have one or both of these fields.
 In those situations we'll be reading bogus/irrelevant values, but it
-does not matter---in the Execute step we will only use these values in
-instructions that need them. Recall that while in a software
+does not matter---in the Execute stage we will only use these values
+in instructions that need them. Recall that while in a software
 programming language this may seem unnecessary or wasted work, in this
 hardware context nothing is wasted---the hardware for reading both
 registers exist, there is nothing lost in using it.
@@ -252,9 +252,9 @@ registers exist, there is nothing lost in using it.
 
 \subsection{FSM actions for Execute and Retire}
 
-After the Dispatch FSM step, we move on to the Exectute and Retire FSM
-steps.  Figure~\ref{Fig_Retire_Drum} shows the details of the four
-``flows'' that may follow.
+After the Dispatch FSM stage, we move on to the Exectute and Retire
+FSM stages.  Figure~\ref{Fig_Retire_Drum} shows the details of the
+four ``flows'' that may follow.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1}}
   \caption{\label{Fig_Retire_Drum}Execute and Retire actions in Drum}
@@ -278,14 +278,14 @@ First, for convenience, we give the value \verb|rg_Dispatch.to_Retire|
 a shorter and more convenient name, \verb|x_direct|, to be used in the
 rest of this \verb|action|-\verb|endaction| block.
 
-If we received an exception from the Dispatch step, we invoke the
+If we received an exception from the Dispatch stage, we invoke the
 help-function \verb|fa_setup_exception()|
 (Section~\ref{Sec_Drum_FSM_help_fns}) to set register
 \verb|rg_exception| to true and to record the relevant values in the
 registers \verb|rg_epc|, \verb|rg_epc|, \verb|rg_cause| and
 \verb|rg_tval|.
 
-If we received a CSRRxx instruction from the Dispatch step, we invoke
+If we received a CSRRxx instruction from the Dispatch stage, we invoke
 the \verb|mav_csrrxx()| method in the \verb|csrs| module to perform
 the instruction on the relevant CSRs.  The result is a 2-tuple
 (Section~\ref{Sec_Tuples}) and we use a \verb|match| construct bind
@@ -296,11 +296,11 @@ CSRRxx instruction failed (\verb|exc| is true), once again we invoke
 \verb|fa_redirect_Fetch()| to update the PC to the fall-through PC
 value.
 
-If we received an MRET instruction from the Dispatch step, we simply
+If we received an MRET instruction from the Dispatch stage, we simply
 invoke \verb|fa_redirect_Fetch()| to resume executing at the PC value
 provided in \verb|rg_mtvec|.
 
-If we received an ECALL or EBREAK instruction from the Dispatch step,
+If we received an ECALL or EBREAK instruction from the Dispatch stage,
 recall from Section~\ref{Sec_ECALL_EBREAK} that these instructions
 merely invoke exceptions, with ``cause codes''
 \verb|cause_ECALL_FROM_M| and \verb|cause_BREAKPOINT|, respectively
@@ -311,7 +311,7 @@ EBREAK, we only need to check one bit (\verb|instr[20]|) to
 distinguish them in order to select the correct cause code.
 
 There is a final ``\verb|else|'' clause, but between the functionality
-of the Decode and Dispatch steps, it should be impossible to enter
+of the Decode and Dispatch stages, it should be impossible to enter
 this clause (this is just a bit of defensive programming and can
 safely be removed; even if not removed, it does not produce any
 hardware).

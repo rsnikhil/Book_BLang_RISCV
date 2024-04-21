@@ -46,7 +46,7 @@ as the address in a memory-request to IMem.  It has two outputs,
        in Section~\ref{Sec_Mem_Req}.
 
  \item Some additional information ``\verb|Fetch_to_Decode|'' passed
-       on to the Decode step.
+       on to the Decode stage.
 
 \end{tightlist}
 
@@ -136,10 +136,10 @@ and \verb|Mem_Req| outputs look correct.
 \index[RV]{fn\_Decode@{\tt fn\_Decode} (Decode function)}
 \index[RV]{Decode function ({\tt fn\_Decode})}
 
-The core function for the Decode step is called \verb|fn_Decode|.  Its
-arguments are a struct of type \verb|Fetch_to_Decode| from the Fetch
-step and a \verb|Mem_Rsp| memory response struct from memory.  Its
-output struct type, \verb|Decode_to_RR|, was described in
+The core function for the Decode stage is called \verb|fn_Decode|.
+Its arguments are a struct of type \verb|Fetch_to_Decode| from the
+Fetch stage and a \verb|Mem_Rsp| memory response struct from memory.
+Its output struct type, \verb|Decode_to_RR|, was described in
 Section~\ref{Sec_struct_D_to_RR}.  The code for \verb|fn_Decode| is
 mostly a big if-then-else that analyses the incoming instruction and
 produces some summary information:
@@ -170,7 +170,7 @@ will selectively modify in the if-then-else statements that follow.
 In lines 31-40 we first handle the sitations where the Fetch operation
 to memory itself returned an error.  We mark the \verb|exception|
 field True and fill in the appropriate \verb|cause| and \verb|tval|
-(these will be placed in MCAUSE and MTVAL CSRs in the Retire step).
+(these will be placed in MCAUSE and MTVAL CSRs in the Retire stage).
 
 The rest of the code is a series of if-then-else clauses. Each clause
 identifies one class of instruction and updates the \verb|opclass|
@@ -249,7 +249,7 @@ check that the \verb|D_to_RR| outputs look correct.
 \index[RV]{fn\_Dispatch@{\tt fn\_Dispatch} (Dispatch function)}
 \index[RV]{Dispatch function ({\tt fn\_Dispatch})}
 
-In the Register-Read and Dispatch step (``RR'', ``RRD''), we first
+In the Register-Read and Dispatch stage (``RR'', ``RRD''), we first
 read the \verb|rs1| and \verb|rs2| values from the Register File.  We
 will cover register files in Section~\ref{Sec_Register_files}, and
 register-reads when we discuss the Drum CPU itself, in
@@ -257,8 +257,8 @@ Chapter~\ref{ch_Drum_code}.
 
 With the \verb|rs1| and \verb|rs2| values in hand, we use function
 \verb|fn_Dispatch| to determine the information to be passed to the
-various alternative steps (``flows'') that follow.  Its argument is a
-\verb|Decode_to_RR| struct from the Decode step, which was discussed
+various alternative stages (``flows'') that follow.  Its argument is a
+\verb|Decode_to_RR| struct from the Decode stage, which was discussed
 in Section~\ref{Sec_struct_D_to_RR}.  Before we look at the result
 type of \verb|fn_Dispatch|, let us discuss the four possible
 subsequent flows:
@@ -310,8 +310,8 @@ The first component is the information sent directly to Retire:
 The \verb|exec_tag| informs Retire about the flow for this
 instruction.  The {\tt exception} and {\tt cause} fields from
 \verb|Decode_to_RR| are carried through, as-is, since it is the Retire
-step that handles all exceptions.  Note, in addition to passing these
-exceptions in RR to Retire, the Control or Execute steps can also
+stage that handles all exceptions.  Note, in addition to passing these
+exceptions in RR to Retire, the Control or Execute stages can also
 produce exceptions.  The {\tt pc} field is needed in case Retire needs
 to handle a trap or interrupt, which saves the {\tt pc} before
 handling it.
@@ -439,7 +439,7 @@ Prove (informally) that the three-way if-then-else shown above in
 \verb|Fn_EX_Control| will catch all cases, {\ie} that we never need a
 final ``\verb|else|'' clause.  This requires reviewing
 \verb|fn_Decode| and tracking the flow of information through the
-Register-Read-and-Dispatch step (including \verb|fn_Dispatch)|, into
+Register-Read-and-Dispatch stage (including \verb|fn_Dispatch)|, into
 \verb|fn_Control|.
 
 % ----------------
@@ -627,13 +627,13 @@ instructions, where the shift-amount can be 6-bits wide instead of
 
 \section{No separate functions for Execute DMem and Retire}
 
-We don't need any separate functions for the Execute DMem step in
+We don't need any separate functions for the Execute DMem stage in
 Figure~\ref{Fig_Core_Simple_Instr_Exec} because \verb|fn_Dispatch| has
 created a \verb|Mem_Req| struct that we can send directly to memory.
 Similarly, the memory returns a \verb|Mem_Rsp| that is sent directly
-to the Retire step.
+to the Retire stage.
 
-The code for the Retire step is discussed in detail separatly in
+The code for the Retire stage is discussed in detail separatly in
 Chapter~\ref{ch_Drum_code} for Drum and Chapter~\ref{ch_Fife_code} for
 Fife.  Although functionally the same, the codes are structurally
 sufficiently different that it is not worth attempting to abstract any

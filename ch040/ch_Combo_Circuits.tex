@@ -2,7 +2,7 @@
 
 % ****************************************************************
 
-\chapter{BSV: Combinational circuits for the RISC-V step functions}
+\chapter{BSV: Combinational circuits for the RISC-V Stage functions}
 
 \markboth{Ch \arabic{chapter}: Combinational functions (DRAFT)}{\copyrightnotice}
 
@@ -16,12 +16,12 @@
 
 \section{Introduction}
 
-It is useful to start with the Decode step of
-Figure~\ref{Fig_Instr_Exec} because it involves bit-vectors,
+It is useful to start with the Decode stage of
+Figure~\ref{Fig_Instr_Exec} because it involves only bit-vectors,
 operations on bit-vectors, conditionals to classify instructions into
 classes, and \verb|enum| types to name and encode instruction classes.
 
-The inputs to the Decode step as depicted in
+The inputs to the Decode stage as depicted in
 Figure~\ref{Fig_Instr_Exec} are:
 
 \begin{tightlist}
@@ -32,12 +32,12 @@ Figure~\ref{Fig_Instr_Exec} are:
  instructions''), instructions can also be 16-bits, but we
  ignore that for now.}
 
- \item Any additional information passed on from the Fetch step.
+ \item Any additional information passed on from the Fetch stage.
 
 \end{tightlist}
 
-The outputs of the Decode step have information needed by the next
-step (Register-Read and Dispatch).  For a RISC-V instruction, useful
+The outputs of the Decode stage have information needed by the next
+stage (Register-Read and Dispatch).  For a RISC-V instruction, useful
 information includes:
 
 \begin{tightlist}
@@ -49,14 +49,14 @@ information includes:
 
  \item If legal, what is its broad classification: Control (Branch or
    Jump)? Integer Arithmetic or Logic? Memory Access?  This will help
-   in choosing the next step to which we must dispatch to execute the
+   in choosing the next stage to which we must dispatch to execute the
    instruction.
 
  \item Does it have zero, one or two input registers?  If so, which
-   ones?  This will help the next step in reading registers.
+   ones?  This will help the next stage in reading registers.
 
  \item Does it have zero or one output registers?  If so, which one?
-   This will help the final Register Write step in writing back a
+   This will help the final Register Write stage in writing back a
    value to a register.
 
 \end{tightlist}
@@ -777,16 +777,15 @@ Extend the testbench to test more 32-bit values with all the
 
 \index[BSV]{enum@{\tt enum} types}
 
-In Figure~\ref{Fig_Instr_Exec}, the Register-Read and Dispatch step
+In Figure~\ref{Fig_Instr_Exec}, the Register-Read and Dispatch stage
 needs to know which of the four alternative downstream paths should be
-selected for executing the insruction.  In particular,
-we need to know whether the incoming instruction is a system
-instruction, a control instruction (branch or jump), an integer
-arithmetic/logic instruction, or a memory-accessing instruction.  We
-could think of coding these ``classes'' using numbers (0 for system, 1
-for control, 2 for integer, 3 for Mem), but it is more readable, and
-cleaner, to use an ``enum'' type (similar to enum types in
-SystemVerilog and C):
+selected for executing the insruction.  In particular, we need to know
+whether the incoming instruction is a system instruction, a control
+instruction (branch or jump), an integer arithmetic/logic instruction,
+or a memory-accessing instruction.  We could think of coding these
+``classes'' using numbers (0 for system, 1 for control, 2 for integer,
+3 for Mem), but it is more readable, and cleaner, to use an ``enum''
+type (similar to enum types in SystemVerilog and C):
 
 \input{Code_Extracts/OpClass.tex}
 

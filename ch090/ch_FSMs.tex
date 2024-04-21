@@ -38,11 +38,12 @@ example the Drum CPU executes one full instruction after another,
 repeating forever the flow along the black arrows in the diagram. For
 each instruction, first it performs a Fetch operation, which sends a
 request to memory. Some time later, the memory sends back a response,
-which is then processed by the Decode step, Register-Read-and-Dispatch
-step and then one of the Execute steps.  The Execute DMem step sends a
-request to memory. Some time later, the memory sends back a response,
-which is processed in the Retire step.  Finally, the process loops
-back to the Fetch step, and repeats for the next instruction.
+which is then processed by the Decode stage,
+Register-Read-and-Dispatch stage and then one of the Execute stages.
+The Execute DMem stage sends a request to memory. Some time later, the
+memory sends back a response, which is processed in the Retire stage.
+Finally, the process loops back to the Fetch stage, and repeats for
+the next instruction.
 
 The simplest temporal process in hardware systems, perhaps the most
 classical, is the \emph{FSM} (Finite State Machine).  A classical

@@ -15,20 +15,21 @@ RISC-V: Memory requests and responses}
 
 % ****************************************************************
 
-\section{RISC-V: structs communicated between steps}
+\section{RISC-V: structs communicated between stages}
 
 \index[BSV]{struct!hetoregeneous collection of values}
 \index[BSV]{field!of a {\tt struct}}
 \index[BSV]{member!of a {\tt struct}}
 
-Various kinds of information need to be communicated between the steps
-of Figure~\ref{Fig_Instr_Exec}---program counter values, instructions,
-values read from registers, values to be written back to registers,
-and so on.  \verb|struct| data types (short for ``structures'') are
-suitable for bundling together heterogeneous collections of values.
-(This is the same concept in C and SystemVerilog; it is also called a
-``record'' in some programming languages.)  Each component of a struct
-is called a ``field'' or a ``member'' of the struct.
+Various kinds of information need to be communicated between the
+stages of Figure~\ref{Fig_Instr_Exec}---program counter values,
+instructions, values read from registers, values to be written back to
+registers, and so on.  \verb|struct| data types (short for
+``structures'') are suitable for bundling together heterogeneous
+collections of values.  (This is the same concept in C and
+SystemVerilog; it is also called a ``record'' in some programming
+languages.)  Each component of a struct is called a ``field'' or a
+``member'' of the struct.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
   \caption{\label{Fig_Simple_Instr_Exec_w_structs}
@@ -37,12 +38,12 @@ is called a ``field'' or a ``member'' of the struct.
 \end{figure}
 Figure~\ref{Fig_Simple_Instr_Exec_w_structs} annotates
 Figure~\ref{Fig_Instr_Exec} with struct types communicated on each of
-the black arrows between steps, and each of the red arrows to and from
-memory.  In this and the next few chapters we will flesh out the
+the black arrows between stages, and each of the red arrows to and
+from memory.  In this and the next few chapters we will flesh out the
 details of all these struct types.  We will use exactly the same
 struct types for Fife and Drum, {\ie} whether the implementation is
-pipelined or not.  All these \verb|struct|
-declarations can be found in the file: \verb|src_Common/Inter_Stage.bsv|.
+pipelined or not.  All these \verb|struct| declarations can be found
+in the file: \verb|src_Common/Inter_Stage.bsv|.
 
 % ****************************************************************
 
@@ -50,10 +51,10 @@ declarations can be found in the file: \verb|src_Common/Inter_Stage.bsv|.
 
 \label{BSV_struct_types}
 
-Consider the black arrow from the Decode step to the
-Register-read-and-Dispatch step of
-Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
-We want to communicate several values, including:
+Consider the black arrow from the Decode stage to the
+Register-read-and-Dispatch stage of
+Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.  We want to communicate
+several values, including:
 
 \begin{itemize}
 
@@ -68,15 +69,16 @@ We want to communicate several values, including:
 
     \item whether an error was encountered in the Fetch-to-Memory-to-Decode path, or
 
-    \item whether the Decode step's analysis indicates that the
-        instruction is not legal (unrecognized 32-bit code).
+    \item whether the Decode stage's analysis indicates that the
+          instruction is not legal (unrecognized 32-bit code).
 
   \end{tightlist}
 
   When the exception flag is true, a \verb|cause| field provides more detail.
 
 \item If there is no exception (no Fetch memory error; instruction is
-legal), other fields provide more analytical detail for subsequent steps:
+      legal), other fields provide more analytical detail for
+      subsequent stages:
 
   \begin{tightlist}
 
@@ -98,12 +100,12 @@ legal), other fields provide more analytical detail for subsequent steps:
 
   The next several fields are derived by analyzing the instruction.
   They could be re-derived wherever needed by re-analyzing the
-  instruction, but we perform that work just once in the Decode step
+  instruction, but we perform that work just once in the Decode stage
   and communicate the results.
 
   \begin{tightlist}
 
-    \item The \verb|OpClass|.  This indicates to which next-step in
+    \item The \verb|OpClass|.  This indicates to which next-stage in
       Figure~\ref{Fig_Simple_Instr_Exec_w_structs} we dispatch for
       subsequent actions.
 
@@ -460,10 +462,10 @@ and meaningful field names.
 \index[RV]{DMem (data memory)}
 
 In Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, the \verb|Mem_Req|
-and \verb|Mem_Rsp| structs are used in two places.  The Fetch step
+and \verb|Mem_Rsp| structs are used in two places.  The Fetch stage
 issues a memory request, and the corresponding memory response is
-received by the Decode step.  Similarly, the ``Execute Memory Ops''
-steps issues a memory request and consumes a memory response.  We use
+received by the Decode stage.  Similarly, the ``Execute Memory Ops''
+stage issues a memory request and consumes a memory response.  We use
 the shorthand term ``IMem'' for the first context (for Instruction
 Memory) and ``DMem'' for the latter context (for Data Memory).
 
@@ -578,8 +580,8 @@ For STORE requests of 1 and 2 bytes ({\ie} smaller than the \verb|data|
 field) we assume the data is passed in the least-significant bytes of
 the \verb|data| field.
 
-This is the information sent to Memory from the Read-PC-and-Fetch step
-and also from the Execute-Memory-Ops step in
+This is the information sent to Memory from the Read-PC-and-Fetch
+stage and also from the Execute-Memory-Ops stage in
 Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
 
 % ================================================================
