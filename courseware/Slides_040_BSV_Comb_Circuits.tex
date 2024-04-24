@@ -1,0 +1,338 @@
+% -*- mode: fundamental -*-
+
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L4: BSV: Combinational Circuits}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
+ \end{center}
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Two CPU implementations (microarchitectures): Drum and Fife}
+
+\begin{center}
+\frame{\includegraphics[width=0.8\textwidth]{../Figures/Fig_Two_Microarchitectures}}
+\end{center}
+
+\footnotesize
+
+We start learning BSV by coding the {\tt fn\_XXX} functions.  These
+are used in both Drum and Fife, and are all combinational circuits.
+
+\vspace*{1ex}
+
+We start with {\tt fn\_Decode}).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Inputs to {\tt fn\_Decode}}
+
+\footnotesize
+
+The inputs to the Decode stage, as shown in the diagram are:
+
+\pause
+\vspace{1ex}
+
+\begin{itemize}
+
+ \item (From IMem (``instruction-memory'')): A 32-bit piece of data---a
+ RISC-V instruction---that has become available by reading it from
+ memory at the PC address.\footnote{When
+ implementing the so-called ``C'' RISC-V ISA extension (``compressed
+ instructions''), instructions can also be 16-bits, but we
+ ignore that for now.}
+
+ \pause
+ \vspace{1ex}
+
+ \item (Direct from Fetch stage): any additional information for this
+     instruction that did not need to go to memory and back.
+
+\end{itemize}
+
+\pause
+\vspace{4ex}
+
+We will use a BSV ``{\tt struct}'' type (to be described soon)
+whenever we want to carry multiple pieces of information together.
+
+\vspace{1ex}
+
+Example: a memory request will carry a request-type (such as READ) and
+an address together.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Outputs from {\tt fn\_Decode}}
+
+\footnotesize
+
+The outputs from the Decode stage, as shown in the diagram are:
+
+\pause
+\vspace{1ex}
+
+\begin{itemize}
+
+ \item Was the Fetch itself successful, or did it encounter a memory
+   error; if so, what kind of memory error?
+
+ \pause
+ \vspace{1ex}
+
+ \item Is it a legal 32-bit instruction?
+
+ \pause
+ \vspace{1ex}
+
+ \item If legal, what is its broad classification: Control (Branch or
+   Jump)? Integer Arithmetic or Logic? Memory Access?  This will help
+   in choosing the next stage to which we must dispatch to execute the
+   instruction.
+
+ \pause
+ \vspace{1ex}
+
+ \item Does it have zero, one or two input registers (``rs1'' and
+   ``rs2'')?  If so, which ones?  This will help the next stage in
+   reading registers.
+
+ \pause
+ \vspace{1ex}
+
+ \item Does it have zero or one output registers (``rd'')?  If so,
+   which one?  This will help the final Register Write stage in
+   writing back a value to a register.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Integer literals (constants) in BSV}
+
+\footnotesize
+
+Integer literals use the same notation as in Verilog and SystemVerilog:
+
+\vspace{1ex}
+
+\begin{Verbatim}[frame=single, numbers=left]
+3'b010            // Binary literal, 3 bits wide
+7'b_110_0011      // Binary literal, 7 bits wide
+5'h3              // Hex literal, 5 bits wide
+32'h3             // Hex literal, 5 bits wide
+32'h_efff_0f17    // Hex literal, 32 bits wide (an AUIPC instruction)
+'h23              // Hex literal, context determines width
+\end{Verbatim}
+
+\pause
+\vspace{1ex}
+
+When the size is omitted, {\bsc} will infer the required size from the
+context, and extend it if necessary (zero-extend if the context
+requires a \verb|Bit#(n)|, sign-extend if \verb|Int#(n)|).
+
+\vspace{1ex}
+
+{\bsc} will not truncate a too-large constant; instead it will give an
+error message.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Bit-vectors in BSV}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item The basic type in any hardware design language is the
+       bit-vector (a vector of $n$ bits) to be treated as a single
+       entity.  Bit-vectors are carried on wires ($n$-bit vectors on
+       $n$ wires), stored in registers, memories and other state
+       elements.
+
+ \vspace{1ex}
+
+ \item The type of a bit-vector of $n$ bits in BSV is written: {\tt
+       Bit\#($n$)}.
+
+ \vspace{1ex}
+
+ \item We can declare identifiers with a type just like in Verilog,
+       SystemVerilog and C, with an initialization:
+
+ \vspace{1ex}
+
+ \begin{Verbatim}[frame=single, numbers=left]
+   Bit #(32) pc_val = ?;
+   Bit #(32) pc_val = 32'h_0000_1000;
+   Bit #(32) pc_val = 'h_1000;
+ \end{Verbatim}
+
+ \vspace{1ex}
+
+ Line 1: we let {\bsc} pick an initial value (usually picks
+ \verb|'h_AAAA_..._AAAA| for visibilitye during debugging).
+
+ \vspace{1ex}
+
+ Line 2: the initial value is specified as an exactly 32-bit value,
+ which matches the declared type of the identifier.
+
+ \vspace{1ex}
+
+ Line 3: the constant does not specify a width; {\bsc} will infer that
+ it should be 32 bits, and will zero-extend the given 16 bits.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Extracting smaller bit-vectors (``slicing''), or individual bits, from a bit-vector}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(12) page_offset = pc_val [11:0];
+   Bit #(1)  pc_lsb      = pc_val [0];
+   Bit #(1)  pc_msb      = pc_val [31];
+\end{Verbatim}
+
+\vspace{1ex}
+
+{\bsc} checks that the bit-widths match exactly and reports an error otherwise. \\
+(there is no silent bit-extending or truncating).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Operators for bit-vectors}
+
+\footnotesize
+
+Left- and right-arguments must have same \verb|Bit#(n)| type.
+
+\vspace{1ex}
+
+Comparison ops: result type is {\tt Bool}
+\begin{Verbatim}[frame=single, numbers=left]
+   if (a == b) ...;        // equality
+   if (a != b) ...;        // not-equal to
+   if (a < b) ...;         // less-than
+   if (a <= b) ...;        // less-than-or-equal-to
+   if (a > b) ...;         // greather-than
+   if (a >= b) ...;        // greater-than-or-equal-to
+\end{Verbatim}
+
+Arithmetic ops: result type is same as argument types
+\begin{Verbatim}[frame=single, numbers=left]
+   x = a + b - c * d;      // add, subtract, multiply
+\end{Verbatim}
+
+Bitwise logic ops: result type is same as argument types:
+\begin{Verbatim}[frame=single, numbers=left]
+   //   AND  OR   unary INVERT   XOR  XNOR  XNOR
+   x = a &  b |     (~ c)         ^   d ^~ e ~^ f;
+\end{Verbatim}
+
+Left- and Right-Shifts:
+\begin{Verbatim}[frame=single, numbers=left]
+   x = (a << 3) & (b >> 14);
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Integer types in BSV}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(n)        // bit-vectors, bounded to n bits
+   Int #(n)        // signed integers, bounded to n bits
+   UInt #(n)       // unsigned integers, bounded to n bits
+   Integer         // Mathematical integers (unbounded, no bit-width limit)
+\end{Verbatim}
+
+\vspace{2ex}
+
+\begin{itemize}
+
+ \item We rarely use \verb|UInt#(n)| because they are the same as
+        \verb|Bit#(n)| (``isomorphic'').
+
+ \item \verb|Integer| is used for values that are only meaningful at
+     compile time and never represented in hardware (such as the size
+     of a vector of interfaces or modules).
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Explicit extension and truncation}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single]
+   y = zeroExtend (x);
+   y = signExtend (x);
+   y = extend (x);
+   x = truncate (y);
+\end{Verbatim}
+
+\vspace{2ex}
+
+\begin{itemize}
+ \item {\tt x} and {\tt y} must both be \verb|Bit#(..)| or both be \verb|Int#(..)|
+ \item Bit-width of {\tt y} must be $\geq$ Bit-width of {\tt x}
+ \item \verb|extend| will zero-extend for \verb|Bit#(..)| and sign-extend for \verb|Int#(..)|
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+% \input{Postamble.tex}
+
+% ****************************************************************
+
+\end{document}

@@ -14,6 +14,7 @@
 
 \usepackage{verbatim}
 \usepackage{fancyvrb}
+\usepackage{listings}
 
 % ================================================================
 % Themes
@@ -45,6 +46,10 @@
 % ================================================================
 
 % ----------------
+% The bsc compiler and BSV language
+\newcommand{\bsc}{\emph{bsc}}
+\newcommand{\BSV}{\bf{BSV}}
+% ----------------
 % ITALICISE WORDS
 \newcommand{\ie}{\emph{i.e.,}}
 \newcommand{\eg}{\emph{e.g.,}}
@@ -54,7 +59,19 @@
 \newcommand{\vs}{\emph{vs.}}
 
 % ----------------
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+
+\newcommand{\hm}{\hspace*{1em}}
+\newcommand{\hmm}{\hspace*{2em}}
+\newcommand{\hmmm}{\hspace*{3em}}
+\newcommand{\hmmmm}{\hspace*{4em}}
+
+% ----------------
 % Convenient widths
+
+\newlength{\hlessmm}
+\setlength{\hlessmm}{\textwidth}
+\addtolength{\hlessmm}{-2em}
 
 \newlength{\hlessmmm}
 \setlength{\hlessmmm}{\textwidth}

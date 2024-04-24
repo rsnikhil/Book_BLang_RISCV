@@ -77,7 +77,51 @@ learn the BSV concepts needed to code these ideas.
 
 % ****************************************************************
 
-\section{Bit Vectors}
+\section{Hexadecimal and Binary Notation for literal integers}
+
+\label{BSV_hex_bin_literals}
+
+\index[BSV]{Literals!Hexadecimal integer notation}
+\index[BSV]{Literals!Binary integer notation}
+\index[BSV]{Hexadecimal notation for integer literals}
+\index[BSV]{Binary notation for integer literals}
+
+BSV uses the same notation as Verilog and SystemVerilog for
+hexadecimal and binary literal integers.  Some examples:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+3'b010            // Binary literal, 3 bits wide
+7'b_110_0011      // Binary literal, 7 bits wide
+5'h3              // Hex literal, 5 bits wide
+32'h3             // Hex literal, 5 bits wide
+32'h_efff_0f17    // Hex literal, 32 bits wide (an AUIPC instruction)
+'h23              // Hex literal, context determines width
+\end{Verbatim}
+}
+
+As these examples show, a hexadecimal or binary integer literal is
+introduced by an optional bit-width, then a ``tick'' (single-quote)
+character, and then the binary or hexadecimal digits for the number.
+The character ``{\verb|_|}'' may be used freely to space out groups of
+digits to improve readability for humans (the compiler ignores these
+spacers).
+
+The last line shows that we can omit the size prefix, in which case
+the size will be inferred by the compiler from the context. For
+example, if we had:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(32) pc_val = 'h_8000_0000;
+\end{Verbatim}
+}
+
+then the literal is inferred to be 32 bits wide.
+
+% ****************************************************************
+
+\section{Bit vectors, and declaring identifiers}
 
 \label{Sec_BSV_Bit_Vectors}
 
@@ -96,15 +140,22 @@ The BSV statement:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   Bit #(32) pc_val;
+   Bit #(32) pc_val = 32'h_8000_1000;
 \end{Verbatim}
 }
 
 declares the identifier \verb|pc_val| to have the type
-\verb|Bit#(32)|, {\ie} a bit-vector of 32 bits.
+\verb|Bit#(32)|, {\ie} a bit-vector of 32 bits, and initializes it to
+have the value shown in hexadecimal on the right-hand side.
+
+(See Section~\ref{BSV_hex_bin_literals} for more on syntax of integer
+constants in decimal, hexadecimal and binary See
+Section~\ref{BSV_Syntax_of_Identifiers} for more on syntax of BSV
+identifiers.)
+
 The general syntax is similar to C or Verilog:
 \begin{quote}
-\emph{type} \emph{identifier};
+\emph{type} \emph{identifier} = \emph{initial\_value};
 \end{quote}
 
 The BSC type \verb|Bit#(32)| is roughly equivalent to the C type
@@ -112,6 +163,31 @@ The BSC type \verb|Bit#(32)| is roughly equivalent to the C type
 multiples of 8 bits--- (\verb|uint8_t|, \verb|uint16_t|,
 \verb|uint32_t| and \verb|uint64_t|)---bit-vectors in BSV can have any
 size (\verb|Bit#(3)|, \verb|Bit#(51)|, \verb|Bit#(512)|, ...).
+
+If the identifier will be assigned later, you can indicate that you
+``don't care'' about its initial value like this (the compiler will
+pick an initial value):
+
+\begin{quote}
+\emph{type} \emph{identifier} = {\tt ?};
+\end{quote}
+
+% ----------------------------------------------------------------
+\Beginexercise
+
+% ----------------
+\Exercise
+
+Build-and-run the code in directory \verb|Ex_04_A/|.  Please see the
+\verb|README.txt| file for more details on the exercise, including
+several variations of the code.
+
+\Endexercise
+% ================================================================
+
+\subsection{Built-in Operators on Bit Vectors}
+
+\label{Bit_Vector_Ops}
 
 The bits in a BSV bit-vector of size $n$ are indexed from $n-1$
 (most-significant bit) to 0 (least-significant bit).  You can extract
@@ -121,15 +197,18 @@ a \emph{slice} of a bit-vector using usual Verilog notation:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   Bit #(32) pc_val;
    Bit #(12) page_offset = pc_val [11:0];
+   Bit #(1)  pc_lsb      = pc_val [0];
+   Bit #(1)  pc_msb      = pc_val [31];
 \end{Verbatim}
 }
 
-In the second line, we extract 12 bits of \verb|pc_val| to get a
-bit-vector of size 12.  BSV is \emph{strongly typed} with respect to
-sizes, {\ie} it is very strict about matching sizes.  For example,
-this statement:
+In the first line, we extract 12 bits of \verb|pc_val| to get a
+bit-vector of size 12.  In the remaining lines, we extract one bit
+from \verb|pc_val|.
+
+BSV is \emph{strongly typed} with respect to sizes, {\ie} it is very
+strict about matching sizes.  For example, this statement:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -141,11 +220,18 @@ will be reported as a type-error by the \emph{bsc} compiler because
 the slice-expression on the right-hand side has type \verb|Bit#(11)|
 which does not match the declared type \verb|Bit#(12)|.
 
-% ================================================================
+% ----------------------------------------------------------------
+\Beginexercise
 
-\subsection{Built-in Operators on Bit Vectors}
+% ----------------
+\Exercise
 
-\label{Bit_Vector_Ops}
+Build-and-run the code in directory \verb|Ex_04_B/|.  Please see the
+\verb|README.txt| file for more details on the exercise, including
+several variations of the code.
+
+\Endexercise
+% ----------------------------------------------------------------
 
 BSV bit-vectors can be compared for equality and inequality.  BSV
 bit-vectors are synonymous with unsigned integers, and so a number of
@@ -266,51 +352,20 @@ Note that all four type names begin with an upper-case letter.  This
 is true of all types in BSV: type names and enumeration constants
 begin with an upper-case letter, other identifiers begin with a
 lower-case letter.  (See also
-Section~\ref{BSV_Syntax_of_Identifiers}.)
+Section~\ref{BSV_Syntax_of_Identifiers} on syntax of identifiers.)
 
-% ****************************************************************
+% ----------------------------------------------------------------
+\Beginexercise
 
-\section{Hexadecimal and Binary Notation for literal integers}
+% ----------------
+\Exercise
 
-\label{BSV_hex_bin_literals}
+Build-and-run the code in directory \verb|Ex_04_C/|.  Please see the
+\verb|README.txt| file for more details on the exercise, including
+several variations of the code.
 
-\index[BSV]{Literals!Hexadecimal integer notation}
-\index[BSV]{Literals!Binary integer notation}
-\index[BSV]{Hexadecimal notation for integer literals}
-\index[BSV]{Binary notation for integer literals}
-
-BSV uses the same notation as Verilog and SystemVerilog for
-hexadecimal and binary literal integers.  Some examples:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-3'b010            // Binary literal, 3 bits wide
-7'b_110_0011      // Binary literal, 7 bits wide
-5'h3              // Hex literal, 5 bits wide
-32'h3             // Hex literal, 5 bits wide
-32'h_efff_0f17    // Hex literal, 32 bits wide (an AUIPC instruction)
-'h23              // Hex literal, context determines width
-\end{Verbatim}
-}
-
-As these examples show, a hexadecimal or binary integer literal is
-introduced by an optional bit-width, then a ``tick'' (single-quote)
-character, and then the binary or hexadecimal digits for the number.
-The character ``{\verb|_|}'' may be used freely to space out groups of
-digits to improve readability for humans (the compiler ignores these
-spacers).
-
-The last line shows that we can omit the size prefix, in which case
-the size will be inferred by the compiler from the context. For
-example, if we had:
-
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-   Bit #(32) pc_val = 'h_8000_0000;
-\end{Verbatim}
-}
-
-then the literal is inferred to be 32 bits wide.
+\Endexercise
+% ----------------------------------------------------------------
 
 % ****************************************************************
 

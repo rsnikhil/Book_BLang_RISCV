@@ -1,6 +1,8 @@
+SLIDES += Logistics.pdf
 SLIDES += Slides_010_Intro.pdf
 SLIDES += Slides_020_ISA.pdf
 SLIDES += Slides_030_BSV_Program_Structure.pdf
+SLIDES += Slides_040_BSV_Comb_Circuits.pdf
 
 .PHONY: pdf
 pdf: $(SLIDES)
