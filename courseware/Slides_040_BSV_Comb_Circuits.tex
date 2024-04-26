@@ -7,6 +7,12 @@
 
 \date{L4: BSV: Combinational Circuits}
 
+% ----------------
+% Switch off "pause" during development
+
+\renewcommand{\PAUSE}[1]{#1}
+% \renewcommand{\PAUSE}[1]{#1\pause}
+
 % ****************************************************************
 
 \begin{document}
@@ -19,6 +25,7 @@
  \begin{center}
   \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
  \end{center}
+
 \end{frame}
 
 % ================================================================
@@ -32,12 +39,12 @@
 
 \footnotesize
 
-We start learning BSV by coding the {\tt fn\_XXX} functions.  These
-are used in both Drum and Fife, and are all combinational circuits.
+We start learning BSV by coding the {\tt fn\_XXX} functions.  \\
+These are used in both Drum and Fife, and are all combinational circuits.
 
 \vspace*{1ex}
 
-We start with {\tt fn\_Decode}).
+We start with {\tt fn\_Decode}.
 
 \end{frame}
 
@@ -48,10 +55,9 @@ We start with {\tt fn\_Decode}).
 
 \footnotesize
 
-The inputs to the Decode stage, as shown in the diagram are:
+The inputs to the Decode stage (see diagram on previous slide) are:
 
-\pause
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 \begin{itemize}
 
@@ -62,23 +68,21 @@ The inputs to the Decode stage, as shown in the diagram are:
  instructions''), instructions can also be 16-bits, but we
  ignore that for now.}
 
- \pause
- \vspace{1ex}
+ \PAUSE{\vspace{4ex}}
 
  \item (Direct from Fetch stage): any additional information for this
      instruction that did not need to go to memory and back.
 
 \end{itemize}
 
-\pause
-\vspace{4ex}
+\PAUSE{\vspace{4ex}}
 
 We will use a BSV ``{\tt struct}'' type (to be described soon)
-whenever we want to carry multiple pieces of information together.
+whenever we carry multiple pieces of data together.
 
 \vspace{1ex}
 
-Example: a memory request will carry a request-type (such as READ) and
+Example: a memory request will carry a request-code (such as READ) and
 an address together.
 
 \end{frame}
@@ -92,36 +96,31 @@ an address together.
 
 The outputs from the Decode stage, as shown in the diagram are:
 
-\pause
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 \begin{itemize}
 
  \item Was the Fetch itself successful, or did it encounter a memory
    error; if so, what kind of memory error?
 
- \pause
- \vspace{1ex}
+ \PAUSE{\vspace{1ex}}
 
  \item Is it a legal 32-bit instruction?
 
- \pause
- \vspace{1ex}
+ \PAUSE{\vspace{1ex}}
 
  \item If legal, what is its broad classification: Control (Branch or
    Jump)? Integer Arithmetic or Logic? Memory Access?  This will help
    in choosing the next stage to which we must dispatch to execute the
    instruction.
 
- \pause
- \vspace{1ex}
+ \PAUSE{\vspace{1ex}}
 
  \item Does it have zero, one or two input registers (``rs1'' and
    ``rs2'')?  If so, which ones?  This will help the next stage in
    reading registers.
 
- \pause
- \vspace{1ex}
+ \PAUSE{\vspace{1ex}}
 
  \item Does it have zero or one output registers (``rd'')?  If so,
    which one?  This will help the final Register Write stage in
@@ -129,12 +128,18 @@ The outputs from the Decode stage, as shown in the diagram are:
 
 \end{itemize}
 
+\PAUSE{\vspace{2ex}}
+
+To compute these values, we will need to extract ``slices'' of the
+32-bit instruction (opcode, funct3, rs1, rs2, rd, ...) and compare
+them with binary constants.
+
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Integer literals (constants) in BSV}
+\frametitle{BSV: Integer literals (constants)}
 
 \footnotesize
 
@@ -151,17 +156,127 @@ Integer literals use the same notation as in Verilog and SystemVerilog:
 'h23              // Hex literal, context determines width
 \end{Verbatim}
 
-\pause
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 When the size is omitted, {\bsc} will infer the required size from the
 context, and extend it if necessary (zero-extend if the context
 requires a \verb|Bit#(n)|, sign-extend if \verb|Int#(n)|).
 
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{BSV: Identifiers and comments}
+
+\footnotesize
+
+{\bf Identifiers:} same as in most programming languages: any sequence
+of alphabets, digits, and ``\verb|_|'' (underscore) characters,
+beginning with an alphabet.
+
 \vspace{1ex}
 
-{\bsc} will not truncate a too-large constant; instead it will give an
-error message.
+The upper/lower case of the first letter (always an alphabet) is important:
+\begin{itemize}
+ \item Uppercase first letter: constants (value constants, type constants).
+
+   Examples:
+   \begin{itemize}\footnotesize
+    \item Value constants: \verb|True|, \verb|False|, \verb|MEM_RSP_OK|, ...
+    \item Type constants: \verb|Bit|, \verb|Int|, \verb|Tuple2|, \verb|Vector|, ...
+   \end{itemize}
+
+ \vspace{1ex}
+
+ \item Lowercase first letter: variables (value variables, type variables).
+
+       Examples: \verb|x|, \verb|y|, \verb|tmp|, \verb|pc|, \verb|rg_pc|, \verb|has_rs1|, ...
+
+\end{itemize}
+
+\PAUSE{\vspace{10ex}}
+
+{\bf Comments:} same as in Verilog/SystemVerilog/C/C++:
+\begin{itemize}
+ \item ``\verb|//|'' introduces a comment until end-of-line
+
+ \item ``\verb|/*|'' and ``\verb|*/|'' bracket an unlimited amount of
+       comment text (can span multiple lines)
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{BSV: Introduction to Types (Data Types)}
+
+\footnotesize
+
+\begin{center}
+ \frame{\includegraphics[width=\textwidth]{../Figures/Fig_BSV_Types}}
+\end{center}
+
+\vspace{1ex}
+
+\begin{itemize}
+ \item Programs (and hardware modules) compute with \emph{Values}.
+
+ \item We group values into sets, which we call \emph{Types}.
+
+ \item Types themselves have a ``type'' (\emph{Kind}):
+       \begin{itemize}\footnotesize
+
+        \item those representing actual values (\emph{Value Kind})
+
+	\item those that describe some ``size'' feature of a type
+              (\emph{Numeric Kind}, shown in red)
+
+       \end{itemize}
+
+\end{itemize}
+
+Every operator, function and method declaration in BSV specifies the
+types of its arguments and results, which is used by {\bsc} for strict
+typechecking.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{BSV: Introduction to Types (Data Types)}
+
+\footnotesize
+
+Types can nested to arbitrary depth:
+
+\begin{tabbing}
+ \hmmmm \emph{type} ::= \emph{type-constructor} {\tt \#(} \emph{type}, ..., \emph{type} {\tt )}
+\end{tabbing}
+
+\vspace{2ex}
+
+A \emph{type-constructor} always begins with an upper-case letter (is a type constant).
+
+\vspace{2ex}
+
+For each \emph{type-constructor}, each \emph{type} argument
+(parameter) is fixed to be either of value kind or numeric kind.
+
+For example,
+
+\begin{itemize}
+
+ \item In \verb|Bit #(n)|, \verb|n| is always of numeric kind.
+
+ \item In \verb|Vector #(n,t)|, \verb|n| is always of numeric kind,
+ \verb|t| is always of value kind.
+
+ \item In \verb|Tuple3 #(t1,t2,t3)|, all three parameters are always of value kind.
+
+\end{itemize}
 
 \end{frame}
 
@@ -194,14 +309,14 @@ error message.
 
  \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val = ?;
-   Bit #(32) pc_val = 32'h_0000_1000;
+   Bit #(32) pc_val = 32'h_8000_0000;
    Bit #(32) pc_val = 'h_1000;
  \end{Verbatim}
 
  \vspace{1ex}
 
  Line 1: we let {\bsc} pick an initial value (usually picks
- \verb|'h_AAAA_..._AAAA| for visibilitye during debugging).
+ \verb|'h_AAAA_..._AAAA| for visibility during debugging).
 
  \vspace{1ex}
 
@@ -336,3 +451,9 @@ Left- and Right-Shifts:
 % ****************************************************************
 
 \end{document}
+
+
+\vspace{1ex}
+
+{\bsc} will not truncate a too-large constant; instead it will give an
+error message.

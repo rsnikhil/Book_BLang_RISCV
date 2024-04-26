@@ -9,8 +9,8 @@ pdf: $(SLIDES)
 
 %.pdf: %.tex
 	mkdir -p tmp_latex
-	pdflatex -output-directory=tmp_latex $<
-	pdflatex -output-directory=tmp_latex $<
+	pdflatex  -output-directory=tmp_latex  -file-line-error  $<
+	pdflatex  -output-directory=tmp_latex  $<
 	mv tmp_latex/$@  .
 
 # ================================================================

@@ -7,6 +7,7 @@ FIGS += Fig_BSV_Package.png
 FIGS += Fig_BSV_program_structure.png
 FIGS += Fig_BSV_Split_Phase_Mem.png
 FIGS += Fig_BSV_static_elaboration.png
+FIGS += Fig_BSV_Types.png
 FIGS += Fig_BSV_whats_in_an_interface_decl.png
 FIGS += Fig_BSV_whats_in_an_interface_def.png
 FIGS += Fig_BSV_whats_in_a_module_decl.png
