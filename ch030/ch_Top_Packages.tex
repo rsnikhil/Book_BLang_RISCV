@@ -46,12 +46,13 @@ program.
 
 \section{A Minimal BSV program}
 
-Here is a minimal BSV program (though it is not very interesting as
-hardware!).  We can simulate in Bluesim or in Verilog simulation,
-where it just prints ``Hello World!'' and exits.
+Here is a minimal complete BSV program (although it is not very
+interesting as hardware!).
+
+\index[BSV]{\$display@{\tt \$display} statements}
 
 {\small
-\begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_01/Top.bsv]
+\begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex\_03\_A/Top.bsv]
 module mkTop (Empty);
 
    rule rl_once;
@@ -64,17 +65,50 @@ endmodule
 }
 
 It defines one module, \verb|mkTop|, with an \verb|Empty| interface,
-{\ie} the module has no inputs or outputs.  The module contains one
-rule, which here can be regarded as an infinitely repeating loop.  The
-rule contains two statements, a \verb|$display()| expression that
-prints the message and a \verb|$finish(0)| which terminates the
-simulation with a final exit value of 0.  Rules normally execute
-repeatedly, but here the \verb|$finish()| terminates it after one
-execution. Rules are described in more detail in
-Chapters~\ref{ch_Rules_I} and Chapters~\ref{ch_Rules_II}.
+{\ie} a module with no inputs or outputs (we will discuss modules and
+interfaces in more detail later).  The module contains one rule,
+\verb|rl_once|, whose rule body contains two statements, a
+\verb|$display()| statement/expression that prints the message and a
+\verb|$finish(0)| statement/expression which terminates the simulation
+immediately, returning an exit value of 0 to the operating system.
+Rules can normally execute repeatedly forever, but here the
+\verb|$finish()| terminates it after one execution (rules are
+discussed in more detail in Chapters~\ref{ch_Rules_I} and
+Chapters~\ref{ch_Rules_II}).
 
-We can compile and link it for Bluesim using the free and open-source
-\emph{bsc} compiler, and then run the executable:
+% ----------------
+\vspace{1ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+{\tt \$display()} is only meaningful in simulation, where the
+simulator can print out characters to the terminal in which the
+simulation is running.  Actual hardware may or may not have any
+terminal at all.  Some hardware may have a UART (Universal
+Asynchronous Receiver/Transmitter) that can send characters to a
+terminal.  For this, the CPU must run a RISC-V program that sends the
+characters, one by one, to the terminal.
+
+\vspace{1ex}
+
+{\tt \$finish()} is only meaningful in simulation, where the
+simulation is a program running under some operating system (Linux,
+Windows, MacOS, ...) and it is meaningful to ``terminate'' the
+simulation and return to a command-line with an exit value.  Actual
+hardware has no concept of ``terminating'', it just runs forever as
+long as it is supplied power and a clock signal.
+
+\end{minipage}}
+
+\vspace{1ex}
+% ----------------
+
+We can simulate in Bluesim or in Verilog simulation; in both cases it
+just prints ``Hello World!'' and exits.  For Bluesim, we can compile
+and link it using the free and open-source \emph{bsc} compiler, and
+then run the executable:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -120,7 +154,7 @@ executable.
 % ----------------
 \Exercise
 
-Build-and-run, using the steps described above, in both Bluesim
+Compiler and run, using the steps described above, in both Bluesim
 simulation and in Verilator Verilog simulation.
 
 For your convenience, the code is in directory \verb|Ex_03_A/Top.bsv|,
@@ -136,6 +170,56 @@ Comment-out the \verb|$finish ()| statement from the code, rebuild and
 run, and observe the behavior.
 
 \Endexercise
+
+% ================================================================
+
+\subsection{More about {\tt \$display}()}
+
+\label{BSV_display}
+
+The \verb|$display()| function in {\BSV} is similar to
+\verb|$display()| in Verilog and SystemVerilog, and to \verb|printf()|
+in C/C++. The first argument is a string containing formatting
+directives for the remaining arguments. Example:
+
+{\small
+\begin{Verbatim}[frame=single, numbers=left]
+      Bit #(4) a = 'b_1010;
+      Bit #(4) b = 'b_0110;
+
+      $display ("  %04b %04b => %d", a, b, a == b);
+\end{Verbatim}
+}
+
+The {\tt a} and {\tt b} arguments to \verb|$display()| are printed in
+binary format using 4-characters, prefixing it, if necessary, with the
+``0'' character.
+
+The {\tt a==b} argument is an expression whose value is of type {\tt
+Bool} (Section~\ref{Sec_BSV_Boolean_values}).  Here, we are printing
+its bit-representation with the ``\verb|%d|'' format (decimal
+integer), so it will print ``0'' for \verb|False| and ``1'' for
+\verb|True|.
+
+{\BSV}'s \verb|$display()| goes beyond SystemVerilog's
+\verb|$display()| in that arguments can can also be of type \verb|Fmt|
+which are computed formatted objects created by the \verb|fshow()|
+function which is predefined on all the standard types including
+\verb|Bool|.  In our example, we can have it print the \emph{words}
+\verb|False| and \verb|True| instead of ``0'' and ``1'' by using
+\verb|fshow()|; in this case we omit the ``\verb|%d|'' from the format
+string:
+
+{\small
+\begin{Verbatim}[frame=single]
+      ...
+      $display ("  %04b %04b => ", a, b, fshow (a == b));
+      ...
+\end{Verbatim}
+}
+
+The use of \verb|Fmt| and \verb|fshow()| is discussed in more detail
+in Section~\ref{Sec_display_and_fmt}.
 
 % ****************************************************************
 

@@ -5,7 +5,7 @@
 
 \input{Preamble.tex}
 
-\date{L4: BSV: Combinational Circuits}
+\date{L4: {\BSV}: Combinational Circuits}
 
 % ----------------
 % Switch off "pause" during development
@@ -39,7 +39,7 @@
 
 \footnotesize
 
-We start learning BSV by coding the {\tt fn\_XXX} functions.  \\
+We start learning {\BSV} by coding the {\tt fn\_XXX} functions.  \\
 These are used in both Drum and Fife, and are all combinational circuits.
 
 \vspace*{1ex}
@@ -77,7 +77,7 @@ The inputs to the Decode stage (see diagram on previous slide) are:
 
 \PAUSE{\vspace{4ex}}
 
-We will use a BSV ``{\tt struct}'' type (to be described soon)
+We will use a {\BSV} ``{\tt struct}'' type (to be described soon)
 whenever we carry multiple pieces of data together.
 
 \vspace{1ex}
@@ -139,7 +139,7 @@ them with binary constants.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{BSV: Integer literals (constants)}
+\frametitle{{\BSV}: Integer literals (constants)}
 
 \footnotesize
 
@@ -167,13 +167,13 @@ requires a \verb|Bit#(n)|, sign-extend if \verb|Int#(n)|).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{BSV: Identifiers and comments}
+\frametitle{{\BSV}: Identifiers and comments}
 
 \footnotesize
 
-{\bf Identifiers:} same as in most programming languages: any sequence
-of alphabets, digits, and ``\verb|_|'' (underscore) characters,
-beginning with an alphabet.
+{\bf Identifiers:} any sequence of alphabets, digits, and ``\verb|_|''
+(underscore) characters, beginning with an alphabet \\
+(same as in most programming languages):
 
 \vspace{1ex}
 
@@ -210,15 +210,13 @@ The upper/lower case of the first letter (always an alphabet) is important:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{BSV: Introduction to Types (Data Types)}
+\frametitle{{\BSV}: Introduction to Types}
 
 \footnotesize
 
 \begin{center}
  \frame{\includegraphics[width=\textwidth]{../Figures/Fig_BSV_Types}}
 \end{center}
-
-\vspace{1ex}
 
 \begin{itemize}
  \item Programs (and hardware modules) compute with \emph{Values}.
@@ -237,20 +235,29 @@ The upper/lower case of the first letter (always an alphabet) is important:
 
 \end{itemize}
 
-Every operator, function and method declaration in BSV specifies the
-types of its arguments and results, which is used by {\bsc} for strict
-typechecking.
+Note: the numeric type ``3'' (shown in red) is distinct from the
+numeric value ``3'' (shown in black).  There is never any ambiguity
+because they occur in distinct contexts: type expressions {\vs} value
+expressions.
 
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{BSV: Introduction to Types (Data Types)}
+\frametitle{{\BSV}: Introduction to Types}
 
 \footnotesize
 
-Types can nested to arbitrary depth:
+{\BSV} has very strong \emph{type-checking}: every operator, function
+and method declaration in {\BSV} specifies the types of its arguments and
+results, and these are checked strictly by {\bsc}.
+
+\PAUSE{\vspace{2ex}}
+
+Every expression, statement, rule, module, ... in {\BSV} is described
+by a \emph{type expression} (or just ``type'' for short).  Types can
+nested to arbitrary depth:
 
 \begin{tabbing}
  \hmmmm \emph{type} ::= \emph{type-constructor} {\tt \#(} \emph{type}, ..., \emph{type} {\tt )}
@@ -283,7 +290,7 @@ For example,
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Bit-vectors in BSV}
+\frametitle{{\BSV}: Bit-vectors and declaring identifiers}
 
 \footnotesize
 
@@ -297,7 +304,7 @@ For example,
 
  \vspace{1ex}
 
- \item The type of a bit-vector of $n$ bits in BSV is written: {\tt
+ \item The type of a bit-vector of $n$ bits in {\BSV} is written: {\tt
        Bit\#($n$)}.
 
  \vspace{1ex}
@@ -316,7 +323,7 @@ For example,
  \vspace{1ex}
 
  Line 1: we let {\bsc} pick an initial value (usually picks
- \verb|'h_AAAA_..._AAAA| for visibility during debugging).
+ \verb|'h_AAAA_..._AAAA| to stand out during debugging).
 
  \vspace{1ex}
 
@@ -326,7 +333,9 @@ For example,
  \vspace{1ex}
 
  Line 3: the constant does not specify a width; {\bsc} will infer that
- it should be 32 bits, and will zero-extend the given 16 bits.
+ it should be 32 bits, and will zero-extend accordingly. \\
+ Note: {\bsc} will not truncate a too-large constant; it will give an
+ error message instead.
 
 \end{itemize}
 
@@ -334,8 +343,25 @@ For example,
 
 % ================================================================
 
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Bit-vectors and declaring identifiers.
+
+\vspace{2ex}
+
+Please see directory {\tt Ex\_O4\_A}, code and {\tt Makefile}.
+
+\vspace*{5ex}
+
+{\tt README.txt} and the code contain notes and suggested variations.
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}[fragile]
-\frametitle{Extracting smaller bit-vectors (``slicing''), or individual bits, from a bit-vector}
+\frametitle{{\BSV}: Extracting smaller bit-vectors (``slicing''), or individual bits, from a bit-vector}
 
 \footnotesize
 
@@ -354,8 +380,25 @@ For example,
 
 % ================================================================
 
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Bit-vector slices.
+
+\vspace{2ex}
+
+Please see directory {\tt Ex\_O4\_B}, code and {\tt Makefile}.
+
+\vspace*{5ex}
+
+{\tt README.txt} and the code contain notes and suggested variations.
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}[fragile]
-\frametitle{Operators for bit-vectors}
+\frametitle{{\BSV}: Operators on bit-vectors}
 
 \footnotesize
 
@@ -394,35 +437,6 @@ Left- and Right-Shifts:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Integer types in BSV}
-
-\footnotesize
-
-\begin{Verbatim}[frame=single, numbers=left]
-   Bit #(n)        // bit-vectors, bounded to n bits
-   Int #(n)        // signed integers, bounded to n bits
-   UInt #(n)       // unsigned integers, bounded to n bits
-   Integer         // Mathematical integers (unbounded, no bit-width limit)
-\end{Verbatim}
-
-\vspace{2ex}
-
-\begin{itemize}
-
- \item We rarely use \verb|UInt#(n)| because they are the same as
-        \verb|Bit#(n)| (``isomorphic'').
-
- \item \verb|Integer| is used for values that are only meaningful at
-     compile time and never represented in hardware (such as the size
-     of a vector of interfaces or modules).
-
-\end{itemize}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
 \frametitle{Explicit extension and truncation}
 
 \footnotesize
@@ -438,9 +452,295 @@ Left- and Right-Shifts:
 
 \begin{itemize}
  \item {\tt x} and {\tt y} must both be \verb|Bit#(..)| or both be \verb|Int#(..)|
- \item Bit-width of {\tt y} must be $\geq$ Bit-width of {\tt x}
+
+ \item Bit-width of {\tt y} must be $\geq$ bit-width of {\tt x}
+
  \item \verb|extend| will zero-extend for \verb|Bit#(..)| and sign-extend for \verb|Int#(..)|
 \end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: the {\tt Bool} type}
+
+\footnotesize
+
+\verb|Bool|: the type of a boolean values, written {\tt
+True} and {\tt False}.
+
+\vspace{1ex}
+
+Operators \\
+\hmmmm \verb|&&| (boolean/logical AND) \\
+\hmmmm \verb'||' (boolean/logical OR)  \\
+\hmmmm \verb|!| (boolean/logical NOT)  \\
+
+% ----------------
+\vspace{4ex}
+
+CAUTION: \fbox{\small
+\begin{minipage}{5in}
+
+{\tt Bool}, {\tt Bit\#(1)} and {\tt Int\#(1)} are distinct types, and cannot be mixed!
+
+\vspace{1ex}
+
+The boolean/logical operators {\tt \&\&}, {\tt ||} and {\tt !}
+operate on {\tt Bool} types and are distinct from the bit-wise logic
+operators mentioned earlier (such as {\tt \&}), which operate on {\tt
+Bit\#(n)} types.
+
+\end{minipage}}
+
+\vspace{2ex}
+
+Bitwise comparison operators, such as {\tt (a <= b)} take {\tt
+Bit\#(n)} arguments and produce {\tt Bool} results.
+
+% ----------------
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Integer types}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(n)        // bit-vectors, bounded to n bits
+   Int #(n)        // signed integers, bounded to n bits
+   UInt #(n)       // unsigned integers, bounded to n bits
+   Integer         // Mathematical integers (unbounded, no bit-width limit)
+\end{Verbatim}
+
+\vspace{2ex}
+
+\begin{itemize}
+
+ \item We rarely use \verb|UInt#(n)| because they are almost the same
+        as \verb|Bit#(n)|.
+
+ \item \verb|Integer| is used for values that are only meaningful at
+     compile time and never represented in hardware (such as the size
+     of a vector of interfaces or modules).
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: User-defined functions}
+
+\footnotesize
+
+Syntax of function declarations is conventional (similar to Verilog,
+SystemVerilog, C):
+
+\begin{Verbatim}[frame=single, numbers=left]
+function Action print_BV_BV_Bool (String op, Bit #(4) a, Bit #(4) b, Bool result);
+   $display ("  %s: %04b %04b => %d or ", op, a, b, result, fshow (result));
+endfunction
+\end{Verbatim}
+
+\vspace{4ex}
+
+Syntax of function application is conventional (similar to Verilog,
+SystemVerilog, C):
+
+\begin{Verbatim}[frame=single, numbers=left]
+      ...
+      print_BV_BV_Bool ("==", a, b, a == b);
+      ...
+\end{Verbatim}
+
+\vspace{2ex}
+
+In this example, the result type is {\tt Action}.  This is used for
+functions that are pure side-effects: they perform some action and
+don't return any value.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Operations on bit-vectors.
+
+\vspace{2ex}
+
+Please see directory {\tt Ex\_O4\_C}, code and {\tt Makefile}.
+
+\vspace*{5ex}
+
+{\tt README.txt} and the code contain notes and suggested variations.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: User-defined functions have zero incremental hardware cost}
+
+\footnotesize
+
+In software, functions have some ``function-calling overhead'' because
+they perform some actions dynamically (allocate/deallocate stack
+frame, save/restore registers, move values to and from argument and
+result registers, ...).
+
+\vfill
+
+In {\BSV} functions are \emph{inlined} wherever they are used, so
+there is no incremental hardware cost.
+
+\vfill
+
+{\bf Takeaway:} use functions liberally, to improve clarity, readability, reusability.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Example: recognizing a legal BRANCH insruction: code}
+
+\footnotesize
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=5in]{Fig_Combo_BRANCH_instrs_1}}
+  \centerline{\includegraphics[width=5in]{Fig_Combo_BRANCH_instrs_2}}
+  \vspace{2mm}
+  \centerline{\includegraphics[width=5in]{Fig_Combo_BRANCH_instrs_3}}
+\end{figure}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(32) instr         = ...;
+   Bit #(7)  opcode_BRANCH = 7'b_110_0011;
+
+   Bit #(7) opcode = instr [6:0];
+   Bit #(3) funct3 = instr [14:12];
+   Bool legal = (opcode == opcode_BRANCH)
+                 && (funct3 != 3'b010)
+                 && (funct3 != 3'b011));
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Example: recognizing a legal BRANCH insruction: schematic}
+
+\footnotesize
+
+\begin{center}
+ \includegraphics[width=6in]{Fig_Combo_Is_Legal_BRANCH}
+\end{center}
+
+\vfill
+
+Note: the schematic is at ``RTL'' level; it does not go down to the
+level of AND-OR-NOT gates, just to bit-vector operators which will be
+implemented in terms of such gates by a synthesis tool.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+\footnotesize
+
+Testing for legal BRANCH instructions.
+
+\vspace{2ex}
+
+Please study the file: \hm {\tt Code/src\_Common/Instr\_Bits.bsv}
+
+\vfill
+
+Locate the functions \verb|instr_opcode()|, \verb|instr_funct3()|, and
+\verb|is_legal_BRANCH()| and make sure you understand them.
+
+\vfill
+
+Look at the many other functions in the file that are similar, and
+make sure you understand them (refer to RV32I ISA in Unprivileged ISA
+Specification document).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Combinational circuits; pure {\vs} side-effecting functions; {\tt Action} and {\tt ActionValue} types}
+
+\footnotesize
+
+The function {\tt is\_legal\_BRANCH()} is an example of a
+\emph{combinational circuit}: an acyclic interconnection of primitive
+gates (such as AND, OR, NOT).
+
+\vspace{1ex}
+
+(More generally: interconnects of RTL-level binary operators on
+bit-vectors, since they are themselves combinational circuits).
+
+\vfill
+
+\begin{itemize}
+
+ \item Combinational circuits do not have any
+       \emph{side-effects}---they do not modify any state elements.
+       They are also said to be \emph{pure} functions.
+
+ \item We idealize combinational circuits as being ``instantaneous''
+       (zero time).  In practice, because of physics, there will be a
+       \emph{propagation delay} for a change in an input signal to
+       effect a change in the output, but as long as this is less than
+       the clock period, we can regard it as instantaneous.
+
+ \item Pure functions can be replicated or shared (un-replicated)
+       without changing the functional meaning of the circut
+       (replication/un-replication may have a non-functional
+       implication: silicon size, combinational delay, power
+       consumption, ...).
+
+ \item In {\BSV} circuits that may have a side-effect (may update a
+       state element) always have type {\tt Action} or {\tt
+       ActionValue\#(t)}.  Conversely, if a circuit's type does not
+       involve {\tt Action} or {\tt ActionValue}, it is guaranteed to
+       be pure.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+\footnotesize
+
+Simple sequential testbenches with {\tt StmtFSM} and {\tt mkAutoFSM}.
+
+\vspace{10ex}
+
+Please see directory {\tt Ex\_O4\_D}, code and {\tt Makefile}.
+
+\vspace{2ex}
+
+The textbook has a series of exercises suggesting variations on the given code.
 
 \end{frame}
 
@@ -451,9 +751,3 @@ Left- and Right-Shifts:
 % ****************************************************************
 
 \end{document}
-
-
-\vspace{1ex}
-
-{\bsc} will not truncate a too-large constant; instead it will give an
-error message.

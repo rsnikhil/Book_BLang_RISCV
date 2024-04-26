@@ -7,7 +7,7 @@ SLIDES += Slides_040_BSV_Comb_Circuits.pdf
 .PHONY: pdf
 pdf: $(SLIDES)
 
-%.pdf: %.tex
+%.pdf: %.tex  Preamble.tex  Postamble.tex
 	mkdir -p tmp_latex
 	pdflatex  -output-directory=tmp_latex  -file-line-error  $<
 	pdflatex  -output-directory=tmp_latex  $<
