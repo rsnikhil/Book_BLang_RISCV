@@ -52,7 +52,7 @@ interesting as hardware!).
 \index[BSV]{\$display@{\tt \$display} statements}
 
 {\small
-\begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex\_03\_A/Top.bsv]
+\begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex\_03\_A\_Hello\_World/Top.bsv]
 module mkTop (Empty);
 
    rule rl_once;
@@ -151,24 +151,8 @@ executable.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-\Exercise
-
-Compiler and run, using the steps described above, in both Bluesim
-simulation and in Verilator Verilog simulation.
-
-For your convenience, the code is in directory \verb|Ex_03_A/Top.bsv|,
-and a \verb|Makefile| contains all the commands shown above.
-
-Please consult your instructor and/or Appendix~\ref{apx_resources} for
-information on installing \emph{bsc} and Verilator.
-
-% ----------------
-\Exercise
-
-Comment-out the \verb|$finish ()| statement from the code, rebuild and
-run, and observe the behavior.
-
+Please see directory: \hm {\tt Exercises/Ex\_03\_A\_Hello\_World/} \\
+and its README.
 \Endexercise
 
 % ================================================================
@@ -404,42 +388,8 @@ above commands.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-\Exercise
-
-Build-and-run in either Bluesim simulation or in Verilator Verilog
-simulation.
-
-For your convenience, the code is in directory \verb|Ex_03_B/|, files
-\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains all
-the commands shown above.
-
-% ----------------
-\Exercise
-
-Try the compile steps above after removing the ``\verb|-u|''
-command-line flag and observe the behavior.
-
-% ----------------
-\Exercise
-
-Change \verb|Bit#(11)| to \verb|Bit#(8)| in \verb|DUT.bsv|, retry the
-build-and-run, and observe the behavior.
-
-% ----------------
-\Exercise
-
-Write down a BSV hexadecimal integer literal whose value is equal to
-decimal 22 (hexadecimal integers in BSV use the same notation as in
-Verilog and SystemVerilog, see Section~\ref{BSV_hex_bin_literals}).
-
-% ----------------
-\Exercise
-
-Add another \verb|$display| statement that reports the number of years
-that have elapsed from the publication of Kernighan and Ritchie's book
-to today.
-
+Please see directory: \hm {\tt Exercises/Ex\_03\_B\_Top\_and\_DUT/} \\
+and its README.
 \Endexercise
 % ----------------------------------------------------------------
 
@@ -779,29 +729,8 @@ running it produces the same outputs as before.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-\Exercise
-
-Build-and-run in either Bluesim simulation or in Verilator Verilog
-simulation.
-
-For your convenience, the code is in directory \verb|Ex_03_C/|, files
-\verb|Top.bsv| and \verb|DUT.bsv| and a \verb|Makefile| contains
-commands to compile, link and run.
-
-% ----------------
-\Exercise
-
-In ``\verb|DUT_IFC (..)|'', remove ``\verb|(..)|''.  Try to
-build-and-run, and observe the behavior.
-
-% ----------------
-\Exercise
-
-Define a third string, say ``publisher'', in the DUT package; add it
-as a third tuple component to the \verb|m_title_authors| method
-output; add a \verb|$display()| line in \verb|mkTop| to print it.
-
+Please see directory: \hm {\tt Exercises/Ex\_03\_C\_Module\_and\_Interface/} \\
+and its README.
 \Endexercise
 
 % ****************************************************************
