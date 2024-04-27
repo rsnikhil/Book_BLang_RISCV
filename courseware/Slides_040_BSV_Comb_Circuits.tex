@@ -346,15 +346,8 @@ For example,
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Bit-vectors and declaring identifiers.
-
-\vspace{2ex}
-
-Please see directory {\tt Ex\_O4\_A}, code and {\tt Makefile}.
-
-\vspace*{5ex}
-
-{\tt README.txt} and the code contain notes and suggested variations.
+Please see directory: \hm {\tt Exercises/Ex\_04\_A\_Bit\_Vectors/} \\
+and its README.
 
 \end{frame}
 
@@ -383,15 +376,8 @@ Please see directory {\tt Ex\_O4\_A}, code and {\tt Makefile}.
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Bit-vector slices.
-
-\vspace{2ex}
-
-Please see directory {\tt Ex\_O4\_B}, code and {\tt Makefile}.
-
-\vspace*{5ex}
-
-{\tt README.txt} and the code contain notes and suggested variations.
+Please see directory: \hm {\tt Exercises/Ex\_04\_B\_Bit\_Vectors\_Slicing/} \\
+and its README
 
 \end{frame}
 
@@ -572,16 +558,8 @@ don't return any value.
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Operations on bit-vectors.
-
-\vspace{2ex}
-
-Please see directory {\tt Ex\_O4\_C}, code and {\tt Makefile}.
-
-\vspace*{5ex}
-
-{\tt README.txt} and the code contain notes and suggested variations.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_C\_Bit\_Vectors\_Operations/} \\
+and its README.
 \end{frame}
 
 % ================================================================
@@ -658,24 +636,8 @@ implemented in terms of such gates by a synthesis tool.
 \begin{frame}[fragile]
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-\footnotesize
-
-Testing for legal BRANCH instructions.
-
-\vspace{2ex}
-
-Please study the file: \hm {\tt Code/src\_Common/Instr\_Bits.bsv}
-
-\vfill
-
-Locate the functions \verb|instr_opcode()|, \verb|instr_funct3()|, and
-\verb|is_legal_BRANCH()| and make sure you understand them.
-
-\vfill
-
-Look at the many other functions in the file that are similar, and
-make sure you understand them (refer to RV32I ISA in Unprivileged ISA
-Specification document).
+Please see directory: \hm {\tt Exercises/Ex\_04\_D\_is\_legal\_XXX/} \\
+and its README.
 
 \end{frame}
 
@@ -728,25 +690,379 @@ bit-vectors, since they are themselves combinational circuits).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{\EmojiExercise \hmm Exercise break}
+\frametitle{{\tt StmtFSM}: a useful facility for testbenches}
 
 \footnotesize
 
-Simple sequential testbenches with {\tt StmtFSM} and {\tt mkAutoFSM}.
-
-\vspace{10ex}
-
-Please see directory {\tt Ex\_O4\_D}, code and {\tt Makefile}.
+Many simple testbenches just involve performing a sequence of actions
+(providing stimulus/input to the DUT (Design Under Test).  This is
+conveniently expressed using the following {\BSV} idiom:
 
 \vspace{2ex}
 
-The textbook has a series of exercises suggesting variations on the given code.
+{\small
+\begin{tabbing}
+\hmmm \= \hm \= \hm \= \hm \= \kill
+      \> {\tt import StmtFSM :: *} \\
+      \> ... \\
+      \> {\tt module mkTop (Empty);} \\
+      \>     \> {\tt mkAutoFSM (} \\
+      \>     \>     \> {\tt seq} \\
+      \>     \>     \>     \> \emph{action$_1$} \\
+      \>     \>     \>     \> ... \\
+      \>     \>     \>     \> \emph{action$_N$} \\
+      \>     \>     \> {\tt endseq)}; \\
+      \> {\tt endmodule}
+\end{tabbing}}
+
+
+\vspace*{4ex}
+
+We will discuss {\tt StmtFSM} in more detail later (when we talk about
+the Drum CPU).  \\
+For now, just use the above idiom as-is.
 
 \end{frame}
 
 % ================================================================
 
-% \input{Postamble.tex}
+\begin{frame}[fragile]
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_E\_FSM\_Testbench/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{User-defined types: {\tt enum} types}
+
+\footnotesize
+
+\begin{center}
+ \begin{minipage}{0.55\textwidth}
+  \includegraphics[width=0.9\textwidth]{Fig_Instr_Exec}
+ \end{minipage}
+ \hm
+ \begin{minipage}{0.33\textwidth}
+  In the ``execute'' stage, we have several alternative paths:
+  \begin{itemize}
+   \item Direct (for SYSTEM instructions)
+   \item Control
+   \item Integer arithmetic and logic
+   \item Memory
+  \end{itemize}
+ \end{minipage}
+\end{center}
+
+\vspace{2ex}
+
+The Decode stage computes a code that indicates which path should be taken. \\
+The code is defined as an {\tt enum} type:
+
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum {OPCLASS_SYSTEM,     // EBREAK, ECALL, CSRRxx,
+              OPCLASS_CONTROL,    // BRANCH, JAL, JALR
+	      OPCLASS_INT,
+	      OPCLASS_MEM,        // LOAD, STORE, AMO
+	      OPCLASS_FENCE}      // FENCE
+OpClass
+deriving (Bits, Eq, FShow);
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{User-defined types: {\tt enum} types}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum {OPCLASS_SYSTEM,     // EBREAK, ECALL, CSRRxx,
+              OPCLASS_CONTROL,    // BRANCH, JAL, JALR
+	      OPCLASS_INT,
+	      OPCLASS_MEM,        // LOAD, STORE, AMO
+	      OPCLASS_FENCE}      // FENCE
+OpClass
+deriving (Bits, Eq, FShow);
+\end{Verbatim}
+
+\vspace{2ex}
+
+\begin{itemize}
+ \item These are symbolic (more human-readable) constants for the alternatives
+
+ \item Because of ``\verb|deriving (Bits)|'' {\bsc} will represent
+       them in 3 bits (\verb|3'b_000| ... \verb|3'b_100|)\footnote{
+       Without ``{\tt deriving}'' you can give it a custom bit representation.}
+
+ \item However, \verb|OpClass| is a new type, distinct from \verb|Bit#(3)|
+
+ \item You can use ``\verb|pack (OPCLASS_MEM)|'' if you really want its
+       \verb|Bit#(3)| representation (\verb|3'b_011|)
+
+ \vspace{2ex}
+
+ \item Because of ``\verb|deriving (Eq)|'' you can directly compare
+       two \verb|OpClass| values for equality (``\verb|==|'') and
+       inequality (``\verb|!=|'')
+
+ \item Because of ``\verb|deriving (FShow)|'' you use
+       ``\verb|fshow()|'' on an \verb|OpClass| value in
+       \verb|$display()| statements to print the symbolic name
+       (otherwise, it will print the \verb|Bit#(3)| representation)
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{If-then-else (hardware multiplexers)}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+function OpClass instr_opclass (Bit #(32) instr);
+   OpClass result;
+   if (is_legal_BRANCH (instr) || is_legal_JAL (instr) || is_legal_JALR (instr))
+      result = OPCLASS_CONTROL;
+   else
+      result = OPCLASS_INT;
+   return result;
+endfunction
+\end{Verbatim}
+
+\vspace{2ex}
+
+\begin{center}
+ \includegraphics[width=0.9\textwidth]{Fig_Combo_Multiplexer}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Alternative notations for if-then-else}
+
+\footnotesize
+
+Conditional expressions:
+
+\begin{Verbatim}[frame=single, numbers=left]
+function OpClass instr_opclass (Bit #(32) instr);
+   return ((is_legal_BRANCH (instr) || is_legal_JAL (instr) || is_legal_JALR (instr))
+           ? OPCLASS_CONTROL
+	   : OPCLASS_INT);
+endfunction
+\end{Verbatim}
+
+\vspace{1ex}
+
+\begin{center}
+ \includegraphics[width=0.9\textwidth]{Fig_Combo_Multiplexer}
+\end{center}
+
+\vspace{3ex}
+
+See also ``{\tt case}-{endcase}'' expressions in the book and {\BSV} Reference Guide.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Nested conditionals $\Rightarrow$ cascaded multiplexers}
+
+\begin{minipage}{0.3\textwidth}\tiny
+\begin{Verbatim}[frame=single, numbers=left]
+function Bool instr_opclass (Bit #(32) instr);
+   OpClass result;
+   if (is_legal_BRANCH (instr)
+       || is_legal_JAL (instr)
+       || is_legal_JALR (instr))
+      result = OPCLASS_CONTROL;
+   else if (is_legal_OP (instr)
+            || is_legal_OP_IMM (instr)
+            || is_legal_LUI (instr)
+            || is_legal_AUIPC (instr))
+      result = OPCLASS_INT;
+   else if (is_legal_LOAD (instr)
+            || is_legal_STORE (instr))
+      result = OPCLASS_MEM;
+   else if (is_legal_ECALL (instr)
+            || is_legal_EBREAK (instr)
+            || is_legal_MRET (instr)
+            || is_legal_CSRRxx (instr))
+      result = OPCLASS_SYSTEM;
+   return result;
+endfunction
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.65\textwidth}
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_Combo_Multiplexer_Cascade}
+\end{center}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Parallel muxes (AND-OR muxes, balanced muxes)}
+
+\footnotesize
+
+\begin{minipage}{0.25\textwidth}
+ Cascaded multiplexers form an ``unbalanced tree''.  We can balance the tree
+ for a multiplexer with shorter combinational paths.
+
+ \vspace{2ex}
+
+ {\bf Note:} this relies on the conditions being mutually exclusive and
+ complete (exactly one of them is true):
+
+\end{minipage}
+\hm
+\begin{minipage}{0.7\textwidth}
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_Combo_Multiplexer_Parallel}
+\end{center}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_F\_Enums\_Muxes/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Sharing code for RV32I and RV64I using type synonyms and macros}
+
+\footnotesize
+
+\begin{center}
+ \begin{minipage}{0.5\textwidth}
+  \begin{Verbatim}[frame=single]
+   // type synonym: new name for numeric type 32
+   typedef 32 XLEN;
+
+   Bit #(XLEN) pc_val;
+   Bit #(XLEN) rs1_val;
+   Bit #(XLEN) rs2_val
+   Bit #(XLEN) rd_val;
+  \end{Verbatim}
+
+  \vspace{1ex}
+
+  Edit 32 $\rightarrow$ 64 for RV64
+ \end{minipage}
+ \hmmm
+ \begin{minipage}{0.35\textwidth}
+  The following can automate the typedef of XLEN during compilation:
+
+  \vspace{2ex}
+
+  \begin{Verbatim}[frame=single, label=in src\_Common/Arch.bsv]
+  `ifdef RV32
+
+  typedef 32 XLEN;
+
+  `elsif RV64
+
+  typedef 64 XLEN;
+
+  `endif
+
+  Integer xlen = valueOf (XLEN);
+  \end{Verbatim}
+ \end{minipage}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Conditional compilation with values instead of {\tt `ifdef}}
+
+\footnotesize
+
+For SLLI, SRLI and SRAI instructions, the ``shift amount'' ({\tt shamt}):
+\begin{itemize}
+ \item is 5 bits ({\tt instr[24:20]}) in RV32I, and {\tt instr[25]} must be 0
+ \item is 6 bits ({\tt instr[25:20]}) in RV64I, and {\tt instr[25]} can be 0 or 1
+\end{itemize}
+If {\tt instr[25]} is 1, it is illegal in RV32I.
+We can use {\tt xlen} to test this in the decode function.
+
+\vspace{2ex}
+
+\begin{Verbatim}[frame=single, numbers=left, label=in src\_Common/Instr\_Bits.bsv]
+function Bool is_legal_OP_IMM (Bit #(32) instr);
+   let funct3 = instr_funct3 (instr);
+   let funct7 = instr_funct7 (instr);
+   Bool is_legal_SLLI = (((xlen == 32) && (funct7 == 7'b000_0000))
+			 || ((xlen == 64) && (funct7 [6:1] == 6'b0)));
+   Bool is_legal_SRxI = ((   (xlen == 32) && ((funct7 == 7'b010_0000)
+                                              || (funct7 == 7'b000_0000)))
+			 || ((xlen == 64) && ((funct7 [6:1] == 6'b01_0000)
+                                              || (funct7 [6:1] == 6'b00_0000))));
+   return ((instr_opcode (instr) == opcode_OP_IMM)
+	   && ((funct3 == funct3_SLLI)
+	      ? is_legal_SLLI
+	       : ((funct3 == funct3_SRxI)
+		  ? is_legal_SRxI
+		  : True)));
+endfunction
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Conditional compilation with values instead of {\tt `ifdef}: zero cost}
+
+\footnotesize
+
+Conditional compilation with values instead of {\tt `ifdef} is
+preferable for readability as well as avoiding well known problems
+with macros ((scoping, inadvertant variable capture, inadvertant
+surprises due to associativity of infix operators, and so on)).
+
+\vspace{4ex}
+
+But is there a hardware cost (multiplexer for conditional)?
+
+\vspace{2ex}
+
+No, because an expression like ``{\tt xlen==32}'' can, and is,
+statically evaluated to {\tt True} or {\tt False} by {\bsc}, and the
+whole conditional is reduced to just the relevant arm (the conditional
+disappears).
+
+\end{frame}
+
+% ================================================================
+
+\input{Postamble.tex}
 
 % ****************************************************************
 

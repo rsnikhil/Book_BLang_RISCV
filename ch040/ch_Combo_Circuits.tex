@@ -28,8 +28,8 @@ The inputs to the Decode stage as depicted in the diagram are:
  \item A 32-bit piece of data---a RISC-V instruction---that has become
  available by reading it from memory at the PC address.\footnote{When
  implementing the so-called ``C'' RISC-V ISA extension (``compressed
- instructions''), instructions can also be 16-bits, but we
- ignore that for RV32I.}
+ instructions''), instructions can also be 16 bits, but we ignore that
+ for RV32I.}
 
  \item Any additional information passed on from the Fetch stage.
 
@@ -204,6 +204,8 @@ SystemVerilog and C/C++:
 
 \section{Introduction to Types}
 
+\label{Sec_Types_Intro}
+
 \index[BSV]{Data types}
 \index[BSV]{Types (data types; sets of values)}
 
@@ -257,10 +259,11 @@ feature of the type.
 NOTE: \fbox{\small
 \begin{minipage}{5in}
 
-Even though we use numeric notation like ``3'' and ``16'' both at the
-value level and at the type level, these two uses are completely
-distinct.  They occur in distinct contexts---value expressions {\vs}
-type expressions---and so there is no ambiguity.
+{\bf About numeric kinds:} Even though we use numeric notation like
+``3'' and ``16'' both at the value level and at the type level, these
+two uses are completely distinct.  They occur in distinct
+contexts---value expressions {\vs} type expressions---and so there is
+no ambiguity.
 
 \vspace{1ex}
 
@@ -271,13 +274,31 @@ execution.
 \vspace{1ex}
 
 \index[BSV]{valueOf@{\tt valueOf} pseudo-function from numeric types to numeric values}
+\index[BSV]{Types!valueOf@{\tt valueOf}: value of a numeric type}
 
-There is a {\BSV} pseudo-function {\tt valueOf($t_n$)} which, given a
-numeric type $t_n$, produces the numeric \emph{value} corresponding to
-$n_t$.  This is safe because $t_n$ is statically known to {\bsc} (and
-that is why it does not make sense to have an inverse function from
-numeric values to numeric types).  It is a pseudo-function, not a true
-function, because its ``argument'' is a type, not a value.
+There is a {\BSV} pseudo-function {\tt valueOf($t_{numeric}$)} which,
+given a numeric type $t_{numeric}$, produces the numeric \emph{value}
+corresponding to $t_{numeric}$.  This is feasible because
+$t_{numeric}$ is statically known to {\bsc}.  It does not make sense
+to have a function in the opposite direction, from numeric values to
+numeric types, because one cannot compute something static from a
+dynamic value.  {\tt valueOf($t_{numeric}$)} is a pseudo-function and
+not a normal function because its ``argument'' is a type, not a value.
+
+\vspace{1ex}
+
+We can of course perform arbitrary arithmetic on numeric values
+because they are dynamic.
+
+\vspace{1ex}
+
+We can perform only limited forms of arithmetic on numeric types
+because they have to be evaluted statically by {\bsc}.  Consider a
+generic function that takes two arguments of type {\tt Bit\#(m)} and
+{\tt Bit\#(n)} and returns the concatenation of these bit-vectors: its
+output type is {\tt Bit\#(m+n)}.  By limiting the available arithmetic
+\emph{bsc} can resolve it statically.  This is a somewhat advanced
+topic which we postpone until Section~\ref{Sec_Typeclasses}.
 
 \end{minipage}}
 
@@ -384,15 +405,10 @@ will not silently truncate it; it will give an error-message instead.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-{\Exercise} (and variations)
-
-Study the code in directory \verb|Ex_04_A/|. Compile and run it.
-
-Please see \verb|README.txt| for more details, including suggestions
-for several variations.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_A\_Bit\_Vectors/} \\
+and its README.
 \Endexercise
+
 % ================================================================
 
 \subsection{Built-in Operators on Bit Vectors}
@@ -436,14 +452,8 @@ which does not match the declared type \verb|Bit#(12)|.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-{\Exercise} (and variations)
-
-Study the code in directory \verb|Ex_04_B/|. Compile and run it.
-
-Please see \verb|README.txt| for more details, including suggestions
-for several variations.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_B\_Bit\_Vectors\_Slicing/} \\
+and its README.
 \Endexercise
 % ----------------------------------------------------------------
 
@@ -648,14 +658,8 @@ Section~\ref{Sec_Pure_vs_Side_Effect_functions}.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-{\Exercise} (and variations)
-
-Study the code in directory \verb|Ex_04_C/|. Compile and run it.
-
-Please see \verb|README.txt| for more details, including suggestions
-for several variations.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_C\_Bit\_Vectors\_Operations/} \\
+and its README.
 \Endexercise
 % ----------------------------------------------------------------
 
@@ -916,39 +920,8 @@ same as in SystemVerilog.
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-{\Exercise}
-
-Locate the functions mentioned above in the file
-\verb|Code/src_Common/Instr_Bits.bsv| and make sure you understand
-them thoroughly.
-
-% ----------------
-{\Exercise}
-
-Observe that the file contains similar functions, such as: \\
-\begin{tabbing}
-\hm \verb|is_legal_OP_IMM()| \hm \= \kill
-\hm \verb|is_legal_JAL()|        \> for the JAL opcode  \\
-\hm \verb|is_legal_JALR()|       \> for the (JALR opcode \\
-\hm \verb|is_legal_OP()|         \> for LUI, AUIPC, ADD, SLT, OR, AND, ... opcodes \\
-\hm \verb|is_legal_OP_IMM()|     \> for ADDI, SLTI, ..., ORI, ANDI, ... opcodes \\
-\hm \verb|is_legal_LOAD()|       \> for LB, LH, LW, LBU, LHU opcodes \\
-\hm \verb|is_legal_Mem()|        \> for SB, SH, SW opcodes
-\end{tabbing}
-
-which, in turn, use functions like \verb|instr_rs1()|,
-\verb|instr_rs2()|, and \verb|instr_rd()|, which are also in the file.
-
-Study the code and check that the functions are correct, while
-referring to the ``RV32I Base Instruction Set'' listing in ``Chapter
-24 RV32/64G Instruction Set Listings'' in the RISC-V Unprivileged ISA
-specification document~\cite{RISCV_Unpriv_2019_12_13}, which lists 40
-RV32I instructions.
-
-A visual check is enough, but feel free to write a testbench and tests
-and run them if you feel inspired to do so.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_D\_is\_legal\_XXX/} \\
+and its README.
 \Endexercise
 % ----------------------------------------------------------------
 
@@ -1099,97 +1072,19 @@ idiom for this is:
 \end{tabbing}}
 
 {\tt StmtFSM} and \verb|mkAutoFSM| will be discussed in more detail in
-Section~\ref{ch_Drum_code}.  For now all we need to know that this is
+Chapter~\ref{ch_Drum_code}.  For now all we need to know that this is
 like a sequential program that performs a sequence of actions.
 
 % ----------------------------------------------------------------
 \Beginexercise
 
-% ----------------
-{\Exercise}
-
-Study the code in directory \verb|Ex_04_D/|.  Compile and run it.
-
-% ----------------
-\Exercise
-
-Add more actions to the testbench to test more 32-bit values with
-\verb|is_legal_BRANCH()|.
-
-% ----------------
-\Exercise
-
-Delete the \verb|Bit #(7) opcode_BRANCH| constant definition and the
-\verb|is_legal_BRANCH()| function from \verb|Top.bsv|.  Instead,
-replace them with one line:
-
-{\small
-\begin{Verbatim}[frame=single]
-import Instr_Bits :: *;
-\end{Verbatim}
-}
-
-Replace the existing \verb|Makefile| with your own by first copying
-the existing one (in \verb|../Include.mk|).  In your \verb|Makefile|,
-edit the \verb|BSCPATH| definition to include a path to where the
-\verb|Instr_Bits.bsv| file is located. Example:
-
-{\small
-\begin{Verbatim}[frame=single]
-# OLD: BSCPATH = src_BSV:+
-# NEW:
-BSCPATH = ../../Code/src_Common:src_BSV:+
-\end{Verbatim}
-}
-
-Make sure you can, once again, compile and run the test as in the
-previous exercises.
-
-% ----------------
-\Exercise
-
-Modify the testbench to test more 32-bit values with other
-\verb|is_legal_XXX()| functions.
-
-% ----------------
-\Exercise
-
-Instead, define a function to \emph{create} a 32-bit BRANCH
-instruction, given a 13-bit immediate field, rs2 and rs1 values, and a
-funct3 field:
-
-{\small
-\begin{Verbatim}[frame=single]
-      function Bit #(32) mkBRANCH_Instr (Bit #(13) pc_offset,
-                                         Bit #(5)  rs2,
-                                         Bit #(5)  rs1,
-                                         Bit #(3)  funct3);
-         ... <fill in this code> ...
-      endfunction
-\end{Verbatim}
-}
-
-Refer to Figure~\ref{Fig_B_imm} for how a 13-bit PC-offset is encoded
-into the 12-bit immediate of a B-type instruction.  Your code should
-also check that bit [0] of the PC-offset is zero.
-
-In the testbench, replace the right-hand side of lines like this with
-an invocation of your new \verb|mkBRANCH_Instr()|:
-
-{\small
-\begin{Verbatim}[frame=single]
-      Bit #(32) instr_BEQ = {7'h0, 5'h9, 5'h8, 3'b000, 5'h3, 7'b_110_0011};
-\end{Verbatim}
-}
-
-Instead of a constant like {\tt 3'b000} use the symbolic name
-\verb|funct3_BEQ| that is defined in the file \verb|Instr_Bits.bsv|.
-
+Please see directory: \hm {\tt Exercises/Ex\_04\_E\_FSM\_Testbench/} \\
+and its README.
 \Endexercise
 
 % ****************************************************************
 
-\section{{\tt enum} types}
+\section{User-defined types: {\tt enum} types}
 
 \label{BSV_enum_types}
 
@@ -1262,13 +1157,6 @@ assigns to the constant \verb|OPCLASS_MEM| given its position in the
 list of labels in the \verb|enum| definition shown in
 Section~\ref{BSV_enum_types} (starting at zero).
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-   opclass = OPCLASS_MEM;
-   $display ("opclass = %d", opclass);
-\end{Verbatim}
-}
-
 Because we said ``\verb|deriving(FShow)|'' in the \verb|enum|
 declararion, the \emph{bsc} compiler will automatically define an
 ``\verb|fshow()|'' function for this type: if we print as follows:
@@ -1295,7 +1183,7 @@ the output will be ``OPCLASS\_MEM'', {\ie} the symbolic name.
 
 In most programming languages, ``if-then-else''` is a so-called
 ``control'' construct: depending on the boolean condition, either the
-then-arm or the else-arm is executed (\emph{not both}!).
+then-arm or the else-arm is executed (\emph{but not both}!).
 
 In {\BSV} an ``if-then-else`` represents a hardware \emph{multiplexer}.
 The then-arm and else-arm each represent hardware that computes some
@@ -1421,77 +1309,25 @@ But we know from RISC-V instruction encodings that the
 conditions are \emph{mutually exclusive}; no instruction
 simultaneously falls into more than one such class.  In such
 situations (mutually exclusive conditions) it is possible to create
-more a efficient circuit called a \emph{parallel MUX}.  An exercise
-below shows how to create a parallel MUX explicitly, but in many cases
-downstream RTL-to-lower-level-hardware synthesis tools will do this
-automatically.
+more a efficient circuit called a \emph{parallel MUX}.  The structure
+is illustrated in Figure~\ref{Fig_Combo_Multiplexer_Parallel}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Multiplexer_Parallel}}
+  \caption{\label{Fig_Combo_Multiplexer_Parallel}
+           Nested if-then-elses using an AND-OR MUX (for mutually exclusive conditions)}.
+\end{figure}
 
-% ================================================================
+This kind of MUX is also called an AND-OR MUX or ``parallel'' MUX
+because of its structure.  It relies for correct operation on
+\emph{precisely one} of the bitwise-OR arguments being True.  Here, we
+are assured of this because of the mutual exclusivity of the
+conditions.
 
-\hdivider
-
-% ----------------
-\Exercise
-
-Write a testbench for the \verb|instr_opclass()| function: pass in
-different 32-bit instructions to produce the op class, and print out
-the op class.  When printing the class, try printing it as an integer,
-and also using \verb|fshow()|.
-
-% ----------------
-\Exercise
-
-Write a new version of the \verb|instr_opclass()| function that
-expresses a parallel MUX instead of a priority MUX.  The key ideas
-are:
-
-  \begin{itemize}
-
-    \item Define a value \verb|x_CONTROL| that is either
-      \verb|OPCLASS_CONTROL|, or 0 (of the same bit-width) if the
-      \verb|Bool| values of \verb|is_legal_BRANCH()|,
-      \verb|is_legal_JAL()| and \verb|is_legal_JALR()| are all False.
-      We can implement this by replicating the 1-bit Bool condition to
-      the width of the \verb|OpClass| type and bitwise-AND'ing this
-      with \verb|OPCLASS_CONTROL|.
-
-    \item Similarly, define values \verb|x_INT|, \verb|x_MEM| and
-       \verb|x_SYSTEM| that are either \verb|OPCLASS_INT|/
-       \verb|OPCLASS_MEM|/ \verb|OPCLASS_SYSTEM| or 0 depending on
-       whether the instruction is an integer, memory or system
-       instruction.
-
-    \item Finally, bitwise-OR the four \verb|x_XXX|values
-      together to produce the result.
-
-  \end{itemize}
-
-  Figure~\ref{Fig_Combo_Multiplexer_Cascade}
-  \begin{figure}[htbp]
-    \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_Multiplexer_Parallel}}
-    \caption{\label{Fig_Combo_Multiplexer_Parallel}
-             Nested if-then-elses using an AND-OR MUX (for mutually exclusive conditions)}
-  \end{figure}
-  illustrates the desired circuit structure.
-
-  This kind of MUX is also called an AND-OR MUX or ``parallel'' MUX
-  because of its structure.  It relies for correct operation on
-  \emph{precisely one} of the bitwise-OR arguments being True.  Here,
-  we are assured of this because of the mutual exclusivity of the
-  conditions.
-
-  While the circuit-depth in the cascade-of-multiplexers is
-  \emph{linear} in the number of if-then-else arms, for the AND-OR MUX
-  it is \emph{logarithmic} (smaller circuit delay
-  $\Longrightarrow$ possibly higher clock speed).
-
-% ----------------
-\Exercise
-
-Test your new version of the \verb|instr_opclass()| function in your
-testbench.
-
-\Endexercise
+While the circuit-depth in the cascade-of-multiplexers is
+\emph{linear} in the number of if-then-else arms, for the AND-OR MUX
+it is \emph{logarithmic} (smaller circuit delay $\Longrightarrow$
+possibly higher clock speed).  Downstream RTL-to-gates synthesis tools
+could perform this transformation automatically.
 
 % ****************************************************************
 
@@ -1542,6 +1378,13 @@ construct a \verb|case| expression.  Often each case-arm is an
 sometimes call it a \verb|case| statement.  They are really the same
 thing, differing only in the data types under consideration.
 
+% ----------------------------------------------------------------
+\Beginexercise
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_F\_Enums\_Muxes/} \\
+and its README.
+\Endexercise
+
 % ****************************************************************
 
 \section{Sharing code for RV32 and RV64 {\via} parameterization}
@@ -1551,36 +1394,51 @@ thing, differing only in the data types under consideration.
 \index[BSV]{parameterization}
 
 The RISC-V ISA is actually two ISAs---a 32-bit ISA called RV32 and a
-64-bit ISA called RV64.  These are not randomly different ISAs; they
-have been carefully engineered to overlap as much as possible:
+64-bit ISA called RV64.  These are not randomly different; they have
+been carefully engineered to overlap as much as possible:
 
 \begin{itemize}
 
-\item Most of the RV32 instructions are exactly the same in RV64
+ \item RV64I's architectural state is the same in RV32I except that
+       the PC and the 32 general-purpose registers are 64 bits wide
+       instead of 32 bits wide.
 
-\item Three R32 instructions are slightly different in RV64--the shift
-instructions SLLI, SRLI and SRAI have 5-bit shift-amounts in RV32
-(allowing up to 32-bit shifts), whereas they have 6-bit shift-amounts
-in RV64 (allowing up to 64-bit shifts).
+ \item RV64 adds new LOAD and STORE instructions to move 64-bit values
+       between registers and memory.
 
-\item RV64 adds several new instructions that compute on 64-bit values.
+ \item Most of the RV32 instructions are exactly the same in RV64,
+       except that they operate on 64-bit values.
+
+
+ \item Three R32 instructions are slightly different in RV64--the
+       shift instructions SLLI, SRLI and SRAI have 5-bit shift-amounts
+       in RV32 (allowing up to 32-bit shifts), whereas they have 6-bit
+       shift-amounts in RV64 (allowing up to 64-bit shifts).
+
+ \item RV64 adds several new instructions that compute on 32-bit
+       values within the 64-bit registers (ADDIW, SLLIW, ..., LWU).
 
 \end{itemize}
 
-Because of this large overlap of RV32 and RV64, we would like to share
-{\BSV} code as much as possible between RV32 and RV64, {\ie} we would
-like to parameterize our {\BSV} code so that it can be re-used between
-RV32 and RV64 implementations.
+(See Section~\ref{Sec_RV64I} or the RISC-V ISA Privileged Spec for a
+listing of the RV64I instructions.)
+
+Because of this large overlap we can share much {\BSV} code between
+RV32 and RV64, {\ie} we would like to parameterize our {\BSV} code so
+that it can be re-used between RV32 and RV64 implementations.
 
 % ================================================================
 
-\subsection{Numeric types}
+\subsection{Using Type Synonyms and Macros to Parameterize for RV32 and RV64}
 
-\label{BSV_Numeric_types}
+\label{Sec_Type_Synonums_and_Macros}
 
-We have mentioned the type \verb|Bit#(n)| frequently so far,
-representing bit-vectors of width \emph{n} bits.  All our examples
-showed a particular \emph{n}, such as:
+\index[BSV]{Kinds!Numeric}
+\index[BSV]{Numeric Kind}
+
+In Section~\ref{Sec_Types_Intro} we introduced the concept of types of
+\emph{numeric kind}. For example, the ``32'' in these examples is a
+\emph{type} (not a \emph{value}) of numeric kind:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -1589,42 +1447,19 @@ showed a particular \emph{n}, such as:
 \end{Verbatim}
 }
 
-The first declaration is fine for both RV32 and RV64, since
-instructions are 32-bits wide in both.  However, the second
-declaration only works in RV32, since the program counter is 64-bits
-wide in RV64 (type \verb|Bit#(64)|).
+The first declaration works for both RV32 and RV64, since instructions
+are 32 bits wide in both.  However, the second declaration only works
+in RV32, since the program counter is 64 bits wide in RV64 (type
+\verb|Bit#(64)|).
 
-\label{BSV_numeric_types}
-\index[BSV]{Types!numeric}
+% ----------------------------------------------------------------
 
-The ``32'' or ``64'' argument to the \verb|Bit#(n)| type is a
-\emph{numeric type}.  Although syntactically they look just like the
-\emph{values} 32 and 64, when used inside a type-expression like
-\verb|Bit#(n)|, they are not values, but numeric types.  {\BSV}'s
-type-system carefully distinguishes between these two cases because
-numeric-types usually say something about \emph{hardware structure},
-which cannot be changed once created!  So, while we can perform
-arbitrary arithmetic on numeric \emph{values}, we cannot do so on
-\emph{numeric types}.\footnote{A limited form of arithmetic is
-possible on numeric types.  Consider a generic function that takes two
-arguments of type {\tt Bit\#(m)} and {\tt Bit\#(n)} and returns the
-concatenation of these bit-vectors: its output type is {\tt
-Bit\#(m+n)}.  By limiting the available arithmetic \emph{bsc} can
-resolve it completely ``statically'', {\ie} at compile time, before it
-even compiles to Verilog RTL.  We ignore this for now, and discuss it
-later.}
-
-% ================================================================
-
-\subsection{Type synonyms}
-
-\label{BSV_Type_synonyms}
+\subsubsection{Type synonyms}
 
 \index[BSV]{Types!synonyms}
 
-In {\BSV} we can define a new symbolic name for an existing type, and
-then we can use that symbolic names in place of the existing
-type. Example, from RV32 code:
+In {\BSV} we can define a \emph{type synonym}, a new symbolic name for
+an existing type. Example, for RV32:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
@@ -1641,92 +1476,80 @@ By changing the single definition in line 1 to:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   typedef 64 XLEN;      // new name for numeric type 32
+   typedef 64 XLEN;      // new name for numeric type 64
 \end{Verbatim}
 }
 
 the remaining code will work for RV64 as well.
 
-% ================================================================
+% ----------------------------------------------------------------
 
-\subsection{The numeric value corresponding to a numeric type}
-
-\label{BSV_value_of_numeric_type}
-
-\index[BSV]{valueOf: value of a numeric type}
-\index[BSV]{Types!valueOf: value of a numeric type}
-
-Although {\BSV} keeps a strict separation of numeric types and numeric
-values (and limits the available arithmetic on the former), it is
-always safe to convert a numeric type into the corresponding numeric
-value, since these values are all known statically (at compile time).
-The built-in pseudo-function \verb|valueOf()| is provided for this:
-
-\input{Code_Extracts/valueOf_XLEN.tex}
-
-Here, \verb|xlen| is an ordinary value variable whose integer value is
-the same as that expressed by the numeric type \verb|XLEN|.
-
-% ================================================================
-
-\subsection{Conditional compilation}
+\subsubsection{Macros, preprocessing, and conditional compilation}
 
 \label{BSV_Conditional_compilation}
 
 \index[BSV]{Conditional compilation}
+\index[BSV]{Preprocessor macros}
+\index[BSV]{Macros!for preprocessor}
+
+Instead of editing the line defining {\tt XLEN}, we can automate that
+choice by using macros and the preprocessor during compilation.
 
 Just like in Verilog, SystemVerilog and C/C++, the \emph{bsc} compiler
-runs {\BSV} source code through a ``pre-processor'' before compilation,
+runs {\BSV} source code through a ``preprocessor'' before compilation,
 which can perform simple text (``macro'') substitutions.  Using this
 facility, we can pass an argument to the compiler that has the effect
-of configuring the source code for RV32 or RV64 (the following code is
-from Fife/Drum's \verb|Arch.bsv| file:
+of configuring the source code for RV32 or RV64:
 
 \input{Code_Extracts/XLEN.tex}
 
-As in Verilog and SystemVerilog, pre-processor directives begin with a
+The last line defines \verb|xlen|, an value-level variable whose
+integer value is the same as that expressed by the numeric type
+\verb|XLEN| ({\tt valueOf} was discussed in
+Section~\ref{Sec_Types_Intro}).
+
+As in Verilog and SystemVerilog, preprocessor directives begin with a
 \verb|`| character (back-tick) (analogous to \verb|#ifdef| in the
-C/C++ pre-processor).
+C/C++ preprocessor).
 
 When we invoke the \emph{bsc} compiler, we can pass it command line
-arguments \verb|-DRV32| or \verb|-DRV64|; the pre-processor will then
+arguments \verb|-DRV32| or \verb|-DRV64|; the preprocessor will then
 select the appropriate \verb|typedef| line.  Thus, we can write common
 code that will work for both RV32 and RV64.  The integer value
-\verb|xlen| will have the numeric value 32 or 64 depending on how it
-was compiled.
+\verb|xlen| will have the numeric value 32 or 64, corresponding to
+{\tt XLEN}.
 
-Pre-processor macros allow us to conditionally compile different
-source text based on the macro definitions we supply to the compiler.
-We can also compile alternatives based on the value \verb|xlen|
+Preprocessor macros allow us to conditionally compile different source
+text based on the macro definitions we supply to the compiler.  We can
+also compile alternative code based on the value of \verb|xlen|.
+Consider this function:
 
-{\small
-\begin{Verbatim}[frame=single, numbers=left]
-   if (xlen == 32) begin
-      ... code that must execute if we are in RV32 mode ...
-   end
-   else begin
-      ... code that must execute if we are in RV64 mode ...
-   end
-\end{Verbatim}
-}
+\input{Code_Extracts/is_legal_OP_IMM.tex}
+
+This function checks that \verb|instr[25]| ({\ie} {\tt funct7[0]}) is
+zero in RV32I, but can be zero or 1 in RV64I.  Recall, from
+Figures~\ref{Fig_RV32I_labeled} and \ref{Fig_RV64I}, that the {\tt
+SLLI}, {\tt SRLI} and {\tt SRAI} instructions have a 5-bit
+shift-amount field (``shamt'') in RV32I and a 6-bit shift-amount field
+in RV64I.  Although written using the \emph{value} {\tt xlen}, because
+it is statically known to {\bsc} it will be reduced by {\bsc}
+statically to just one of the two alternatives.
 
 Whenever possible, it is preferable to use the \verb|if(xlen==...)|
 form instead of the \verb|`ifdef| form for conditional compilation
-because (a), the code is more readable and (b), as we experience in
-many languages, pre-processor macros can be quite dodgy (scoping,
-inadvertant variable capture, inadvertant surprises due to
-associativity of infix operators, ...).
+because (a) the code is more readable; (b) there is zero run-time
+(hardware) cost because it will be statically reduced by the compiler;
+and (c) as we know from experience in many languages, preprocessor
+macros can be quite dodgy (scoping, inadvertant variable capture,
+inadvertant surprises due to associativity of infix operators, and so
+on).
 
-Note that in the \verb|if(xlen==...)| form both arms of the
+Note that for the \verb|if(xlen==...)| form, both arms of the
 conditional must type-check correctly, whether \verb|xlen| is 32 or
 64.  There are ways to achieve this with judicious use of bit-slicing,
 \verb|extend()| and \verb|truncate()|; we will point them out as we
 encounter them.  If the two arms cannot both type-check whether
 \verb|xlen| is 32 or 64, we may have to resort to the \verb|`ifdef|
 form.
-
-There is zero run-time overhead in using the \verb|if(xlen==...)| form
-because the \emph{bsc} compiler will evalute the if-condition
-statically and reduce the if-then-else to just the relevant arm.
 
 % ****************************************************************
