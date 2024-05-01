@@ -7,7 +7,7 @@ SLIDES += Slides_05_BSV_Structs.pdf
 .PHONY: pdf
 pdf: $(SLIDES)
 
-%.pdf: %.tex  Preamble.tex  Postamble.tex
+%.pdf: %.tex  Preamble.tex  Reminders.tex  Postamble.tex
 	mkdir -p tmp_latex
 	pdflatex  -output-directory=tmp_latex  -file-line-error  $<
 	pdflatex  -output-directory=tmp_latex  $<
