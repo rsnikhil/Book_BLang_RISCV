@@ -1,0 +1,381 @@
+% -*- mode: fundamental -*-
+
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L5: {\BSV} Structs; Memory requests and responses}
+
+% ----------------
+% Switch off "pause" during development
+
+\renewcommand{\PAUSE}[1]{#1}
+% \renewcommand{\PAUSE}[1]{#1\pause}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
+ \end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Flow of information between stages in Drum and Fife}
+
+\footnotesize
+
+\begin{center}
+\includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_structs}
+\end{center}
+
+\vspace*{2ex}
+
+The green annotations indicate the type of information flowing on each arrow.
+
+Each of these is a ``{\tt struct}'' type (also known as a ``record''):
+a heterogeneous grouping of \emph{fields} of various types.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Output from {\tt fn\_Decode} to the next stage}
+
+\footnotesize
+
+\input{../Code_Extracts/Decode_to_RR.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Fields of struct {\tt Decode\_to\_RR}}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item The current PC: will be needed by BRANCH, JAL, AUIPC to compute
+       a target address relative to the current PC.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Was there an exception (Fetch memory error, or instruction is not legal)?
+       If so, what was the cause?
+
+ \PAUSE{\vspace{1ex}}
+
+ \item If no exception, what is the fall-through PC (needed for
+       next-PC update for most instructions, and for saved-PC
+       (``return address'') for JAL/JALR).
+
+ \PAUSE{\vspace{1ex}}
+
+ \item What is the instruction?  What is its broad classification:
+       Control (Branch or Jump)? Integer Arithmetic or Logic? Memory
+       Access?  This will help in choosing the execute stage pipeline.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it have zero, one or two input registers (``rs1'' and
+       ``rs2'')?  If so, which ones?  This will help the Register-Read
+       stage in reading registers and, for Fife, for managing ``hazards''.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it have zero or one output registers (``rd'')?  If so,
+       which one?  This will help the final Register Write stage in
+       writing back a value to a register.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it write memory?  In Fife, where we do speculative writes
+       to memory, this will help the Retire stage commit (finalize)
+       those writes.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item What is the ``immediate'' value, if any (after untangling all
+       different ways in which bits are permuted in different formats of
+       instructions.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Fields of struct {\tt Decode\_to\_RR}}
+
+\footnotesize
+
+Some {\tt Decode\_to\_RR} fields, such as \verb|has_rs1|, are used in
+later stages, and could be computed there from \verb|instr|; so why
+compute them here in Decode?
+
+\vspace{4ex}
+
+\begin{itemize}
+
+ \item If something is needed in more than one stage, computing it
+       once and carrying the value forward can save some hardware cost
+       (gates).  It also incurs a hardware cost: we have to allocate
+       state elements for the carried value in each inter-stage
+       buffer/FIFO.
+
+ \item Wherever something is computed, it adds to combinational delay
+       for that stage (lowering achievable clock speed).
+
+\end{itemize}
+
+\vspace{4ex}
+
+The decision between compute-and-carry {\vs} compute later is a
+balancing act between these kinds of considerations.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: about ``{\tt deriving (Bits, FShow)}''}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item Because we said ``{\tt deriving (Bits)}'', {\bsc} will
+       automatically pick a hardware representation of this struct as
+       a bit-vector, by simply concatenating the bit-representations
+       of the fields.
+
+ \item If we wanted a different representation, we omit ``{\tt
+       deriving (Bits)}'', and there is a way (``Typeclass
+       Instances'') to specify exactly what we want.
+
+\end{itemize}
+
+\PAUSE{\vspace*{5ex}}
+
+\begin{itemize}
+
+ \item Because we said ``{\tt deriving (FShow)}'', {\bsc} will
+       automatically define an ``{\tt fshow()} function for this
+       struct, that will print each field separately.  Otherwise {\tt
+       \$display()} will simply print the flat bit-vector
+       representation of the struct (which will likely be hard to
+       read).
+
+ \item If we wanted way to print the structa, we omit ``{\tt deriving
+       (FShow)}'', and there is a way (``Typeclass Instances'') to
+       define {\tt fshow()} to print what we want.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: struct expressions to construct struct values}
+
+\footnotesize
+
+\begin{Verbatim}[frame=single, numbers=left]
+   Decode_to_RR x = Decode_to_RR {pc:           ... value of field ... ,
+                                  exception:    ... value of field ... ,
+                                  cause:        ... value of field ... ,
+                                  fallthru_pc:  ... value of field ... ,
+                                  instr:        ... value of field ... ,
+                                  ...};
+\end{Verbatim}
+The right-hand side is a ``struct expression'' whose value is a struct value.
+
+\vspace{1ex}
+
+If a field is left undefined, {\bsc} will warn while compiling.
+
+\PAUSE{\vspace*{4ex}}
+
+Some shorthands: ``{\tt let}'' and don't-care values:
+
+\PAUSE{\vspace*{2ex}}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   let x = Decode_to_RR {pc:           ... ,
+                         exception:    False,
+                         cause:        ?,
+                         fallthru_pc:  ... ,
+                         instr:        ... ,
+                         ...};
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Accessing and updating struct fields}
+
+\footnotesize
+
+These notations are standard in many programming languages.
+
+\vspace{5ex}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   x.pc
+   x.instr
+\end{Verbatim}
+
+\vspace{5ex}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   x.pc    = ... new value ... ;
+   x.instr = ... new value ... ;
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Tuples: pre-defined structs with special notation}
+
+\footnotesize
+
+Example (from {\tt mkCSRs} module in file {\tt src\_Common/CSRs.bsv}).
+
+\vspace{2ex}
+
+Constructing a 2-tuple value:
+\begin{Verbatim}[frame=single, numbers=left]
+   function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
+            fav_csr_read (Bit #(12) csr_addr);
+      ...
+	 return tuple2 (exception, y);
+   endfunction
+\end{Verbatim}
+
+\vspace{2ex}
+
+Accessing struct components using predefined functions {\tt tpl\_$j$}:
+\begin{Verbatim}[frame=single, numbers=left]
+   let xy <- fav_csr_read (...);
+   let exc = tpl_1 (xy);    // exc has type: Bool
+   let v   = tpl_2 (xy);    // v   has type: Bit #(XLEN)
+\end{Verbatim}
+
+\vspace{2ex}
+
+Accessing struct components using pattern-matching:
+\begin{Verbatim}[frame=single, numbers=left]
+   match { .exc, .v } <- fav_csr_read (csr_addr);
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{``Harvard'' Architecture: Separating Instruction and Data Memory}
+
+\footnotesize
+
+\begin{minipage}{0.35\textwidth}
+ Except for very early computers, most computers have a ``Harvard'' architecture:
+ \begin{itemize}
+
+  \item Separate channels for Fetch to read from instruction memory (``IMem'')
+        and for LOAD/STORE instructions to read/write data memory (``DMem'').
+
+  \item Instructions are not modified by the LOAD/STORE instructions.
+
+ \end{itemize}
+ Typically, IMem and DMem can be accessed concurrently.
+\end{minipage}
+\hm
+\begin{minipage}{0.6\textwidth}
+ \begin{center}
+  \includegraphics[width=\textwidth]{Fig_Instr_Exec_w_structs}
+ \end{center}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory requests}
+
+\footnotesize
+
+\input{../Code_Extracts/Mem_Req.tex}
+
+\input{../Code_Extracts/funct5_MEMOPs.tex}
+
+We defined {\tt Mem\_Req\_Type} this way with an eye towards future
+support for the ``A'' extension (Atomic Memory Ops, see Unprivileged
+ISA Spec p.132).  Each AMO op has a 5-bit code in the instruction
+which we will use as-is (easy Decode!).  Here, we use three codes for
+LOAD/STORE/FENCE that are not used by AMO ops.
+
+\input{../Code_Extracts/Mem_Req_Size.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory responses}
+
+\footnotesize
+
+Memory responses may report an exception (misaligned access, non-existent memory, ...).
+
+\vspace{1ex}
+
+\input{../Code_Extracts/Mem_Rsp_Type.tex}
+
+\vspace{4ex}
+
+\input{../Code_Extracts/Mem_Rsp.tex}
+
+\vspace{1ex}
+
+For load-requests smaller than XLEN, the data is returned in the
+least-significant bytes of the {\tt data} field.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Bit\_Vectors/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
+\input{Postamble.tex}
+
+% ****************************************************************
+
+\end{document}

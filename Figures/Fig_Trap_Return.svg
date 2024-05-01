@@ -42,8 +42,8 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.0278111"
-     inkscape:cx="400.1852"
-     inkscape:cy="386.13063"
+     inkscape:cx="385.39093"
+     inkscape:cy="369.36379"
      inkscape:window-width="2512"
      inkscape:window-height="1483"
      inkscape:window-x="204"
@@ -625,12 +625,12 @@
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;line-height:1.75;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="80.929771"
          y="113.86869"
-         id="tspan19">Save x in mepc</tspan><tspan
+         id="tspan19">Save PCx in mepc</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;line-height:1.75;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="80.929771"
          y="117.5946"
-         id="tspan9">Save a &quot;cause&quot; code in mepc</tspan><tspan
+         id="tspan9">Save a &quot;cause&quot; code in mcause</tspan><tspan
          sodipodi:role="line"
          style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;line-height:1.75;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="80.929771"

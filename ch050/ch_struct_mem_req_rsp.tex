@@ -74,7 +74,8 @@ several values, including:
 
   \end{tightlist}
 
-  When the exception flag is true, a \verb|cause| field provides more detail.
+  When the exception flag is true, \verb|cause| and \verb|tval| fields
+  provide more detail.
 
 \item If there is no exception (no Fetch memory error; instruction is
       legal), other fields provide more analytical detail for
@@ -105,9 +106,9 @@ several values, including:
 
   \begin{tightlist}
 
-    \item The \verb|OpClass|.  This indicates to which next-stage in
-      Figure~\ref{Fig_Simple_Instr_Exec_w_structs} we dispatch for
-      subsequent actions.
+    \item The \verb|OpClass|.  This indicates to which Execute-stage
+      path in Figure~\ref{Fig_Simple_Instr_Exec_w_structs} we dispatch
+      for subsequent actions.
 
     \item Whether the instruction reads rs1 and/or rs2 register
       values.  This will be needed to control reading from the
@@ -115,6 +116,10 @@ several values, including:
 
     \item Whether the instruction writes an rd register value.  This
       will be needed to control writing to the register file.
+
+    \item Whether or not the instruction writes to memory.  This is
+      useful in Fife in the Retire stage to know whether or not there
+      may be a pending write to memory that needs to be committed.
 
     \item The ``immediate'' value in the instruction. Refer to the top
         of each page of ``Table 24.2 Instruction listing for RISC-V''
@@ -142,19 +147,19 @@ as a \verb|struct| type:
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically work out a representation for \verb|Decode_to_RR|
 values in bits, using the straightforward method of simply
-concatenating the bit-vectors of each field into a bit-vector for the
-whole struct.  The total bit-size of a \verb|Decode_to_RR| struct
-value is simply the sum of the individual bit-sizes of the fields.  If
-we had not said ``\verb|deriving(Bits)|'', we could explicitly provide
-some other custom representation in bits.\footnote{ In C/C++,
-compilers will often ``pad'' out fields (insert unused bits between
-fields) to be aligned on byte and word boundaries, for more efficient
-access in byte-structured memories; thus, a struct's size in C/C++ may
-be larger than the sum of the field sizes, and may even vary depending
-on the compiler's target architecture.  In hardware design, these
-values may reside in wires, registers, FIFOs, etc which have no
-``byte-structured'' bias, and so we do not play any such ``padding''
-games.}
+concatenating the bit-vector representation of each field into a
+bit-vector for the whole struct.  The total bit-size of a
+\verb|Decode_to_RR| struct value is simply the sum of the bit-sizes of
+the individual fields.  If we had not said ``\verb|deriving(Bits)|'',
+we could explicitly provide some other custom representation in
+bits.\footnote{ In C/C++, compilers will often ``pad'' out fields
+(insert unused bits between fields) to be aligned on byte and word
+boundaries, for more efficient access in byte-structured memories;
+thus, a struct's size in C/C++ may be larger than the sum of the field
+sizes, and may even vary depending on the compiler's target
+architecture.  In hardware design, these values may reside in wires,
+registers, FIFOs, etc which have no ``byte-structured'' bias, and so
+we do not play any such ``padding'' games.}
 
 \index[BSV]{packing of struct fields and vector elements}
 \index[BSV]{structs!packing of fields}
@@ -202,6 +207,8 @@ waveform viewer, it becomes easier to read off the field values from
 the displayed hexadecimal digits.
 
 \end{minipage}}
+
+\vspace{2ex}
 % ----------------
 
 \index[BSV]{deriving!Fshow}
@@ -240,6 +247,26 @@ this:
 The right-hand side is sometimes called a ``struct expression'', {\ie}
 it is an expression which, when evaluated, produces a struct value.
 
+% ----------------
+\vspace{2ex}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+In C, we use the term ``value'' only for ``small'' items that are
+$\leq 64$ bits in size (integers, floating point values, and
+pointers).  This is an unfortunate legacy view perhaps tied to
+implementations detail---what can be passed in a register---which is
+not relevant in the semantics of a high-level language.  In more
+modern languages (including C++) we can have values of any size,
+including structs, arrays, arrays of structs, and so on.
+
+\end{minipage}}
+
+\vspace{2ex}
+% ----------------
+
 The repetition of \verb|Decode_to_RR| above seems verbose; the
 left-hand side instance is the type, and the right-hand side instance
 is the ``struct constructor'' (think of it as a function that takes
@@ -264,81 +291,28 @@ The order in which the field values are given does not matter; the
 \emph{bsc} compiler will put the fields into the correct offsets in
 the struct value.
 
-% ================================================================
-
-\subsection{Don't-care values} 
-
-\label{Sec_Dont_Care_Values}
-
 Not all field values need be given in a struct expression.  The
 \emph{bsc} compiler will issue a warning for each unspecified field,
 and insert an ``unspecified'' (and unpredictable) value there.  You
 can indicate that a field is intentionally left unspecified (and
 suppress the compiler warning) using ``\verb|?|'', BSV's notation for
-a ``don't care'' value:
-
-\index[BSV]{Don't care literal value {\tt ?}}
-\index[BSV]{?@{\tt ?} (don't care literal value)}
-\index[BSV]{AAAA\_AAAA@{\tt AAAA\_AAAA}, the default don't care value}
+a ``don't care'' value (these are discussed in
+Section~\ref{Sec_Dont_Care_Values}).
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
       let x = Decode_to_RR {pc:           ... ,
-                           exception:    False,
-                           cause:        ?,
-                           fallthru_pc:  ... ,
-                           instr:        ... ,
-                           ...};
+                            exception:    False,
+                            cause:        ?,
+                            fallthru_pc:  ... ,
+                            instr:        ... ,
+                            ...};
 \end{Verbatim}
 }
 
-In the above example, the exception \verb|cause| field is meaningless
-when the \verb|exception| field is false, and we indicate this
-explicitly with ``\verb|?|''.
-
-``Don't care'' values are useful for several reasons.  First, this
-conveys to the human reader that the value in this field is
-irrelevant.
-
-Second, it can result in more efficient circuitry.  If we had said
-``0'', for example, the \emph{bsc} compiler has to create circuitry
-ensuring that field's value is 0. By saying ``\verb|?|'', the
-\emph{bsc} compiler is allowed to omit all that circuitry.
-
-Third, in places where it does not result in additional hardware, the
-\emph{bsc} compiler usually injects the specific value
-\verb|'h_AAAA_AAAA| (of suitable bit-width).  While debugging,
-observing such a value in some computation is often a clue that
-something is wrong (it roughly plays the role of ``X'' values in
-Verilog/SystemVerilog/VHDL).
-
-% ----------------
-\vspace{2ex}
-
-\index[BSV]{X values!Notation for unassigned values in Verilog (no such concept in BSV)}
-
-NOTE:
-\fbox{\small
-\begin{minipage}{5in}
-
-Verilog, SystemVerilog and VHDL have a concept of ``X'' values.  Each
-bit of a register or wire carries an ``X'' value until it has been
-assigned a specific binary value (0 or 1).  However, note that this is
-\emph{only in simulation}, where the simulator can and does model
-3-valued logic (0, 1 and X) for each bit, and is able to propagate X
-values through operators, registers, {\etc} Hardware only implements
-2-valued logic---every bit is either 0 or 1. Thus, this is an artefact
-that is only useful during debugging in simulation and static
-analysis.
-
-\vspace{1ex}
-
-BSV only has 2-valued logic; there is no concept of an ``X'' value.  A
-BSV ``{\tt ?}'' expression has some specific, but potentially
-unpredictable, binary value.
-
-\end{minipage}}
-% ----------------
+In our example, when the \verb|exception| field is false the
+\verb|cause| field is meaningless, and we indicate this explicitly
+with ``\verb|?|''.
 
 % ================================================================
 
@@ -381,11 +355,11 @@ notation common to SystemVerilog and C/C++:
 
 \index[BSV]{Tuples}
 
-Tuples are a built-in set of struct-like constructs in BSV that are
-often convenient.  For example, when a function needs to return a pair
+Tuples are a built-in set of struct-like types and values in BSV that
+very convenient.  For example, when a function needs to return a pair
 of values, instead of declaring a struct type with two fields for the
 result, it is often more convenient to just use the built-in
-\verb|Tuple2| type.  Example: (from the \verb|mkCSRs| module in file
+\verb|Tuple2| type.  Example (from the \verb|mkCSRs| module in file
 \verb|src_Common/CSRs.bsv|):
 
 {\small
@@ -393,8 +367,7 @@ result, it is often more convenient to just use the built-in
    function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
             fav_csr_read (Bit #(12) csr_addr);
       ...
-         let result = (exception, rd_val);
-	 return result;
+	 return tuple2 (exception, y);
    endfunction
 \end{Verbatim}
 }
@@ -403,9 +376,9 @@ The function returns a pair of values which have types \verb|Bool| and
 \verb|Bit#(XLEN)|, respectively.  The overall type of the result is
 \verb|Tuple2 #(Bool, Bit #(XLEN))|.
 
-The expression on the right-hand side of the \verb|let| statement
-shows how one can construct a 2-tuple value: simply enclose the
-components in parentheses and separate them with commas.
+The expression in the \verb|return| statement shows how one can
+construct a 2-tuple value: simply apply the predefined function
+\verb|tuple2| to the two component values.
 
 Unlike structs, there is no assignment statement to update a field of
 a tuple, nor is there is any ``.field'' notation for component
@@ -530,9 +503,9 @@ could define an enum type for this:
 
 {\small
 \begin{Verbatim}[frame=single, numbers=left]
-   typedef enum {MEM_REQ_LOAD,
-                 MEM_REQ_STORE
-		 MEM_REQ_FENCE} Mem_Req_Type
+typedef enum {MEM_REQ_LOAD,
+              MEM_REQ_STORE
+              MEM_REQ_FENCE} Mem_Req_Type
 deriving (Eq, FShow, Bits);
 \end{Verbatim}
 }

@@ -379,17 +379,6 @@ multiples of 8 bits--- (\verb|uint8_t|, \verb|uint16_t|,
 \verb|uint32_t| and \verb|uint64_t|)---bit-vectors in {\BSV} can have any
 size (\verb|Bit#(3)|, \verb|Bit#(51)|, \verb|Bit#(512)|, ...).
 
-If the identifier will be assigned later, you can indicate that you
-don't care about its initial value, like this:
-
-\begin{quote}
-\emph{type} \emph{identifier} = {\tt ?};
-\end{quote}
-
-The \emph{bsc} compiler usually picks \verb|'h_AAAA_..._AAAA| (of
-suitable width) for ``don't care'' values, to stand out during
-debugging.
-
 The initial value's size can be left unspecified:
 
 {\small
@@ -401,6 +390,67 @@ The initial value's size can be left unspecified:
 {\bsc} will infer that it should be 32 bits, and will zero-extend
 accordingly.  If the constant is too large for the context, {\bsc}
 will not silently truncate it; it will give an error-message instead.
+
+% ================================================================
+
+\subsection{Don't-care values} 
+
+\label{Sec_Dont_Care_Values}
+
+\index[BSV]{Don't care literal value {\tt ?}}
+\index[BSV]{?@{\tt ?} (don't care literal value)}
+\index[BSV]{AAAA\_AAAA@{\tt AAAA\_AAAA}, the default don't care value}
+
+If the identifier will be assigned later, you can indicate that you
+don't care about its initial value, like this:
+
+\begin{quote}
+\emph{type} \emph{identifier} = {\tt ?};
+\end{quote}
+
+``Don't care'' values are useful for several reasons.  First, this
+conveys to the human reader that the value here is irrelevant.
+
+Second, it can result in more efficient circuitry.  If we had said
+``0'', for example, the \emph{bsc} compiler has to create circuitry
+ensuring that field's value is 0. By saying ``\verb|?|'', the
+\emph{bsc} compiler is allowed to pick any value that minimizes
+circuitry.
+
+Third, in places where it does not result in additional hardware, the
+\emph{bsc} compiler usually injects the specific value
+\verb|'h_AAAA_AAAA| (of suitable bit-width).  While debugging,
+observing such a value in some computation is often a clue that
+something is wrong.
+
+\vspace{2ex}
+% ----------------
+
+\index[BSV]{X values!Notation for unassigned values in Verilog (no such concept in BSV)}
+
+NOTE:
+\fbox{\small
+\begin{minipage}{5in}
+
+Verilog, SystemVerilog and VHDL have a concept of ``X'' values.  Each
+bit of a register or wire carries an ``X'' value until it has been
+assigned a specific binary value (0 or 1).  However, note that this is
+\emph{only in simulation}, where the simulator can and does model
+3-valued logic (0, 1 and X) for each bit, and is able to propagate X
+values through operators, registers, {\etc} Hardware only implements
+2-valued logic---every bit is either 0 or 1. Thus, this is an artefact
+that is only useful during debugging in simulation and static
+analysis.
+
+\vspace{1ex}
+
+BSV only has 2-valued logic; there is no concept of an ``X'' value.  A
+BSV ``{\tt ?}'' expression has some specific, but potentially
+unpredictable, binary value.
+
+\end{minipage}}
+% ----------------
+\vspace{2ex}
 
 % ----------------------------------------------------------------
 \Beginexercise
