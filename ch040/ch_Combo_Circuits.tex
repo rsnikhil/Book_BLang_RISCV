@@ -86,7 +86,7 @@ the {\BSV} concepts needed to code these ideas.
 {\BSV} uses the same notation as Verilog and SystemVerilog for
 hexadecimal and binary literal integers.  Some examples:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 3'b010            // Binary literal, 3 bits wide
 7'b_110_0011      // Binary literal, 7 bits wide
@@ -108,7 +108,7 @@ The last line shows that we can omit the size prefix, in which case
 the size will be inferred by the compiler from the context. For
 example, if we had:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    Bit #(32) pc_val = 'h_8000_0000;
 \end{Verbatim}
@@ -358,7 +358,7 @@ bit-vectors.
 
 The {\BSV} statement:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val = 32'h_8000_0000;
 \end{Verbatim}
@@ -381,7 +381,7 @@ size (\verb|Bit#(3)|, \verb|Bit#(51)|, \verb|Bit#(512)|, ...).
 
 The initial value's size can be left unspecified:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) pc_val = 'h_1000;
 \end{Verbatim}
@@ -428,8 +428,7 @@ something is wrong.
 
 \index[BSV]{X values!Notation for unassigned values in Verilog (no such concept in BSV)}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 Verilog, SystemVerilog and VHDL have a concept of ``X'' values.  Each
@@ -471,7 +470,7 @@ a \emph{slice} of a bit-vector using usual Verilog notation:
 
 \index[BSV]{Bit Vectors!slices of}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) page_offset = pc_val [11:0];
    Bit #(1)  pc_lsb      = pc_val [0];
@@ -489,7 +488,7 @@ In the remaining lines, we extract one bit from \verb|pc_val|.
 {\BSV} is \emph{strongly typed} with respect to sizes, {\ie} it is very
 strict about matching sizes.  For example, this statement:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) page_offset = pc_val [10:0];
 \end{Verbatim}
@@ -514,7 +513,7 @@ other operations are also available on bit-vectors.  Examples:
 \index[BSV]{Bit Vectors!operators on}
 \index[BSV]{Operators on Bit Vectors}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) x, a, b, c, d, e, f;
 
@@ -555,7 +554,7 @@ match sizes.
 
 Two functions are available to zero-extend and truncate bit-vectors.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(12) a;
    Bit #(10) b;
@@ -626,7 +625,7 @@ above, take \verb|Bit#(n)| arguments and produce \verb|Bool| results.
 
 {\BSV} has four integer types, written as follows:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(n)        // bit-vectors, bounded to n bits
    Int #(n)        // signed integers, bounded to n bits
@@ -679,7 +678,7 @@ SystemVerilog and C/C++, specifying precise types for the rsult and
 for each argument.  We modify our example in
 Section~\ref{BSV_display}:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function Action print_BV_BV_Bool (String op, Bit #(4) a, Bit #(4) b, Bool result);
    $display ("  %s: %04b %04b => %d or ", op, a, b, result, fshow (result));
@@ -835,7 +834,7 @@ Assuming \verb|instr| is a 32-bit instruction, we can write {\BSV} code
 to compute whether \verb|instr| is or is not a legal BRANCH
 instruction:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) instr         = ...;
    Bit #(7)  opcode_BRANCH = 7'b_110_0011;
@@ -946,16 +945,16 @@ this in detail later.
 The code fragments shown above can be encapsulated into {\BSV}
 functions:
 
-\input{Code_Extracts/instr_Opcode.tex}
-\input{Code_Extracts/instr_funct3.tex}
-\input{Code_Extracts/is_Legal_BRANCH.tex}
+\SHOWCODE{Code_Extracts/instr_Opcode.tex}
+\SHOWCODE{Code_Extracts/instr_funct3.tex}
+\SHOWCODE{Code_Extracts/is_legal_BRANCH.tex}
 
 \index[BSV]{functions!application}
 
 Functions are invoked using the ``application'' syntax commonly used
 in most programming languages:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) x, y;
 
@@ -1023,7 +1022,7 @@ function declarations:
 \index[BSV]{Haskell, monadic types similarity}
 \index[BSV]{Monadic types!Haskell similarity}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    function Bool f1 (...); ...
 
@@ -1037,7 +1036,7 @@ whereas an application {\tt f2(x)} is assumed possibly to have a
 side-effect.  These functions also have different syntax for how they
 are invoked:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    let result1 = f1 (x);
 
@@ -1106,7 +1105,7 @@ Suppose we want to to write a testbench that sequentially executes N
 different tests, one after the other (on successive clocks).  A simple
 idiom for this is:
 
-{\small
+{\footnotesize
 \begin{tabbing}
 \hmmm \= \hm \= \hm \= \hm \= \kill
       \> {\tt import StmtFSM :: *} \\
@@ -1150,7 +1149,7 @@ or a memory-accessing instruction.  We could think of coding these
 3 for Mem), but it is more readable, and cleaner, to use an ``enum''
 type (similar to enum types in SystemVerilog and C):
 
-\input{Code_Extracts/OpClass.tex}
+\SHOWCODE{Code_Extracts/OpClass.tex}
 
 This defines a type \verb|OpClass| containing five constants (the last
 two (\verb|OPCLASS_MEM| and \verb|OPCLASS_FENCE|) both indicate the
@@ -1195,7 +1194,7 @@ equality/inequality explicitly (see ``typeclass instances'', later).
 Given a value \emph{opclass} of type \verb|OpClass|, if we directly
 print it, {\eg}:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    opclass = OPCLASS_MEM;
    $display ("opclass = %d", opclass);
@@ -1211,7 +1210,7 @@ Because we said ``\verb|deriving(FShow)|'' in the \verb|enum|
 declararion, the \emph{bsc} compiler will automatically define an
 ``\verb|fshow()|'' function for this type: if we print as follows:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    opclass = OPCLASS_MEM;
    $display ("opclass = ", fshow (opclass));
@@ -1253,7 +1252,7 @@ For example, here is a function that distinguishes CONTROL
 instructions from integer instructions, returning an \verb|OpClass|
 (Section~\ref{BSV_enum_types}):
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function OpClass instr_opclass (Bit #(32) instr);
    OpClass result;
@@ -1271,7 +1270,7 @@ endfunction
 This can also be written using so-called ``conditional expressions''
 (using the same syntax as in SystemVerilog and C):
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function OpClass instr_opclass (Bit #(32) instr);
    return ((is_legal_BRANCH (instr)
@@ -1306,7 +1305,7 @@ If-then-elses and conditional expressions can of course be nested:
 
 \index[BSV]{if-then-else!nested}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function Bool instr_opclass (Bit #(32) instr);
    OpClass result;
@@ -1391,7 +1390,7 @@ In the special case where a nested if-then-else is simply testing a
 value against a series of alternative constant values, we can use a
 \verb|case| expression.  For example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/Fn\_EX\_Control.bsv]
 Bool branch_taken = case (instr_funct3 (instr))
                        funct3_BEQ:  (rs1_val == rs2_val);
@@ -1490,7 +1489,7 @@ In Section~\ref{Sec_Types_Intro} we introduced the concept of types of
 \emph{numeric kind}. For example, the ``32'' in these examples is a
 \emph{type} (not a \emph{value}) of numeric kind:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(32) instr;
    Bit #(32) pc_val;
@@ -1511,7 +1510,7 @@ in RV32, since the program counter is 64 bits wide in RV64 (type
 In {\BSV} we can define a \emph{type synonym}, a new symbolic name for
 an existing type. Example, for RV32:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    typedef 32 XLEN;      // new name for numeric type 32
 
@@ -1524,7 +1523,7 @@ an existing type. Example, for RV32:
 
 By changing the single definition in line 1 to:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    typedef 64 XLEN;      // new name for numeric type 64
 \end{Verbatim}
@@ -1551,7 +1550,7 @@ which can perform simple text (``macro'') substitutions.  Using this
 facility, we can pass an argument to the compiler that has the effect
 of configuring the source code for RV32 or RV64:
 
-\input{Code_Extracts/XLEN.tex}
+\SHOWCODE{Code_Extracts/XLEN.tex}
 
 The last line defines \verb|xlen|, an value-level variable whose
 integer value is the same as that expressed by the numeric type
@@ -1574,7 +1573,7 @@ text based on the macro definitions we supply to the compiler.  We can
 also compile alternative code based on the value of \verb|xlen|.
 Consider this function:
 
-\input{Code_Extracts/is_legal_OP_IMM.tex}
+\SHOWCODE{Code_Extracts/is_legal_OP_IMM.tex}
 
 This function checks that \verb|instr[25]| ({\ie} {\tt funct7[0]}) is
 zero in RV32I, but can be zero or 1 in RV64I.  Recall, from

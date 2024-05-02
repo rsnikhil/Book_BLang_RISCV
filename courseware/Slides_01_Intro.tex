@@ -17,7 +17,7 @@
  \titlepage
 
  \begin{center}
-  \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
  \end{center}
 \end{frame}
 
@@ -27,8 +27,10 @@
 \begin{frame}
 \frametitle{Goals for this book/course}
 
+\footnotesize
+
 \begin{center}
- \includegraphics[width=0.9\textwidth]{../Figures/Fig_Goals}
+ \includegraphics[width=0.9\textwidth]{Fig_Goals}
 \end{center}
 
 These goals are complementary:
@@ -47,17 +49,19 @@ These goals are complementary:
 % ****************************************************************
 
 \begin{frame}
-\frametitle{BSV}
+\frametitle{Learn {\BSV} to design the CPUs}
 
-Learn BSV to design the CPUs
+\footnotesize
 
 \begin{itemize}
 
- \item BSV is a high-level hardware design language (HL-HDL)
+ \item {\BSV} is a high-level hardware design language (HL-HDL).
 
- \item Modern (features on par with modern software programming languages)
+ \item Modern (features on par with modern software programming languages).
 
- \item More than 20 years usage in industry and academia for major hardware designs
+ \item Industrial strength; stable language and tools.
+
+       More than 20 years usage in industry and academia for major hardware designs.
 \end{itemize}
 
 \end{frame}
@@ -67,8 +71,10 @@ Learn BSV to design the CPUs
 \begin{frame}
 \frametitle{Topics we will cover (in red text)}
 
+\footnotesize
+
 \begin{center}
-\includegraphics[height=0.8\textheight]{../Figures/Fig_Topics}
+\includegraphics[height=0.8\textheight]{Fig_Topics}
 \end{center}
 
 \end{frame}
@@ -78,8 +84,10 @@ Learn BSV to design the CPUs
 \begin{frame}
 \frametitle{Two CPU implementations (microarchitectures): Drum and Fife}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.8\textwidth]{../Figures/Fig_Two_Microarchitectures}}
+\frame{\includegraphics[width=0.8\textwidth]{Fig_Two_Microarchitectures}}
 \end{center}
 
 The two implementations share much code capturing RISC-V functionality
@@ -91,35 +99,39 @@ The two implementations share much code capturing RISC-V functionality
 \begin{frame}
 \frametitle{Why two microarchitectures?}
 
+\footnotesize
+
 \begin{itemize}
 
-\item \emph{Incremental learning:} we can master all the
-  \emph{functional} aspects of RISC-V with Drum, and focus entirely on
-  pipelining aspects with Fife.
+ \item \emph{Incremental learning:} we can master all the
+       \emph{functional} aspects of RISC-V with Drum, and focus
+       entirely on pipelining aspects with Fife.
 
-\pause
+ \PAUSE{}
 
-\item \emph{Functional debugging:} Bugs may be due to:
-  \begin{itemize}
-    \item[(A)] wrong implementation of RISC-V functionality ({\eg} address calculation)
-    \item[(B)] wrong implementation of pipelining ({\eg} register read/write hazard)
-  \end{itemize}
+ \item \emph{Functional debugging:} Bugs may be due to:
+       \begin{itemize}\footnotesize
+        \item[(A)] wrong implementation of RISC-V functionality ({\eg} address calculation)
+        \item[(B)] wrong implementation of pipelining ({\eg} register read/write hazard)
+       \end{itemize}
 
-  \vspace{1ex}
-  Drum allows us to debug all aspects of (A) in a simpler system (no
-  complications due to pipelining).
+       \vspace{1ex}
 
-  \vspace{1ex}
-  All this carries over directly into Fife, so when debugging Fife, we can focus on (B).
+       Drum allows us to debug all aspects of (A) in a simpler system
+       (no complications due to pipelining).
 
-  \vspace{1ex}
-  Drum can be viewed as a \emph{synthesizable reference model} for Fife or other RISC-V CPUs.
+       \vspace{1ex}
+       All this carries over directly into Fife, so when debugging Fife, we can focus on (B).
 
-\pause
+       \vspace{1ex}
+       Drum can be viewed as a \emph{synthesizable reference model}
+       for Fife or other RISC-V CPUs.
+
+ \PAUSE{}
 
  \item \emph{Both implementations are useful in different applications:}
 
-   \begin{itemize}
+   \begin{itemize}\footnotesize
    \item Drum uses smaller circuits (microcontrollers, embedded, IoT, ...)
    \item Fife is faster, larger, for more demanding applications
    \end{itemize}
@@ -131,39 +143,39 @@ The two implementations share much code capturing RISC-V functionality
 \begin{frame}
 \frametitle{Book and full source code; ready to build and execute}
 
+\footnotesize
+
 This course is based on:
 
 \begin{itemize}
 \item a free PDF textbook
 \item full source code for Drum and Fife
-  \begin{itemize}
+  \begin{itemize}\footnotesize
   \item Free and open-source
 
-  \item Drum and Fife CPU sources are written in BSV.  Parts of the
+  \item Drum and Fife CPU sources are written in {\BSV}.  Parts of the
         testbench are written in C.
   \end{itemize}
 \end{itemize}
 
-\pause
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 Use free and open-source tools to build Drum and Fife into
 simulation executables, and have them execute RISC-V binaries
 (ELF files, output of \emph{gcc}).
 
 \begin{itemize}
-\item BSV code needs the \emph{bsc} compiler.
+\item {\BSV} code needs the \emph{bsc} compiler.
 
 \item Two ways to simulate:
-  \begin{itemize}
+  \begin{itemize}\footnotesize
     \item Bluesim (standalone; just need \emph{bsc})
     \item Standard Verilog simulation \\
       We will demostrate using Verilator, but you can use any Verilog simulator.
   \end{itemize}
 \end{itemize}
 
-\pause
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 We will also demonstrate synthesis of Drum and Fife, and running on an FPGA. \\
 (we will use an Amazon AWS ``F1 instance'', but you can use any FPGA).
@@ -175,16 +187,18 @@ We will also demonstrate synthesis of Drum and Fife, and running on an FPGA. \\
 \begin{frame}
 \frametitle{Teaching methodology}
 
-Learn RISC-V CPU design and BSV together:
+\footnotesize
+
+Learn RISC-V CPU design and {\BSV} together:
 
 \begin{itemize}
-\item We will interleave RISC-V and BSV topics, to learn them together.
-\item We will learn a little BSV, then apply that to some part of the RISC-V CPU design.
+\item We will interleave RISC-V and {\BSV} topics, to learn them together.
+\item We will learn a little {\BSV}, then apply that to some part of the RISC-V CPU design.
 \item We will repeat this process until we have the full CPU designs.
-\item Every example will involve actual BSV code for Drum and/or Fife.
+\item Every example will involve actual {\BSV} code for Drum and/or Fife.
 \end{itemize}
 
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 Learn Drum first, then Fife:
 
@@ -194,14 +208,14 @@ Learn Drum first, then Fife:
 \item Fife executes the same RISC-V programs as Drum.
 \end{itemize}
 
-\vspace{1ex}
+\PAUSE{\vspace{1ex}}
 
 Debugging and optimization:
 
 \begin{itemize}
 
 \item Along the way we will develop testbenches for components and
-      demonstrate debugging the BSV code.
+      demonstrate debugging the {\BSV} code.
 
 \item After Fife is running, we will discuss deeper optimizations for Drum and Fife.
 \end{itemize}
@@ -212,6 +226,8 @@ Debugging and optimization:
 
 \begin{frame}
 \frametitle{Teaching methodology: an unconventional approach}
+
+\footnotesize
 
 Most courses on hardware design spend a lot of time on
 circuit diagrams and schematics, boolean logic gates (AND, OR, NOT,
@@ -230,7 +246,7 @@ underlying circuits.
 
 \vspace{1ex}
 
-With BSV, because of its rule-based execution model, we can take it
+With {\BSV}, because of its rule-based execution model, we can take it
 even further; we will not even have to talk about clocks and clock
 timing until late in the course.
 
@@ -253,8 +269,10 @@ trying to optimize at the bleeding edge of high performance).
 \begin{frame}
 \frametitle{General operation of digital circuits}
 
+\footnotesize
+
 We now provide just enough intuition about digital circuits to allow
-us to proceed with BSV design.
+us to proceed with {\BSV} design.
 
 \vspace*{5ex}
 
@@ -266,7 +284,7 @@ sometimes called a ``square'' wave).
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=0.6\textwidth]{../Figures/Fig_Clock}}
+\frame{\includegraphics[width=0.6\textwidth]{Fig_Clock}}
 \end{center}
 
 \vspace{1ex}
@@ -283,8 +301,10 @@ memory, ...).
 \begin{frame}
 \frametitle{General structure and operation of digital circuits}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.8\textwidth]{../Figures/Fig_BSV_Digital_Circuits}}
+\frame{\includegraphics[width=0.8\textwidth]{Fig_BSV_Digital_Circuits}}
 \end{center}
 
 Digital circuits are composed of \emph{state elements} and
@@ -312,6 +332,8 @@ the following:
 \begin{frame}
 \frametitle{General operation of digital circuits; notes and caveats}
 
+\footnotesize
+
 \begin{itemize}
  \item Nowadays, clock cycle times/periods are typically measured in
        nanoseconds. \\
@@ -329,7 +351,7 @@ the following:
 
 \end{itemize}
 
-\vspace{2ex}
+\PAUSE{\vspace{2ex}}
 
 \begin{itemize}
 
@@ -355,8 +377,10 @@ the following:
 \begin{frame}
 \frametitle{Computer Memories}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\frame{\includegraphics[width=0.9\textwidth]{Fig_BSV_Split_Phase_Mem}}
 \end{center}
 
 \vspace*{2ex}
@@ -371,7 +395,7 @@ to a sequence of locations:
        the memory provides a \emph{read response} at its outputs,
        containing the addressed data.
 
- \pause
+ \PAUSE{}
 
  \item To write memory, we present a \emph{write request} at its
        inputs, with an address and data; \\
@@ -387,14 +411,16 @@ to a sequence of locations:
 \begin{frame}
 \frametitle{Kinds of Computer Memory}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\frame{\includegraphics[width=0.9\textwidth]{Fig_BSV_Split_Phase_Mem}}
 \end{center}
 
 {\footnotesize
 \begin{itemize}
  \item SRAMs (Static Random Access Memories)
-       \begin{itemize}
+       \begin{itemize}\footnotesize
         \item Typically from a few kilobytes to a few megabytes
 	\item Faster than DRAM
 	\item More power-consumption than DRAM
@@ -402,7 +428,7 @@ to a sequence of locations:
        \end{itemize}
 
  \item DRAMs (Dynamic Random Access Memories)
-       \begin{itemize}
+       \begin{itemize}\footnotesize
         \item Typically from a few megabytes to gigabytes
 	\item Slower than SRAM
 	\item Less power-consumption than SRAM
@@ -417,8 +443,10 @@ to a sequence of locations:
 \begin{frame}
 \frametitle{Split-phase Memory Access}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\frame{\includegraphics[width=0.9\textwidth]{Fig_BSV_Split_Phase_Mem}}
 \end{center}
 
 \vspace*{1ex}
@@ -431,7 +459,7 @@ and response-consumption.
 
 \vspace*{1ex}
 
-\pause
+\PAUSE{\vspace{1ex}}
 
 The delay from when the CPU issues a request until when it can collect
 the response is called \emph{memory latency} (units: clock cycles,
@@ -444,8 +472,10 @@ nanoseconds).
 \begin{frame}
 \frametitle{Pipelined Memory Access}
 
+\footnotesize
+
 \begin{center}
-\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_BSV_Split_Phase_Mem}}
+\frame{\includegraphics[width=0.9\textwidth]{Fig_BSV_Split_Phase_Mem}}
 \end{center}
 
 \vspace*{1ex}
@@ -461,18 +491,59 @@ and behaves like a queue:
  \item Concurrently, another part of the CPU can pump out responses from memory.
 \end{itemize}}
 
-\pause
+\PAUSE{\vspace{1ex}}
 
 The rate at which the CPU can pump requests is called \emph{memory
 bandwidth} (units: transactions/second, requests/second, bytes/second).
 
 \vspace*{1ex}
 
-\pause
+\PAUSE{\vspace{1ex}}
 
 Latency and bandwidth can vary (may depend on size of memory request,
 cache misses, virtual memory page faults, cache coherence traffic,
 ...).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory Hierarchies}
+
+\footnotesize
+
+Most modern computers have one or more levels of \emph{cache} memories
+between the CPU and main memory.
+
+\vspace{1ex}
+
+\begin{center}
+ \frame{\includegraphics[width=0.8\textwidth]{Fig_Mem_Hierarchy}}
+\end{center}
+
+\begin{itemize}
+
+ \item Each level typically holds a subset of memory locations held at
+       the next level.
+
+ \PAUSE{}
+
+ \item At any level L$_j$, if a request from level L$_{j-1}$ is for
+       one of these cached locations, it can respond immediately
+       (cache ``hit'').  Otherwise it is a ``miss'', and the memory
+       location needs to be fetched (``refill'') from level L$_{j+1}$
+       (to make room for this, it may have to write back some other
+       cached location to level L$_{j+1}$ (``writeback'')).
+
+ \PAUSE{}
+
+ \item Each level independently transacts with the next level
+       (although, usually, a miss at one level will trigger writeback
+       and refill transactions with the next level).  These are
+       usually also split-phase, and may or may not be pipelined.
+
+\end{itemize}
 
 \end{frame}
 

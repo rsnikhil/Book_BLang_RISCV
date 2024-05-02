@@ -151,13 +151,13 @@ to define an ``\verb|fshow|'' function for the type, with some default
 formatting.  For example, the Drum/Fife code has such a clause in the
 declaration of the \verb|Decode_to_RR| struct type:
 
-\input{Code_Extracts/Decode_to_RR.tex}
+\SHOWCODE{Code_Extracts/Decode_to_RR.tex}
 
 The result-type of \verb|fshow()| is of type ``\verb|Fmt|'', and this
 type is also allowed as an argument to \verb|$display| (and its
 variants):  Example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Decode_to_RR y = ...
    Fmt          f = fshow (y);
@@ -188,7 +188,7 @@ functions, and so on.  The following example illustrates defining
 another function to format a \verb|Decode_to_RR| struct type, an
 alternative to \verb|fshow| to format it in some other preferred way:
 
-\input{Code_Extracts/fshow_Decode_to_RR.tex}
+\SHOWCODE{Code_Extracts/fshow_Decode_to_RR.tex}
 
 Note the use of if-then-else to customize the \verb|Fmt| object
 according to the actual data in the struct (which would not happen in
@@ -196,7 +196,7 @@ the default \verb|fshow()|, which would simply print all the struct
 fields).  This function can be used just like, and in place of,
 \verb|fshow|:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Decode_to_RR y = ...
    Fmt          f = fshow_Decode_to_RR (y);
@@ -242,7 +242,7 @@ This can be used in any Action context ({\eg} a rule body) to check an
 expected property each time that Action context is executed.  For
 example the Drum CPU code includes the following excerpt:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=src\_Drum/CPU.bsv]
    Action a_Retire_DMem =
    action

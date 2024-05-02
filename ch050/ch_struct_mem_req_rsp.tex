@@ -140,7 +140,7 @@ as a \verb|struct| type:
 
 \index[BSV]{struct@{\tt struct}!type declaration}
 
-\input{Code_Extracts/Decode_to_RR.tex}
+\SHOWCODE{Code_Extracts/Decode_to_RR.tex}
 
 \index[BSV]{deriving!Bits}
 
@@ -168,8 +168,7 @@ we do not play any such ``padding'' games.}
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 SystemVerilog makes a distiction beteen ``packed'' and ``unpacked'' values.
@@ -187,8 +186,7 @@ function.
 % ----------------
 \vspace{2ex}
 
-CAVEAT:
-\fbox{\small
+CAVEAT: \fbox{\small
 \begin{minipage}{5in}
 
 Unfortunately Verilog, the target language for the \emph{bsc}
@@ -218,7 +216,7 @@ will automatically define an ``\verb|fshow()|'' function for this
 type: if we print \verb|fshow(|\emph{v}\verb|)|, it will print
 something like this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 Decode_to_RR {pc=..., exception = ..., instr=..., ... }
 \end{Verbatim}
@@ -233,7 +231,7 @@ Decode_to_RR {pc=..., exception = ..., instr=..., ... }
 We can create a new value of type \verb|D_to_RR| with syntax like
 this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Decode_to_RR x = Decode_to_RR {pc:           ... value of field ... ,
                                   exception:    ... value of field ... ,
@@ -250,8 +248,7 @@ it is an expression which, when evaluated, produces a struct value.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In C, we use the term ``value'' only for ``small'' items that are
@@ -276,7 +273,7 @@ right-hand side, so we can just use the keyword ``\verb|let|'':
 
 \index[BSV]{let@{\tt let}!binding an identifier with implicit type declaration}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    let x = Decode_to_RR {pc:           ... value of field ... ,
                          exception:    ... value of field ... ,
@@ -299,7 +296,7 @@ suppress the compiler warning) using ``\verb|?|'', BSV's notation for
 a ``don't care'' value (these are discussed in
 Section~\ref{Sec_Dont_Care_Values}).
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
       let x = Decode_to_RR {pc:           ... ,
                             exception:    False,
@@ -323,7 +320,7 @@ with ``\verb|?|''.
 Struct fields can be selected using the usual ``dot'' notation common
 to SystemVerilog and C/C++:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    x.pc
    x.instr
@@ -340,7 +337,7 @@ to SystemVerilog and C/C++:
 Struct fields can be updated with assignment using the usual ``dot''
 notation common to SystemVerilog and C/C++:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    x.pc    = ... new value ... ;
    x.instr = ... new value ... ;
@@ -362,7 +359,7 @@ result, it is often more convenient to just use the built-in
 \verb|Tuple2| type.  Example (from the \verb|mkCSRs| module in file
 \verb|src_Common/CSRs.bsv|):
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
             fav_csr_read (Bit #(12) csr_addr);
@@ -387,7 +384,7 @@ selection.
 To select an individual field of a tuple, one can use one of the
 built-in selector functions:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    let xy <- fav_csr_read (...);
    let exc = tpl_1 (xy);    // exc has type: Bool
@@ -401,7 +398,7 @@ use a ``match'' statement. Example (from \verb|src_Drum/CPU_FSM.bsv|):
 \index[BSV]{Tuples|match@{\tt match} statement (pattern-matching_)}
 \index[BSV]{Pattern matching!match@{\tt match} statement for tuples}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    match { .exc, .v } <- fav_csr_read (csr_addr);
 \end{Verbatim}
@@ -501,7 +498,7 @@ which these new instructions can be fetched.
 A memory-request in RV32I is either a LOAD, a STORE or a FENCE.  We
 could define an enum type for this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 typedef enum {MEM_REQ_LOAD,
               MEM_REQ_STORE
@@ -523,7 +520,7 @@ are coded with 5 bits in the instruction (\verb|instr[31:27]|).
 Accordingly, we use a 5-bit encoding for LOAD, STORE and FENCE, using
 5-bit codes that are not used in the A extension:
 
-\input{Code_Extracts/funct5_MEMOPs.tex}
+\SHOWCODE{Code_Extracts/funct5_MEMOPs.tex}
 
 An IMem request is for one 32-bit instruction (four
 bytes).\footnote{When implmenting the ``C'' RISC-V ISA extension
@@ -533,13 +530,13 @@ fetch much larger chunks, such as a full cache line.}  A DMem request
 may be for one, two or four bytes.  We express these request-size
 options using an enum type:
 
-\input{Code_Extracts/Mem_Req_Size.tex}
+\SHOWCODE{Code_Extracts/Mem_Req_Size.tex}
 
 A memory request bundles a request type, a size, and an address.  For
 memory-writes, we also bundle the data to be stored.  We express this
 bundle using a struct:
 
-\input{Code_Extracts/Mem_Req.tex}
+\SHOWCODE{Code_Extracts/Mem_Req.tex}
 
 In \verb|Mem_Req_Size|, the option \verb|Mem_8B| is not possible in
 RV32I.  Similarly, in \verb|Mem_Req| the \verb|addr| and \verb|data|
@@ -665,13 +662,13 @@ are:
 
 These different memory response-types can be encoded in an enum type:
 
-\input{Code_Extracts/Mem_Rsp_Type.tex}
+\SHOWCODE{Code_Extracts/Mem_Rsp_Type.tex}
 
 A memory-response contains the response-type. For a LOAD request with
 an OK response, it also contains the data that was read from memory.
 This can be expressed in a struct:
 
-\input{Code_Extracts/Mem_Rsp.tex}
+\SHOWCODE{Code_Extracts/Mem_Rsp.tex}
 
 For LOAD requests of 1 and 2 bytes ({\ie} smaller than the \verb|data|
 field) we assume the data is returned in the least-significant bytes

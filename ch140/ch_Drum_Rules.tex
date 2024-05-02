@@ -39,7 +39,7 @@ the exercises the end of the next section.
 First we define an enumeration type to give symbolic labels to all the
 Drum FSM actions:
 
-\input{Code_Extracts/Drum_Rules_Labels.tex}
+\SHOWCODE{Code_Extracts/Drum_Rules_Labels.tex}
 
 Then, we instantiate a register \verb|rg_action| to hold the label of
 the next action to be performed, initialzed to \verb|A_FETCH|.  We
@@ -49,7 +49,7 @@ condition checks \verb|rg_action|, and the rule-body updates
 execute an exception, we assign \verb|A_FETCH| again to
 \verb|rg_action|, and the whole process repeats itself, forever.
 
-\input{Code_Extracts/Drum_Rules.tex}
+\SHOWCODE{Code_Extracts/Drum_Rules.tex}
 
 Please study the FSM version (in
 Section~\ref{Sec_Drum_CPU_module_behavior}) and the above code

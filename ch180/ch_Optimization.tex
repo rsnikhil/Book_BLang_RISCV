@@ -162,7 +162,7 @@ or pipeline (Fife).
 For example, if we examine the Fife code for \verb|rule rl_Decode| we
 see an invocation of a chain of functions:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Fife/S2\_Decode.bsv]
       log_Decode (rg_flog, y, rsp_IMem);
 \end{Verbatim}
@@ -170,7 +170,7 @@ see an invocation of a chain of functions:
 
 $\longrightarrow$
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Common/Fn\_Decode.bsv]
    function Action log_Decode (File flog, Decode_to_RR y, Mem_Rsp rsp_IMem);
       ...
@@ -181,7 +181,7 @@ $\longrightarrow$
 
 $\longrightarrow$
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Common/Utils.bsv]
 function Action ftrace (File         flog, ...)
          ...
@@ -193,7 +193,7 @@ function Action ftrace (File         flog, ...)
 This writes a line like this into the logfile produced by Drum and
 Fife when they are simulated:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=log.txt]
 ...
 Trace 6 2 80000008 fe012e23 D
@@ -216,7 +216,7 @@ visualization'' tool.  If we take the pipeline trace \verb|log.txt|
 produced by Drum or Fife, we can run it through the Python program
 \verb|Log_to_CSV.py| provided with Drum and Fife:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=log.txt]
   $ Tools/Log_to_CSV/Log_to_CSV.py  log.txt  0 100
 \end{Verbatim}
@@ -302,7 +302,7 @@ what used to be two stages into one.  A functionally easy pair to fuse
 is Decode and RR-Dispatch.  In Drum, the Decode action looks like
 this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Drum/CPU.bsv]
    Action a_Decode =
    action
@@ -318,7 +318,7 @@ It writes it output into the \verb|rg_Decode_to_RR| register.  The
 Register-Read-and-Dispatch action looks like this and reads from the
 register:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Drum/CPU.bsv]
    Action a_Register_Read_and_Dispatch =
    action
@@ -330,7 +330,7 @@ register:
 
 We can fuse these into a single action, like this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    Action a_Decode_and_Register_Read_and_Dispatch =
    action
@@ -349,7 +349,7 @@ Register-Read-and-Dispatch.  This allows us to eliminate the
 \verb|rg_Decode_to_RR| register.  In the main Drum FSM, we replace the
 original two sequenced actions:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
       a_Decode;
       a_Register_Read_and_Dispatch;
@@ -358,7 +358,7 @@ original two sequenced actions:
 
 with a single action:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
       a_Decode_and_Register_Read_and_Dispatch;
 \end{Verbatim}
@@ -433,7 +433,7 @@ structure of the \verb|StmtFSM| version of Drum.
 
 Instead, in each of the ``retire'' rules, we can replace:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
       rg_action <= A_EXCEPTION;
 \end{Verbatim}
@@ -441,7 +441,7 @@ Instead, in each of the ``retire'' rules, we can replace:
 
 with:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
       rg_action <= (rg_exception ? A_EXCEPTION : A_FETCH);
 \end{Verbatim}
@@ -460,7 +460,7 @@ allows structured compositions of sequencing and if-then-else.
 Consider the output of the \verb|fn_Dispatch| in
 \verb|src_Common/Fn_Dispatch.bsv|, with the following type:
 
-\input{Code_Extracts/Result_Dispatch}
+\SHOWCODE{Code_Extracts/Result_Dispatch}
 
 In Drum, this result is stored in register \verb|rg_Dispatch|.  The
 width of this buffer is the sum of the widths of each of the four
@@ -476,7 +476,7 @@ component types:
 The \verb|to_Retire| field has type \verb|RR_to_Retire|, which
 contains an \verb|exec_tag| field, whose type is:
 
-\input{Code_Extracts/Exec_Tag}
+\SHOWCODE{Code_Extracts/Exec_Tag}
 
 Observe that \verb|exec_tag| determines which of fields in the result
 of \verb|fn_Dispatch| other than \verb|to_Retire| are relevant:
@@ -508,7 +508,7 @@ number of bits in \verb|rg_Dispatch| could be reduced to:
 BSV has a convenient type-notation to express this ``overlaying of
 alternatives''.  In this case, it would look like this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
 typedef struct {
    RR_to_Retire      to_Retire;    // without the exec_tag field
@@ -679,7 +679,7 @@ listed above.
 
 The Fetch stage currently performs a fixed next-PC prediction like this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Fife/S1\_Fetch.bsv]
       let pred_pc = rg_pc + 4;
 \end{Verbatim}
@@ -701,7 +701,7 @@ Let us restructure the code slightly.  Suppose, in this module
 \verb|mkFetch|, we have instantiated a ``\verb|pc_predictor|'' module
 with a ``\verb|pc_predict|'' ActionValue method
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Fife/S1\_Fetch.bsv]
       let pred_pc <- pc_predictor.predict (rg_pc);
 \end{Verbatim}
@@ -947,7 +947,7 @@ the same cycle.
 We need to do something similar for the GPRs.  In module \verb|mkGPRs|
 we add a 2-port CReg:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Common/GPRs.bsv]
  Array #(Reg #(Tuple2 #(Bit #(5), Bit #(xlen)))) crg <- mkCReg (2, tuple2 (0, 0));
 \end{Verbatim}
@@ -955,7 +955,7 @@ we add a 2-port CReg:
 
 and we modify the methods as follows:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, label=src\_Common/GPRs.bsv]
    method Bit #(xlen) read_rs1  (Bit #(5) rs1);
       match { .rd, .rd_val } = crg [1];

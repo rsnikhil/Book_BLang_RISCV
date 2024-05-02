@@ -113,7 +113,7 @@ result).  An \verb|Action| or \verb|ActionValue| method
 Consider the following rule (artificial, just for illustration, not
 taken from code of Drum or Fife or any actual design):
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    rule rl_compute ((y != 0) && got_x && (f.first == 3));
     if (y [0] == 1) w <= w + x;
@@ -274,7 +274,7 @@ differ only in the order of the rule-body statements):
 
 \begin{center}
 \begin{minipage}{2.5in}
- {\small
+ {\footnotesize
  \begin{Verbatim}[frame=single, label=BSV]
    rule rl_r1 (... condition ...);
     x <= y + 1;
@@ -285,7 +285,7 @@ differ only in the order of the rule-body statements):
 \end{minipage}
 \hmm
 \begin{minipage}{2.5in}
- {\small
+ {\footnotesize
  \begin{Verbatim}[frame=single,label=BSV]
    rule rl_r2 (... condition ...);
     y <= x + 2;
@@ -310,7 +310,7 @@ statements?
 
 \begin{center}
 \begin{minipage}{2.5in}
- {\small
+ {\footnotesize
  \begin{Verbatim}[frame=single, label=C]
     x = y + 1;
     y = x + 2;
@@ -319,7 +319,7 @@ statements?
 \end{minipage}
 \hmm
 \begin{minipage}{2.5in}
- {\small
+ {\footnotesize
  \begin{Verbatim}[frame=single, label=C]
     y = x + 2;
     x = y + 1;
@@ -341,7 +341,7 @@ From our description that a rule's actions are semantically
 simultaneous, it should be clear that the same action cannot be
 performed more than once in a single rule firing.  For example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
     rule rl_foo (...);
        x = 2;        x = 3;
@@ -551,7 +551,7 @@ But this would be wrong, for two reasons:
 
        \begin{center}
        \begin{minipage}{2.5in}
-        {\small
+        {\footnotesize
         \begin{Verbatim}[frame=single, label=BSV]
 rule rl_r1 (...);
    x <= y + 1;
@@ -561,7 +561,7 @@ endrule
        \end{minipage}
        \hmm
        \begin{minipage}{2.5in}
-        {\small
+        {\footnotesize
         \begin{Verbatim}[frame=single,label=BSV]
 rule rl_r2 (...);
    y <= x + 2;
@@ -653,7 +653,7 @@ other.  In such situations, the BSV programmer can provide explicit
 
 For example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
 rule rl_r1 (...);
    ...
@@ -674,7 +674,7 @@ earlier in the source text.
 Another attribute advises the compiler, when there is no conflict, to
 force \verb|rl_r1| to suppress \verb|rl_r2|:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
 (* preempts = "rl_r1, rl_r2" *)
 \end{Verbatim}
@@ -685,7 +685,7 @@ rules are mutually exclusive, {\ie} can never simultaneously be true
 (the compiler tries to prove such properties by itself, but cannot
 always do so), which permits the compiler to simplify the controller.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
 (* mutually_exclusive = "rl_r1, rl_r2" *)
 \end{Verbatim}
@@ -707,7 +707,7 @@ any fundamental semantic power to BSV; anything expressible with
 \verb|StmtFSM| can also be expressed using rules.  
 Here we show a small example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
    Stmt s = while (b)
                seq
@@ -723,7 +723,7 @@ Here we show a small example:
 
 Here is a translation into rules:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
    // rg_step == 100 means "idle"
    // To start the FSM, environment sets rg_step <= 0
@@ -829,7 +829,7 @@ remember deeply nested conditions, and the resulting programs are not
 necessarily very readable or efficient.}  On the other hand, the rules
 version is almost trivial to modify---we just have to modify one rule:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single,label=BSV]
    rule rl_A2 (rg_step == 2);
       action2;

@@ -113,7 +113,7 @@ def do_regular_file_function (orig_path, level, dirname, basename, dest_path):
                                   format (basename, linenum, current_tag))
                 fd.write ("% from file '{0}' line {1}  tag {2}\n".
                           format (basename, linenum, current_tag))
-                fd.write ("{\\small\n")
+                # fd.write ("{\\small\n")
                 fd.write ("\\begin{Verbatim}")
                 fd.write ("[frame=single, numbers=left, label={0}: line {1} ...]\n"
                           .format(rel_filename, linenum))
@@ -146,7 +146,7 @@ def do_regular_file_function (orig_path, level, dirname, basename, dest_path):
                     write_n_blank_lines (fd, n_blank_lines)
                     fd.write ("{0}\n".format (elatex [0]))
                 fd.write ("\\end{Verbatim}\n")
-                fd.write ("}\n")
+                # fd.write ("}\n")
                 fd.close ()
                 state = IDLE
             else:

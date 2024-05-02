@@ -43,7 +43,7 @@ indexes of interest.  This instantiates exactly 31 registers indexed
 from 1 to 31, thereby saving XLEN bits of register state in our
 hardware.
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm RegFile \#(Bit \#(5), Bit \#(XLEN)) gprs <- mkRegFile (1, 31);
 \end{tabbing}
 
@@ -61,13 +61,13 @@ rs1, rs2 values (register source 1 and 2) and writing the rd value
 
 \index[RV]{GPRs\_IFC@{\tt GPRs\_IFC} interface for {\tt mkGPRs}}
 
-\input{Code_Extracts/GPRs_IFC.tex}
+\SHOWCODE{Code_Extracts/GPRs_IFC.tex}
 
 \index[RV]{mkGPRs@{\tt mkGPRs} a module wrapper around library {\tt RegFile}}
 
 Here is the module implementing the interface:
 
-\input{Code_Extracts/mkGPRs.tex}
+\SHOWCODE{Code_Extracts/mkGPRs.tex}
 
 The module instantiates a library register file {\tt rf}.  The methods
 simply invoke the underlying {\tt rf} methods.  The read-methods
@@ -116,7 +116,7 @@ into a distinct Verilog module:
 
 \index[RV]{mkGPRs\_synth@{\tt mkGPRs\_synth} a module wrapper for {\tt mkGPRs} for synthesizability}
 
-\input{Code_Extracts/mkGPRs_synth.tex}
+\SHOWCODE{Code_Extracts/mkGPRs_synth.tex}
 
 Here, we have instantiated the module using \verb|XLEN| which is not a
 type-variable, it is defined specifically as 32 or 64 (see
@@ -162,17 +162,17 @@ register file''.  Here are some significant differences:
 For these reasons, we implement each CSR with a separate, ordinary
 register.  Here are the CSRs we need for exception-handling:
 
-\input{Code_Extracts/Reg_csr_xxx}
+\SHOWCODE{Code_Extracts/Reg_csr_xxx}
 
 Here are the definitions of standard RISC-V 12-bit addresses for these
 CSRs:
 
-\input{Code_Extracts/csr_addrs.tex}
+\SHOWCODE{Code_Extracts/csr_addrs.tex}
 
 To write a CSR we use a case statement that selects on the CSR
 address and writes to the particular CSR.
 
-\input{Code_Extracts/fav_csr_write.tex}
+\SHOWCODE{Code_Extracts/fav_csr_write.tex}
 
 This function returns boolean True on success, and False on failure.
 For the moment, failure only means that the argument CSR address was
@@ -183,7 +183,7 @@ CSR TIME).
 Similarly, to read a CSR we use a case statement that selects on the
 CSR address and reads the particular CSR.
 
-\input{Code_Extracts/fav_csr_read.tex}
+\SHOWCODE{Code_Extracts/fav_csr_read.tex}
 
 This function returns a pair of values (a 2-tuple).  The first
 component, like the CSR-write function, is a boolean, True on success
@@ -194,7 +194,7 @@ For the CSRs module we do not export the above read and write
 functions directly; they are used internally inside the module.  The
 inteface declaration looks like this:
 
-\input{Code_Extracts/CSRs_IFC.tex}
+\SHOWCODE{Code_Extracts/CSRs_IFC.tex}
 
 We will discuss these interface methods in more detail when we discuss
 trap-handling in Chapter~\ref{ch_Drum_code}.  Suffice it to say, for
@@ -214,4 +214,4 @@ now, that:
 The former was described in Section~\ref{sec_CSRRxx}, and the latter
 two were described in Section~\ref{Sec_Traps}.
 
-// ****************************************************************
+% ****************************************************************

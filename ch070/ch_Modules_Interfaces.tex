@@ -85,8 +85,7 @@ seeing/using/creating several examples.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 We sometimes write BSV modules that do not themselves contain internal
@@ -264,8 +263,7 @@ constructor can be invoked multiple times to obtain multiple
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 A notable difference between BSV and other HDLs (Verilog,
@@ -333,7 +331,7 @@ out the value stored by the most recent write.
 
 The standard register interface type in BSV has two methods:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface Reg #(t);
    method t _read();
@@ -399,7 +397,7 @@ statement like this:
 \index[BSV]{Register!mkReg@{\tt mkReg}!instantiation}
 \index[BSV]{mkReg@{\tt mkReg}!instantiation}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
     Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
 \end{Verbatim}
@@ -419,7 +417,7 @@ An alternative register constructor provided by the BSV library is
 \index[BSV]{Register!mkRegU@{\tt mkRegU}!module (constructor)}
 \index[BSV]{mkRegU@{\tt mkRegU}!module (constructor)}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Reg #(Bit #(XLEN)) rg_pc <- mkRegU;
 \end{Verbatim}
@@ -443,20 +441,20 @@ special syntactic shorthands for reading and writing registers.
 Just mentioning a register in an expression can be used as a shorthand
 for invoking its \verb|_read| method.  Thus, the expression:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm  rg\_pc + 4
 \end{tabbing}
 
 is shorthand for:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm  rg\_pc.\_read + 4
 \end{tabbing}
 
 To invoke the \verb|_write| method on a register, one can use a
 conventional assignment statement.  Thus, the expression:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm rg\_pc.\_write (v)
 \end{tabbing}
 
@@ -465,27 +463,26 @@ can be written like this:\footnote{Rather than use ``{\tt =}'' or
 <=}'', which is the Verilog/SystemVerilog notation for ``delayed
 assignment''.}
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm rg\_pc <= v
 \end{tabbing}
 
 A statement like this:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm rg\_pc <= rg\_pc + 4
 \end{tabbing}
 
 contains both shorthands:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmmmm rg\_pc.\_write (rg\_pc.\_read + 4)
 \end{tabbing}
 
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 The use of the ``{\tt rg\_}'' prefix in the above examples is just our
@@ -526,7 +523,7 @@ is an argument to the methods for reading and writing.
 
 The standard register file interface type in the BSV library is:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface RegFile #(type index_t, type data_t);
     method Action upd (index_t addr, data_t d);
@@ -550,8 +547,7 @@ The \emph{rf}{\tt.upd(j,v)} method allows us to store the value
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 The index type {\tt index\_t} can be any type that has a
@@ -586,7 +582,7 @@ The BSV library contains a couple of register file modules
 
 \index[BSV]{Register file!mkRegFileFull@{\tt mkRegFileFull}!instantiation}
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm RegFile \#(Bit \#(5), Bit \#(XLEN)) gprs <- mkRegFileFull;
 \end{tabbing}
 
@@ -630,7 +626,7 @@ as the {\tt FIFOF\#(t)} except that it omits the {\tt notEmpty} and
 {\tt notFull} methods.  We prefer the latter, which provides more
 flexibility.}.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface FIFOF #(t);
    method Bool notEmpty();
@@ -686,7 +682,7 @@ interest.  But there are many situations where we don't need this
 generality, and we invoke both methods together in the same action.
 For convenience we define a function for this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function ActionValue #(t) pop (FIFOF #(t) fifo);
    actionvalue
@@ -702,7 +698,7 @@ This must be an {\tt ActionValue} function because it performs a
 side-effect ({\tt deq}) and returns a value (from {\tt first}).  This
 is then invoked with the usual syntax for invoking ActionValues:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    let y <- pop (fifo);
 \end{Verbatim}
@@ -733,7 +729,7 @@ this one:
 \index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!instantiation}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!instantiation}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    FIFOF #(Mem_Req) f_to_IMem   <- mkFIFOF;
    FIFOF #(Mem_Rsp) f_from_IMem <- mkFIFOF;
@@ -805,7 +801,7 @@ In these situations we will also find it useful to use the following
 \index[BSV]{FIFOF_O@{\tt FIFOF\_O}: semi-fifo interface}
 \index[BSV]{Semi-FIFO!{\tt FIFOF\_O} semi-fifo interface}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface FIFOF_O #(t);
    method Bool notEmpty();
@@ -818,7 +814,7 @@ endinterface
 \index[BSV]{FIFOF_I@{\tt FIFOF\_I} semi-fifo interface}
 \index[BSV]{Semi-FIFO!{\tt FIFOF\_I} semi-fifo interface}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface FIFOF_I #(t);
    method Bool notFull();
@@ -837,7 +833,7 @@ It is convenient to define a \verb|pop_o| function to combine the {\tt
 first} and {\tt deq} methods of a {\tt FIFOF\_O}, just like we defined
 the {\tt pop} function on {\tt FIFOF}s in Section~\ref{Sec_FIFOF_pop}.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function ActionValue #(t) pop (FIFOF_O #(t) fo);
    actionvalue
@@ -851,7 +847,7 @@ endfunction
 
 This is then invoked with the usual syntax for invoking ActionValues:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    let y <- pop (fo);
 \end{Verbatim}
@@ -870,7 +866,7 @@ This is then invoked with the usual syntax for invoking ActionValues:
 The idea of ``viewing'' the output-side of a \verb|FIFOF| interface as
 a \verb|FIFOF_O| interface can be expressed in a BSV function:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function FIFOF_O #(t) to_FIFOF_O (FIFOF #(t) f);
    interface FIFOF_O #(Mem_Req) fo_IMem_req;
@@ -915,7 +911,7 @@ of another FIFO.  For example, in Fife, the interface of the Fetch
 stage includes this semi-FIFO sub-interface to commicate \verb|F_to_D|
 values to the Decode unit:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface Fetch_IFC;
    ...
@@ -928,7 +924,7 @@ endinterface
 The interface of the Decode stage has this corresponding sub-interface
 to receive those values:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface Decode_IFC;
    ...
@@ -942,7 +938,7 @@ The the CPU module, at the next level up, instantiates the Fetch and
 Decode stages.  Then, they can be connected with a simple {\tt
 mkConnection} one-liner:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkCPU (CPU_IFC);
    ...
@@ -962,7 +958,7 @@ another BSV module which happens to have an ``\verb|Empty|'' interface
 with no interface methods, so the \verb|mkConnection| is actually
 shorthand for:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    Empty tmp <- mkConnection (stage_F.fo_Fetch_to_Decode, stage_D.fi_Fetch_to_Decode);
 \end{Verbatim}
@@ -974,7 +970,7 @@ The module \verb|mkConnection| is such a useful construct that it is
 provided in the \emph{bsc} library.  It can be implemented in BSV
 itself, and is very simple:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkConnection #(FIFOF_O #(Fetch_to_Decode) f,    // module argument
                       FIFOF_I #(Fetch_to_Decode) d)    // module argument
@@ -1012,8 +1008,7 @@ dequeue) and {\tt d} is not full (has space, available to enqueue).
 \index[BSV]{Typeclass!instance of}
 \index[BSV]{Overloading: Typeclasses and typeclass instances}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 {\bf Advanced BSV topic:} What if we want to connect the two
@@ -1081,7 +1076,7 @@ Sec~\ref{Sec_SpecialFIFOs}.
 
 The previous sections showed several \emph{polymorphic} types:
 
-{\small
+{\footnotesize
 \begin{tightlist}
  \item \verb|Reg #(t)|
  \item \verb|RegFile #(ix_width, reg_width)|
@@ -1159,7 +1154,7 @@ For example, consider the polymorphic {\tt mkRISCV\_GPRs} module
 Section~\ref{Sec_RISCV_regfile}.  We can directly instantiate this
 module in a CPU module:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkCPU;
    ...
@@ -1180,7 +1175,7 @@ If we really wanted to generate a separately identifiable Verilog
 module for the register file, we can write a monomorphic wrapper
 module:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 (* synthesize *)
 module mkGPRs_V (GPRs_IFC #(XLEN));
@@ -1199,7 +1194,7 @@ module.
 We can then replace our earlier instantiation of {\tt mkRISCV\_GPRs}
 in the CPU module with this monomorphic module:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkCPU;
    ...

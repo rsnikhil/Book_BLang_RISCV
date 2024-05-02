@@ -74,8 +74,7 @@ the Drum CPU.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In the literature one may read about FSMs where, from a state, we
@@ -248,8 +247,7 @@ use rules explicitly.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 We already briefly encountered a simple {\tt StmtFSM}, with just a
@@ -270,7 +268,7 @@ The fundamental building-block for \verb|StmtFSM| is the ``action'',
 which is a statement/expression of type \verb|Action|.  Some common
 examples:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    rg_pc <= rg_pc + 4;            // Assignment to a register
    f_Fetch_to_Decode.deq;         // Dequeue a fifo
@@ -289,7 +287,7 @@ side effect, as in each of the above example statements.
 As discussed in Section~\ref{Sec_Register_syntactic_shorthands} the
 first assignment statement is syntactic shorthand for:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    rg_pc._write (rg_pc._read + 4)
 \end{Verbatim}
@@ -322,7 +320,7 @@ the BSV keywords \verb|action| and \verb|endaction|).  For example the
 above primitive actions can be collected into a single entity which
 itself has type \verb|Action|:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    action
       rg_pc <= rg_pc + 4;          // Assignment to a register
@@ -351,7 +349,7 @@ meaning/behavior.
 It is often convenient to give a meaningful name to a sub-expression
 in an {\tt Action} block.  For example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    action
       Bit #(XLEN) next_pc = rg_pc + 4;
@@ -366,7 +364,7 @@ in lines 3 and 4.  We can often replace the type in the binding with
 the keyword {\tt let}, if the type is obvious from the context (the
 \emph{bsc} compiler will figure it out):
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    action
       let next_pc = rg_pc + 4;
@@ -444,8 +442,7 @@ it can be nested inside other \verb|StmtFSM| constructs.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In Section~\ref{BSV_Combo_Circuits_if_then_else} we described ordinary
@@ -477,7 +474,7 @@ overlap between ordinary expressions and {\tt StmtFSM} constructions.
 
 Repetitive processes can be expressed with traditional while-loop notation:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    while (... Bool expression ...)
       ... expression of type Stmt ...
@@ -497,7 +494,7 @@ An action in a \verb|StmtFSM| can be the \verb|await(b)| action, which
 simply waits until the boolean expression in its argument evaluates to
 true:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    await (... Bool expression ...);
 \end{Verbatim}
@@ -535,7 +532,7 @@ There are several \verb|Stmt| $\longrightarrow$ module constructors
 available in the BSV library.  In this book we use only one of them,
 \verb|mkAutoFSM|:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    mkAutoFSM (... argument expression of type Stmt ...);
 \end{Verbatim}

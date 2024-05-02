@@ -53,7 +53,7 @@ as the address in a memory-request to IMem.  It has two outputs,
 The ``\verb|Fetch_to_Decode|'' struct has only one interesting field,
 the PC:
 
-\input{Code_Extracts/Fetch_to_Decode.tex}
+\SHOWCODE{Code_Extracts/Fetch_to_Decode.tex}
 
 The field \verb|inum| holds the ``instruction number'', which is a
 sequence number counting every instruction fetched.  It is used only
@@ -67,19 +67,19 @@ only in Fife.)
 To pass both results of \verb|fn_Fetch|, we simply use a \emph{nested}
 struct, {\ie} a struct containing the two component structs:
 
-\input{Code_Extracts/Result_F.tex}
+\SHOWCODE{Code_Extracts/Result_F.tex}
 
 Finally, as mentioned earlier, the function \verb|fn_Fetch| is almost
 trivial: it merely fills in the two result structs based on argument
 values and returns them:
 
-\input{Code_Extracts/fn_Fetch.tex}
+\SHOWCODE{Code_Extracts/fn_Fetch.tex}
 
 As the comment at the top of the code excerpt says, \verb|fn_Fetch| is
 actually a pure function (no side-effects), and we could have written
 it as follows:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 function Result_F
          fn_Fetch (Bit #(XLEN)  pc,
@@ -144,7 +144,7 @@ Section~\ref{Sec_struct_D_to_RR}.  The code for \verb|fn_Decode| is
 mostly a big if-then-else that analyses the incoming instruction and
 produces some summary information:
 
-\input{Code_Extracts/fn_Decode.tex}
+\SHOWCODE{Code_Extracts/fn_Decode.tex}
 
 \index[BSV]{truncate@{\tt truncate}, operation to shrink bit-width}
 
@@ -294,18 +294,18 @@ subsequent flows:
 The following enum type declaration defines four constants to identify
 the flow for this instruction:
 
-\input{Code_Extracts/Exec_Tag.tex}
+\SHOWCODE{Code_Extracts/Exec_Tag.tex}
 
 The result type of \verb|fn_Dispatch| is \verb|Result_Dispatch|.  It
 is just a nested struct that contains four different struct types for
 the four flows (the struct types can be seen on arc labels in
 Figure~\ref{Fig_Core_Simple_Instr_Exec}).
 
-\input{Code_Extracts/Result_Dispatch.tex}
+\SHOWCODE{Code_Extracts/Result_Dispatch.tex}
 
 The first component is the information sent directly to Retire:
 
-\input{Code_Extracts/RR_to_Retire.tex}
+\SHOWCODE{Code_Extracts/RR_to_Retire.tex}
 
 The \verb|exec_tag| informs Retire about the flow for this
 instruction.  The {\tt exception} and {\tt cause} fields from
@@ -325,13 +325,13 @@ The second component of \verb|Result_Dispatch| is the information sent
 to Execute Control (we will see how these fields are used in
 Section~\ref{Sec_fn_EX_Control} when we discuss \verb|fn_EX_Control|):
 
-\input{Code_Extracts/RR_to_EX_Control.tex}
+\SHOWCODE{Code_Extracts/RR_to_EX_Control.tex}
 
 The third component of \verb|Result_Dispatch| is the information sent
 to Execute Int (we will see how these fields are used in
 Section~\ref{Sec_fn_EX_Int} when we discuss \verb|fn_EX_Int|):
 
-\input{Code_Extracts/RR_to_EX.tex}
+\SHOWCODE{Code_Extracts/RR_to_EX.tex}
 
 We choose to call it \verb|RR_to_EX| instead of \verb|RR_to_EX_Int|
 because the same struct type is likely to be used in future also for
@@ -349,7 +349,7 @@ The code for \verb|fn_Dispatch| is shown below.  Its arguments are the
 \verb|Decode_to_RR| struct from the Decode stage, and values from the
 source registers \verb|rs1| and \verb|rs2|.
 
-\input{Code_Extracts/fn_Dispatch.tex}
+\SHOWCODE{Code_Extracts/fn_Dispatch.tex}
 
 Lines 7-14 compute \verb|exec_tag|, {\ie} the flow to be followed.
 
@@ -376,11 +376,11 @@ type \verb|RR_to_EX_Control| was described in
 Section~\ref{Sec_fn_Dispatch}, where it was an output type.  The
 output type of \verb|fn_EX_Control| is shown below:
 
-\input{Code_Extracts/EX_Control_to_Retire.tex}
+\SHOWCODE{Code_Extracts/EX_Control_to_Retire.tex}
 
 Here is the Execute Control function:
 
-\input{Code_Extracts/fn_EX_Control.tex}
+\SHOWCODE{Code_Extracts/fn_EX_Control.tex}
 
 The first ``\verb|if|'' clause handles BRANCH (conditional branch)
 instructions.  The \verb|case| expression computes the boolean value
@@ -447,7 +447,7 @@ Register-Read-and-Dispatch stage (including \verb|fn_Dispatch)|, into
 
 In \verb|Fn_EX_Control|, can we change the final ``\verb|else if|'':
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    else if (is_JALR (instr)) begin
 \end{Verbatim}
@@ -456,7 +456,7 @@ In \verb|Fn_EX_Control|, can we change the final ``\verb|else if|'':
 into a simple ``\verb|else|'', {\ie} omit the the \verb|is_JALR|
 check?
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
    else begin
 \end{Verbatim}
@@ -491,7 +491,7 @@ type \verb|RR_to_EX| was described in Section~\ref{Sec_fn_Dispatch},
 where it was an output type.  The output type of \verb|fn_EX_Int| is
 shown below:
 
-\input{Code_Extracts/EX_to_Retire.tex}
+\SHOWCODE{Code_Extracts/EX_to_Retire.tex}
 
 We choose to call it \verb|EX_to_Retire| instead of
 \verb|EX_Int_to_Retire| because the same struct type is likely to be
@@ -502,14 +502,14 @@ and Custom (non-standard ISA extensions).
 
 Here is the Execute Integer function:
 
-\input{Code_Extracts/fn_EX_Int.tex}
+\SHOWCODE{Code_Extracts/fn_EX_Int.tex}
 
 The first ``\verb|if|'' handles LUI instructions (Load Upper
 Immediate).  The following ``\verb|else if|'' handles AUIPC
 instructions (Add Upper Immediate to PC). The final ``\verb|else|''
 handles all the remaining Integer ops by invoking an ``ALU'' function:
 
-\input{Code_Extracts/fn_IALU.tex}
+\SHOWCODE{Code_Extracts/fn_IALU.tex}
 
 The reason we create a separate \verb|fn_IALU| function, instead of
 inlining it into \verb|Fn_EX_Int| is because \verb|fn_IALU| is not
@@ -570,7 +570,7 @@ effect through the OR'ing).
 
 Lines 11-45 could instead have been written this way:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    Bit #(XLEN) y = 0;
    if (opcode == opcode_OP) begin

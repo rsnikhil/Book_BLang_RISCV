@@ -40,7 +40,7 @@ Fife codes do not use any \verb|RWire|s).
 
 Consider the following ``Up-Down Counter'' module interface:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface Up_Down_Counter_IFC;
    method Action   incr;
@@ -72,7 +72,7 @@ prevents us from sending more than 15 packets without acknowlegement.
 
 Here is a proposed module to implement the interface:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
    // STATE
@@ -138,7 +138,7 @@ receive an acknowledgement, but not both.
 A Concurrent Register, or \verb|CReg|, is a module provided by the
 \emph{bsc} library.  This is an excerpt from the library documentation:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkCReg #(parameter Integer n,
                 parameter a_type resetval)
@@ -150,7 +150,7 @@ The interface is an \emph{array} of register interfaces, indicated by
 the square brackets.  A \verb|CReg| module is instantiated with syntax
 like this:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
    // parameter n is 2, resetval is 15
    Array #(Reg #(Bit #(4))) crg_counter <- mkCReg (2, 15);
@@ -228,7 +228,7 @@ semantics described in the previous section.
 Here is an alternative module implementing our Up-Down Counter
 interface, using a \verb|CReg|:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
    // STATE
@@ -287,7 +287,7 @@ written by the CSRRxx instruction.
 
 This can be cleanly expressed using a CReg.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/CSRs.bsv]
    Array #(Reg #(Bit #(64))) csr_mcycle <- mkCReg (2, 0);
 \end{Verbatim}
@@ -295,7 +295,7 @@ This can be cleanly expressed using a CReg.
 
 The automatic increment in every cycle is performed by this rule in
 the CSRs module:
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/CSRs.bsv]
    rule rl_count_cycles;
       csr_mcycle [0] <= csr_mcycle [0] + 1;
@@ -306,7 +306,7 @@ the CSRs module:
 To execute a CSRRxx instruction, a rule in the CPU invokes a method in
 the CSRs module which contains this code:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/CSRs.bsv]
    csr_mcycle [1] <= csr_val;
 \end{Verbatim}
@@ -325,7 +325,7 @@ written by \verb|rl_count_cycles|.
 Consider the following module implementing a 1-element FIFO with a
 \verb|FIFOF| interface:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkFIFOF (FIFOF #(Bit #(32)));
    Reg #(Bit #(32)) rg_data <- mkRegU;
@@ -380,7 +380,7 @@ Let us use a CReg to relax this constraint, in two different ways.
 
 \subsection{{\tt PipelineFIFOF}}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkPipelineFIFOF (FIFOF #(Bit #(32)))
    Reg #(Bit #(t))     rg_data  <- mkRegU;
@@ -463,7 +463,7 @@ so useful that it is available in the \emph{bsc} library in the
 
 In this version, we change the CReg indexes used by the methods.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkPipelineFIFOF (FIFOF #(Bit #(32)));
    Array #(Reg #(Bit #(32))) crg_data <- mkCRegU (2);
@@ -553,7 +553,7 @@ An interesting component is a back-to-back composition of the two
 FIFOs discussed in the previous sections.  Consider this code
 fragment:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mk... (...);
    FIFOF #(Bit #(32)) f_bypass   <- mkBypassFIFOF;

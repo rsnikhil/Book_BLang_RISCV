@@ -37,7 +37,7 @@ construct to code the FSM.
 
 The Drum CPU interface is shown below.
 
-\input{Code_Extracts/CPU_IFC.tex}
+\SHOWCODE{Code_Extracts/CPU_IFC.tex}
 
 The interface is simple:
 
@@ -85,11 +85,11 @@ and Drum CPUs are easily interchangeable in any system or testbench.
 The STATE and INTERFACE sections of the Drum CPU module are shown
 below (we will discuss the elided BEHAVIOR section shortly).
 
-\input{Code_Extracts/Drum_mkCPU_STATE.tex}
+\SHOWCODE{Code_Extracts/Drum_mkCPU_STATE.tex}
 
 \hm \emph{(... BEHAVIOR elided, to be discussed shortly ...)}
 
-\input{Code_Extracts/Drum_mkCPU_IFC.tex}
+\SHOWCODE{Code_Extracts/Drum_mkCPU_IFC.tex}
 
 The STATE section first instantiates a register \verb|rg_running|,
 initially False, that will be set to True by the \verb|init| method
@@ -135,8 +135,7 @@ performed in several states in the FSM.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In BSV, function definitions do not have to be at the top-level of a
@@ -153,19 +152,19 @@ cases where the instruction has an rd (\verb|fn_Decode|, described in
 Section~\ref{Sec_fn_Decode}, computed \verb|has_rd| for each kind of
 instruction):
 
-\input{Code_Extracts/Drum_upd_rd.tex}
+\SHOWCODE{Code_Extracts/Drum_upd_rd.tex}
 
 The following function is the last action during an instruction's
 execution, updating the PC and the instruction number:
 
-\input{Code_Extracts/Drum_redirect.tex}
+\SHOWCODE{Code_Extracts/Drum_redirect.tex}
 
 The following function saves values into registers \verb|rg_epc|,
 \verb|rg_cause| and \verb|rg_tval|, when a trap is detected.  These
 will later be written into the corresponding CSR registers during
 trap-handling.
 
-\input{Code_Extracts/Drum_setup_exc.tex}
+\SHOWCODE{Code_Extracts/Drum_setup_exc.tex}
 
 % ****************************************************************
 
@@ -183,8 +182,7 @@ corresponding to the components in Figure~\ref{Fig_Drum_Instr_Exec}.
 
 \index[BSV]{Action@{\tt Action}!as a first-class type}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In BSV, the type {\tt Action} is a first-class type.  This means we
@@ -203,7 +201,7 @@ Rules instead of {\tt StmtFSM} in Chapter~\ref{ch_Drum_Rules}.
 
 \subsection{FSM action for Fetch}
 
-\input{Code_Extracts/Drum_Fetch.tex}
+\SHOWCODE{Code_Extracts/Drum_Fetch.tex}
 
 This action applies \verb|fn_Fetch()| (Section~\ref{Sec_fn_Fetch}) to
 the PC, stores the \verb|to_D| part of the result in register
@@ -217,7 +215,7 @@ dequeue it and forward it to memory.
 
 \subsection{FSM action for Decode}
 
-\input{Code_Extracts/Drum_Decode.tex}
+\SHOWCODE{Code_Extracts/Drum_Decode.tex}
 
 We pop the response from IMem (bind \verb|mem_rsp| to the value at
 head of the FIFO, and also remove it from the FIFO), then apply
@@ -232,7 +230,7 @@ response, and store the function result in register
 
 The next FSM action is the Register-Read and Dispatch stage:
 
-\input{Code_Extracts/Drum_RRD.tex}
+\SHOWCODE{Code_Extracts/Drum_RRD.tex}
 
 Using the information in \verb|rg_Decode_to_RR| created in the Decode
 stage, we read the two registers \verb|rs1| and \verb|rs2|.  We apply
@@ -272,7 +270,7 @@ We next elaborate each of these four flows.
 
 \subsubsection{FSM actions in Direct flow of Execute and Retire}
 
-\input{Code_Extracts/Drum_Retire_direct.tex}
+\SHOWCODE{Code_Extracts/Drum_Retire_direct.tex}
 
 First, for convenience, we give the value \verb|rg_Dispatch.to_Retire|
 a shorter and more convenient name, \verb|x_direct|, to be used in the
@@ -339,7 +337,7 @@ override any implicit increment of the CSR.
 
 In the Drum code, we invoke:
 
-{\small
+{\footnotesize
 \begin{Verbatim}
    csrs.ma_incr_instret;
 \end{Verbatim}
@@ -371,7 +369,7 @@ Execute action invokes \verb|fn_EX_Control|
 Dispatch, and stores the result in register
 \verb|rg_EX_Control_to_Retire|:
 
-\input{Code_Extracts/Drum_EX_Control.tex}
+\SHOWCODE{Code_Extracts/Drum_EX_Control.tex}
 
 Then, the Retire action checks if Execute resulted in an exception or
 not. If an exception, it invokes \verb|fa_setup_exception| to record
@@ -380,7 +378,7 @@ the output value (this can only be a ``return address'' computed for
 JAL and JALR), and it invokes \verb|fa_redirect_Fetch| to resume
 execution at the \verb|next_pc| value computed by BRANCH/JAL/JALR.
 
-\input{Code_Extracts/Drum_Retire_Control.tex}
+\SHOWCODE{Code_Extracts/Drum_Retire_Control.tex}
 
 % ----------------------------------------------------------------
 
@@ -391,7 +389,7 @@ of two actions.  The Execute action invokes \verb|fn_EX_Int|
 (Section~\ref{Sec_fn_EX_Int}) on the information provided by Dispatch,
 and stores the result in register \verb|rg_EX_to_Retire|.
 
-\input{Code_Extracts/Drum_EX_Int.tex}
+\SHOWCODE{Code_Extracts/Drum_EX_Int.tex}
 
 Then, the Retire action checks if Execute resulted in an exception or
 not. If an exception, it invokes \verb|fa_setup_exception| to record
@@ -399,7 +397,7 @@ that.  If not an exception, it invokes \verb|fa_update_rd| to store
 the output value and \verb|fa_redirect_Fetch| to resume execution at
 the fall-through PC.
 
-\input{Code_Extracts/Drum_Retire_Int.tex}
+\SHOWCODE{Code_Extracts/Drum_Retire_Int.tex}
 
 % ----------------------------------------------------------------
 
@@ -410,7 +408,7 @@ sequence of two actions.  The Execute action just sends the
 memory-request provided by the Dispatch stage to memory by enqueueing
 it on the outgoing \verb|f_DMem_req| FIFO.
 
-\input{Code_Extracts/Drum_EX_DMem.tex}
+\SHOWCODE{Code_Extracts/Drum_EX_DMem.tex}
 
 Then, the Retire action pops the mememory response from the incoming
 \verb|f_DMem_rsp| FIFO.  If the memory returned an exception, we
@@ -420,7 +418,7 @@ return an exception, we invoke \verb|fa_update_rd()| to store any
 loaded value into the GPRs, and invoke \verb|fa_redirect_Fetch()| to
 resume execution at the fall-through PC.
 
-\input{Code_Extracts/Drum_Retire_DMem.tex}
+\SHOWCODE{Code_Extracts/Drum_Retire_DMem.tex}
 
 % ----------------------------------------------------------------
 
@@ -432,7 +430,7 @@ method in the CSRs module, and invokes \verb|fa_redirect_Fetch| so
 that execution resumes at the trap-vector PC provided in CSR
 \verb|mt_vec|.
 
-\input{Code_Extracts/Drum_exc.tex}
+\SHOWCODE{Code_Extracts/Drum_exc.tex}
 
 % ****************************************************************
 
@@ -455,7 +453,7 @@ method. Finally, we instantiate that \verb|Stmt| using a
 immediately when the circuit emerges from reset.  The FSM never stops,
 because of the infinite while-loop.
 
-{\small
+{\footnotesize
 \begin{Verbatim}
 module mkCPU (CPU_IFC);
    // STATE
@@ -466,10 +464,10 @@ module mkCPU (CPU_IFC);
 \end{Verbatim}
 }
 
-\input{Code_Extracts/Drum_exec_one_instr.tex}
-\input{Code_Extracts/Drum_FSM.tex}
+\SHOWCODE{Code_Extracts/Drum_exec_one_instr.tex}
+\SHOWCODE{Code_Extracts/Drum_FSM.tex}
 
-{\small
+{\footnotesize
 \begin{Verbatim}
    // ****************************************************************
    // INTERFACE
@@ -508,8 +506,7 @@ Section~\ref{Sec_mem_latency} on unpredictable memory latency).
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 Looking ahead to a topic we'll discuss in more detail in
@@ -598,8 +595,7 @@ description.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 There are products in the marketplace under the rubric of ``High Level

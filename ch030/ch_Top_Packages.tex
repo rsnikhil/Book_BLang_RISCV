@@ -51,7 +51,7 @@ interesting as hardware!).
 
 \index[BSV]{\$display@{\tt \$display} statements}
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex\_03\_A\_Hello\_World/Top.bsv]
 module mkTop (Empty);
 
@@ -79,8 +79,7 @@ Chapters~\ref{ch_Rules_II}).
 % ----------------
 \vspace{1ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 {\tt \$display()} is only meaningful in simulation, where the
@@ -110,7 +109,7 @@ just prints ``Hello World!'' and exits.  For Bluesim, we can compile
 and link it using the free and open-source \emph{bsc} compiler, and
 then run the executable:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
   $ bsc -sim  -g mkTop  Top.bsv                          # compile
   $ bsc -sim  -e mkTop  -o exe_HW_bsim                   # link
@@ -123,7 +122,7 @@ We can compile it to Verilog, then compile the Verilog and link it for
 Verilog simulation using the free and open-source \emph{verilator}
 compiler, and then run the executable:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
   $ bsc -verilog  -g mkTop  Top.bsv                      # compile -> mkTop.v
   $ bsc -vsim verilator  -e mkTop  -o exe_HW_vsim        # link
@@ -166,7 +165,7 @@ The \verb|$display()| function in {\BSV} is similar to
 in C/C++. The first argument is a string containing formatting
 directives for the remaining arguments. Example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
       Bit #(4) a = 'b_1010;
       Bit #(4) b = 'b_0110;
@@ -194,7 +193,7 @@ function which is predefined on all the standard types including
 \verb|fshow()|; in this case we omit the ``\verb|%d|'' from the format
 string:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
       ...
       $display ("  %04b %04b => ", a, b, fshow (a == b));
@@ -292,7 +291,7 @@ Let us extend our minimal BSV program into one that is split into two
 packages/files.  We create a new file \verb|DUT.bsv| that just defines
 some top-level scalar constants (strings, bit-vectors).
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_02/DUT.bsv]
 package DUT;
 
@@ -320,7 +319,7 @@ declares the variable to have that type and that value.
 
 Next, we extend our \verb|mkTop| module from the previous example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_02/Top.bsv]
 package Top;
 
@@ -351,7 +350,7 @@ package.
 We can compile and link it for Bluesim using the \emph{bsc} compiler,
 and then run the executable:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
   $ bsc  -u  -sim  -g mkTop  Top.bsv                     # compile
   $ bsc  -sim  -e mkTop  -o exe_HW_bsim                  # link
@@ -367,7 +366,7 @@ We can compile it to Verilog, then compile the Verilog and link it for
 Verilog simulation using the \emph{verilator} compiler, and then run
 the executable:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
   $ bsc -u  -verilog  -g mkTop  Top.bsv                  # compile -> mkTop.v
   $ bsc -vsim verilator  -e mkTop  -o exe_HW_vsim        # link
@@ -396,8 +395,7 @@ and its README.
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 From this point on we are not going to show the compile-and-link steps
@@ -439,7 +437,7 @@ If a package \verb|Phoux| needs to use a name \verb|x| defined in some
 other package \verb|Baz|, it must explicitly ``\verb|import|'' the
 package with the syntax:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single]
 import Baz :: *;
 \end{Verbatim}
@@ -451,8 +449,7 @@ which makes all the names exported by \verb|Baz| available for use in
 % ----------------
 \vspace{2ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 In SystemVerilog, in {\tt import} statement, instead of ``{\tt *}''
@@ -642,7 +639,7 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_module_decl}:
 Let us extend our minimal BSV program so that the DUT contains a
 module with an interface.
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_04/DUT.bsv]
 package DUT;
 
@@ -685,7 +682,7 @@ The module \verb|mkDUT| simply defines the two methods in its interface.
 
 Next, we modify our \verb|mkTop| module from the previous example:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left, label=in file Ex\_04\_04/Top.bsv]
 package Top;
 

@@ -327,7 +327,7 @@ and responses.  \verb|mkTop| instantiates the \verb|mkCPU| module
 (which can be either Drum or Fife) and \verb|mkMems_Devices| modules.
 An excerpt from \verb|mkTop| is shown below:
 
-\input{Code_Extracts/mkTop.tex}
+\SHOWCODE{Code_Extracts/mkTop.tex}
 
 Note that we pass the CPU's IMem and DMem sub-interfaces directly to
 Mems\_Devices module as module parameters; as a result, rules in
@@ -351,13 +351,13 @@ passing them a struct with some initialization parameters, such as the
 reset value for the PC (address from which the first instruction will
 be fetched), and a file descriptor into which logs should be written.
 
-\input{Code_Extracts/Top_init.tex}
+\SHOWCODE{Code_Extracts/Top_init.tex}
 
 Another rule in \verb|mkTop| fires on every clock.  On each clock, it
 retrieves a value reprsenting the wall-clock time from
 \verb|mems_devices| and relays it into the CPU:
 
-\input{Code_Extracts/Top_relay_time.tex}
+\SHOWCODE{Code_Extracts/Top_relay_time.tex}
 
 Other than that, \verb|mkTop| plays no further role in execution.
 Rules inside \verb|mkCPU| operate the CPU, putting out IMem and DMem

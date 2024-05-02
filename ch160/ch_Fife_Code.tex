@@ -36,7 +36,7 @@ The code for the top-level Fife CPU module is actually simpler than
 the code for the Drum CPU module, because it simply instantiates
 sub-modules for each stage and connects them:
 
-\input{Code_Extracts/Fife_mkCPU.tex}
+\SHOWCODE{Code_Extracts/Fife_mkCPU.tex}
 
 This is practically a direct textual description of
 Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}.  The STATE section first
@@ -147,17 +147,17 @@ outgoing \verb|FIFOF_O| interfaces to memory (IMem) and the Decode
 stage, and the incoming \verb|FIFOF_I| for redirections from the
 Retire stage.
 
-\input{Code_Extracts/Fife_Fetch_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_Fetch_IFC.tex}
 
 The Fetch stage module code is shown below.
 
-\input{Code_Extracts/Fife_mkFetch.tex}
+\SHOWCODE{Code_Extracts/Fife_mkFetch.tex}
 
 The STATE section instantiates various registers and FIFOs.  Next, the
 BEHAVIOR section contains two \emph{rules} (Chapter~\ref{ch_Rules_I}).
 In rule \verb|rl_Fetch_req|, the explicit condition is the expression:
 
-\hm\small \verb|(rg_running && (! f_F_from_Retire.notEmpty))|
+\hm\footnotesize \verb|(rg_running && (! f_F_from_Retire.notEmpty))|
 
 Rule \verb|rl_Fetch_req|'s implicit condition comes from the methods
 that it invokes, \verb|f_Fetch_to_Decode.enq ()| and
@@ -188,8 +188,7 @@ not a register, just a name for the wires carrying the output value of
 
 \vspace{1ex}
 
-NOTE:
-\fbox{\small
+NOTE: \fbox{\small
 \begin{minipage}{5in}
 
 The function {\tt fn\_Fetch()} is exactly the same as the one used in
@@ -292,11 +291,11 @@ incoming \verb|FIFOF_I| interfaces from the Fetch stage and memory
 (IMem), and the outgoing \verb|FIFOF_O| interface to the Register-Read
 stage.
 
-\input{Code_Extracts/Fife_Decode_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_Decode_IFC.tex}
 
 The Decode stage module code is shown below.
 
-\input{Code_Extracts/Fife_mkDecode.tex}
+\SHOWCODE{Code_Extracts/Fife_mkDecode.tex}
 
 The STATE section instantiates FIFOs for incoming and outgoing flows.
 
@@ -441,7 +440,7 @@ DMem, and an incoming \verb|FIFOF_I| from Retire for updating the
 register file and scoreboard, which are instantiated inside this
 module.
 
-\input{Code_Extracts/Fife_RR_RW_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_RR_RW_IFC.tex}
 
 % ================================================================
 
@@ -456,19 +455,19 @@ of a scoreboard, and described it as an array of 1-bit values.  In BSV
 the following type is used to represent an array of $n$ items, each of
 which is of type $t$:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm Vector \#(n, t);
 \end{tabbing}
 
 Note: in order to use this type in any BSV code file, the file must
 import the \verb|Vector| library:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm import Vector :: *;
 \end{tabbing}
 
 So, we can define a \verb|Scoreboard| type as follows:
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm typedef  Vector \#(32, Bit \#(1))  Scoreboard;
 \end{tabbing}
 
@@ -477,7 +476,7 @@ So, we can define a \verb|Scoreboard| type as follows:
 
 The BSV Vector-library function:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm replicate (v)
 \end{tabbing}
 
@@ -486,7 +485,7 @@ from the context and \verb|v| has the type $t$.  All $n$ items in the
 value are equal to \verb|v|.  Thus, we can instantiate a scoreboard
 like this, where all the vector elements are initialized to 0:
 
-\begin{tabbing}\small\tt
+\begin{tabbing}\footnotesize\tt
 \hmm Reg \#(Scoreboard) rg\_scoreboard <- mkReg (replicate (0));
 \end{tabbing}
 
@@ -533,7 +532,7 @@ and we can convert a \verb|Bit#(32)| value into a \verb|Vector #(32, Bit #(1))| 
 
 The first part of the \verb|mkRR_RW| module, instantiating its STATE, is shown below:
 
-\input{Code_Extracts/Fife_mkRR_RW1.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRR_RW1.tex}
 
 It instantiates FIFOs for all the forward and backward flows, and it
 instantiates the GPRs register file \verb|gprs|
@@ -542,7 +541,7 @@ instantiates the GPRs register file \verb|gprs|
 \verb|mkRR_RW| module, implementing its BEHAVIOR for the forward flow,
 is shown below:
 
-\input{Code_Extracts/Fife_mkRR_RW2.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRR_RW2.tex}
 
 In line 6, we observe the first element in the \verb|f_Decode_to_RR|
 FIFO.  Note, the \verb|.first| method is non-destructive, {\ie} it
@@ -632,7 +631,7 @@ messages and executes \verb|$finish| to terminate simulation.
 The third part of the \verb|mkRR_RW| module, implementing its BEHAVIOR
 for the backward flow, is shown below:
 
-\input{Code_Extracts/Fife_mkRR_RW3.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRR_RW3.tex}
 
 We pop the message \verb|x| from the \verb|f_RW_from_Retire| FIFO.  We
 perform its specified scoreboard-release for register rd.  If the rd
@@ -640,7 +639,7 @@ value is to be committed, we write it into GPR [rd].  The fourth and
 final part of the \verb|mkRR_RW| module, defining its INTERFACE, is
 shown below:
 
-\input{Code_Extracts/Fife_mkRR_RW4.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRR_RW4.tex}
 
 It simply lifts the FIFO interfaces to this module's interface.
 
@@ -657,11 +656,11 @@ Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the incoming \verb|FIFOF_I|
 interface from the Register-Read and Dispatch stage and the outgoing
 \verb|FIFOF_O| interface to the Retire stage.
 
-\input{Code_Extracts/Fife_EX_Control_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_EX_Control_IFC.tex}
 
 The Execute Control stage module is shown below:
 
-\input{Code_Extracts/Fife_mkEX_Control.tex}
+\SHOWCODE{Code_Extracts/Fife_mkEX_Control.tex}
 
 After instantiating the forward flow input and output FIFOs, the rule
 \verb|rl_EX_Control| simply applies the function \verb|fn_Control| to
@@ -683,11 +682,11 @@ Figure~\ref{Fig_Instr_Exec_w_FIFOs_2}: the incoming \verb|FIFOF_I|
 interface from the Register-Read and Dispatch stage and the outgoing
 \verb|FIFOF_O| interface to the Retire stage.
 
-\input{Code_Extracts/Fife_EX_Int_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_EX_Int_IFC.tex}
 
 The Execute Integer stage module is shown below:
 
-\input{Code_Extracts/Fife_mkEX_Int.tex}
+\SHOWCODE{Code_Extracts/Fife_mkEX_Int.tex}
 
 After instantiating the forward flow input and output FIFOs, the rule
 \verb|rl_EX_Int| simply applies the function \verb|fn_EX_Int| to each
@@ -728,7 +727,7 @@ many possible cases as outlined in Figure~\ref{Fig_Fife_Retire_2}
 
 Here is the interface definition for this module:
 
-\input{Code_Extracts/Fife_Retire_IFC.tex}
+\SHOWCODE{Code_Extracts/Fife_Retire_IFC.tex}
 
 The first four \verb|FIFO_I| sub-interfaces correspond to the black
 arrows entering the Retire module from the execute pipes (left of
@@ -763,11 +762,11 @@ certain circumstances, it goes into FSM mode, similar to Drum:
 
 We define a ``module mode'' to reflect these modes:
 
-\input{Code_Extracts/Fife_Retire_Module_Mode.tex}
+\SHOWCODE{Code_Extracts/Fife_Retire_Module_Mode.tex}
 
 The first part of the Retire stage \verb|mkRetire| module is shown below.
 
-\input{Code_Extracts/Fife_mkRetire1.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRetire1.tex}
 
 It instantiates the CSR registers (Section~\ref{Sec_RISCV_CSRs}), and
 register \verb|rg_epoch| to keep track of the epoch
@@ -790,7 +789,7 @@ need to redirect the Fetch stage to start fetching from a different
 PC.  This can be due to a misprediction of the successor of the
 current instruction, or due to an exception or MRET.
 
-\input{Code_Extracts/Fife_fa_redirect_Fetch.tex}
+\SHOWCODE{Code_Extracts/Fife_fa_redirect_Fetch.tex}
 
 The boolean \verb|mispredicted| indicates whether the prediction was
 correct or not.  If the prediction was correct, no action is taken.
@@ -806,12 +805,12 @@ the \verb|RR_RW| module.  The consumption of this message in the
 Register-Read and Dispath (and Register-Write) stage was discussed in
 Section~\ref{Sec_Fife_RR_RW_stage}.
 
-\input{Code_Extracts/Fife_fa_update_rd.tex}
+\SHOWCODE{Code_Extracts/Fife_fa_update_rd.tex}
 
 The following function sends a commit/discard message to the
 speculative DMem store-buffer, if the instruction writes to memory:
 
-\input{Code_Extracts/Fife_fa_retire_store_buf.tex}
+\SHOWCODE{Code_Extracts/Fife_fa_retire_store_buf.tex}
 
 The \verb|f_RR_to_Retire| (direct path) FIFO contains an entry for
 \emph{every} instruction.  Information in the first element tells us
@@ -819,7 +818,7 @@ how to retire it, including which of the execute pipes need to be
 examined.  The following definitions capture some properties of this
 first element.
 
-\input{Code_Extracts/Fife_triage.tex}
+\SHOWCODE{Code_Extracts/Fife_triage.tex}
 
 The incoming instruction is a wrong-path instruction if its
 accompanying epoch does not match our \verb|rg_epoch| register.
@@ -838,7 +837,7 @@ corresponding incoming FIFO.  In the DMem case, if it did a
 speculative STORE, we also send a ``discard'' message to the head of
 the store-buffer using \verb|fa_retire_store_buf()|.
 
-\input{Code_Extracts/Fife_rl_wrong_path.tex}
+\SHOWCODE{Code_Extracts/Fife_rl_wrong_path.tex}
 
 % ================================================================
 
@@ -857,7 +856,7 @@ Int or Execute DMem paths.
 
 The following rule handles CSRRxx instructions, which arrive on the direct path:
 
-\input{Code_Extracts/Fife_rl_CSRRxx.tex}
+\SHOWCODE{Code_Extracts/Fife_rl_CSRRxx.tex}
 
 The rule's explicit condition restricts it to fire only when we are in
 PIPE mode and when the next instruction is not a wrong-path
@@ -921,7 +920,7 @@ the impact on hardware complexity in the \verb|mkCSRs| module?
 
 The following rule handles MRET instructions, which arrive on the direct path:
 
-\input{Code_Extracts/Fife_rl_MRET.tex}
+\SHOWCODE{Code_Extracts/Fife_rl_MRET.tex}
 
 Again, pay careful attention to the rule's explicit condition which
 restricts it to fire only when we are in PIPE mode and when the next
@@ -938,7 +937,7 @@ MEPC (Section~\ref{Sec_Traps}).
 
 The following rule handles ECALL and EBREAK instructions, which arrive on the direct path:
 
-\input{Code_Extracts/Fife_rl_ECALL.tex}
+\SHOWCODE{Code_Extracts/Fife_rl_ECALL.tex}
 
 The rule's explicit condition restricts it to fire only when we are in
 PIPE mode and when the next instruction is not a wrong-path
@@ -979,7 +978,7 @@ depend on the RISC-V program being run, of course).
 
 The following rule handles exceptions which arrive on the direct path:
 
-\input{Code_Extracts/Fife_rl_Dir_Exc.tex}
+\SHOWCODE{Code_Extracts/Fife_rl_Dir_Exc.tex}
 
 The rule's explicit condition restricts it to fire only when we are in
 PIPE mode and when the next instruction is not a wrong-path
@@ -1001,7 +1000,7 @@ arrive on the Execute Control path.  In Execute Control, it could have
 succeeded or it could have raised an exception (if the
 control-transfer target PC was misaligned).
 
-\input{Code_Extracts/Fife_S5_Control.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_Control.tex}
 
 We dequeue the direct-path information (\verb|f_RR_to_Retire|) and we
 pop the Execute Control path information
@@ -1038,7 +1037,7 @@ assume the possibility of an instruciton in case, in future, we extend
 Fife's supported ISA with new non-standard Integer instructions that
 could raise an exception.
 
-\input{Code_Extracts/Fife_S5_Int.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_Int.tex}
 
 We dequeue the direct-path information (\verb|f_RR_to_Retire|) and we
 pop the Execute Int path information (\verb|f_EX_Int_to_Retire|).
@@ -1094,7 +1093,7 @@ case is handled by rules described subsequently.
 The following rule handles incoming DMem exceptions and successful
 speculative results.
 
-\input{Code_Extracts/Fife_S5_DMem.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_DMem.tex}
 
 Note that the rule condition excludes deferred requests (they are
 handled in another rule, described in the next section).
@@ -1148,7 +1147,7 @@ was no exception.  Justify this.
 The following rule handles memory requests that were deferred by the
 Execute DMem stage because there could not be performed speculatively.
 
-\input{Code_Extracts/Fife_S5_Deferred.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_Deferred.tex}
 
 We pop the Execute DMem result (\verb|f_DMem_S_rsp|).  We do not
 dequeue the direct-path (\verb|f_RR_to_Retire|) because we will need
@@ -1169,7 +1168,7 @@ response.
 
 The following rule handles the corresponding responses from memory.
 
-\input{Code_Extracts/Fife_S5_Deferred_rsp.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_Deferred_rsp.tex}
 
 We can now dequeue the direct-path information (\verb|f_RR_to_Retire|)
 and the memory-response (\verb|f_DMem_Rsp|).
@@ -1215,7 +1214,7 @@ commit/discard message to the store-buffer.  Why not?
 
 This is a common rule used to handle exceptions.
 
-\input{Code_Extracts/Fife_S5_exc.tex}
+\SHOWCODE{Code_Extracts/Fife_S5_exc.tex}
 
 In all the previous rules, when an exception is detected, we save
 relevant values in registers \verb|rg_epc|, \verb|rg_cause| and
@@ -1233,7 +1232,7 @@ The final INTERFACE section, as with other modules, has an \verb|init|
 method, and then lifts the various FIFO interfaces into sub-interfaces
 for this module.
 
-\input{Code_Extracts/Fife_mkRetire_ifc.tex}
+\SHOWCODE{Code_Extracts/Fife_mkRetire_ifc.tex}
 
 % ****************************************************************
 

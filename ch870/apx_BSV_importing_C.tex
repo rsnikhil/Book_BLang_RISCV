@@ -79,7 +79,7 @@ types, and not the function body), preceded by the phrase {\tt import
 "BDPI"}:
 
 \begin{center}
- \fbox{\small
+ \fbox{\footnotesize
   \begin{minipage}{5in}
    \begin{tabbing}
    {\tt import "BDPI"} \\
@@ -143,7 +143,7 @@ again invoke \emph{bsc} for linking.
 For Verilog linking, in the imported C code we recommend adding the
 following for each of the imported C functions:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 #ifdef __cplusplus
 // 'C' linkage is necessary for linking with Verilator object files
@@ -235,11 +235,11 @@ implement the memory system in C for convenience.  In addition to the
 speed reason (not slowing down simulation), C is also more convenient
 for reading in memhex32 and ELF files.
 
-\input{Code_Extracts/Mems_Devices}
+\SHOWCODE{Code_Extracts/Mems_Devices}
 
 The corresponding C function prototype, in a C file is:
 
-{\small
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 #ifdef __cplusplus
 // 'C' linkage is necessary for linking with Verilator object files
