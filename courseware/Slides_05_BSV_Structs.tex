@@ -7,12 +7,6 @@
 
 \date{L5: {\BSV} Structs; Memory requests and responses}
 
-% ----------------
-% Switch off "pause" during development
-
-\renewcommand{\PAUSE}[1]{#1}
-% \renewcommand{\PAUSE}[1]{#1\pause}
-
 % ****************************************************************
 
 \begin{document}
@@ -27,6 +21,10 @@
  \end{center}
 
 \end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
 
 % ================================================================
 
@@ -55,7 +53,7 @@ a heterogeneous grouping of \emph{fields} of various types.
 
 \footnotesize
 
-\input{../Code_Extracts/Decode_to_RR.tex}
+\SHOWCODE{../Code_Extracts/Decode_to_RR.tex}
 
 \end{frame}
 
@@ -213,7 +211,7 @@ If a field is left undefined, {\bsc} will warn while compiling.
 
 Some shorthands: ``{\tt let}'' and don't-care values:
 
-\PAUSE{\vspace*{2ex}}
+\vspace*{2ex}
 
 \begin{Verbatim}[frame=single, numbers=left]
    let x = Decode_to_RR {pc:           ... ,
@@ -271,7 +269,7 @@ Constructing a 2-tuple value:
    endfunction
 \end{Verbatim}
 
-\vspace{2ex}
+\PAUSE{\vspace{2ex}}
 
 Accessing struct components using predefined functions {\tt tpl\_$j$}:
 \begin{Verbatim}[frame=single, numbers=left]
@@ -280,7 +278,7 @@ Accessing struct components using predefined functions {\tt tpl\_$j$}:
    let v   = tpl_2 (xy);    // v   has type: Bit #(XLEN)
 \end{Verbatim}
 
-\vspace{2ex}
+\PAUSE{\vspace{2ex}}
 
 Accessing struct components using pattern-matching:
 \begin{Verbatim}[frame=single, numbers=left]
@@ -324,17 +322,88 @@ Accessing struct components using pattern-matching:
 
 \footnotesize
 
-\input{../Code_Extracts/Mem_Req.tex}
+\SHOWCODE{../Code_Extracts/Mem_Req.tex}
 
-\input{../Code_Extracts/funct5_MEMOPs.tex}
+\vspace{2ex}
 
-We defined {\tt Mem\_Req\_Type} this way with an eye towards future
-support for the ``A'' extension (Atomic Memory Ops, see Unprivileged
-ISA Spec p.132).  Each AMO op has a 5-bit code in the instruction
-which we will use as-is (easy Decode!).  Here, we use three codes for
-LOAD/STORE/FENCE that are not used by AMO ops.
+We will discuss {\tt Mem\_Req\_Type} in {\tt Mem\_Req\_Size} the following slides.
 
-\input{../Code_Extracts/Mem_Req_Size.tex}
+\vspace{1ex}
+
+The {\tt data} field is only relevant when communicating data from the
+CPU to memory (STORE and AMO instructions).  When communicating 1, 2
+and 4 bytes, these are in the least-significant bytes of the {\tt
+data} field.
+
+\PAUSE{\vspace{4ex}}
+
+Note, we do not say ``{\tt deriving (Eq)}'' because we have no
+occasion to compare two entire Memory Requests for
+equality/inequality.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory requests: {\tt Mem\_Req\_Type}}
+
+\footnotesize
+
+We could define {\tt Mem\_Req\_Type} as an {\tt enum} type ({\tt
+MEM\_REQ\_LOAD}, {\tt MEM\_REQ\_STORE} ...).  However, looking ahead
+to possibly supporting the ``A'' extension in the future (Atomic
+Memory Ops (AMOs), see Unprivileged ISA Spec p.132), we observe that
+the ISA defines a 5-bit code for each AMO op.  So, we define:
+
+\vspace{4ex}
+
+\SHOWCODE{../Code_Extracts/Mem_Req_Type.tex}
+
+\vspace{4ex}
+
+For the AMOs, we will use the 5-bit codes as defined in the ISA (simplifies Decode!). \\
+For LOAD/STORE/FENCE, we use three codes that are not used by AMO ops.
+
+\vspace{4ex}
+
+\SHOWCODE{../Code_Extracts/funct5_MEMOPs.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory requests: {\tt Mem\_Req\_Size}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Mem_Req_Size.tex}
+
+\PAUSE{\vspace{2ex}}
+
+Why do we have a code for 8 bytes, since RV32I can only LOAD/STORE
+bytes (1 byte), halfwords (2 bytes) and words (4 bytes)?
+
+\PAUSE{\vspace{2ex}}
+
+This is with an eye towards future extension of our implementation:
+
+\begin{itemize}
+
+ \item If we support the D ISA extension (double-precision floating
+       point), we'll need to be able to load/store doublewords (8 bytes)
+
+ \item If we support RV64I, we'll need to be able to load/store doublewords (8 bytes).
+
+ \PAUSE{\vspace{2ex}}
+
+ \item Even though RV32I and RV64I instructions are at most 32-bits
+       wide, the Fetch stage may choose to fetch 64 bits at a time,
+       effectively ``pre-fetching'' a next instruction and reducing
+       the number of memory accesses.
+
+\end{itemize}
 
 \end{frame}
 
@@ -349,16 +418,18 @@ Memory responses may report an exception (misaligned access, non-existent memory
 
 \vspace{1ex}
 
-\input{../Code_Extracts/Mem_Rsp_Type.tex}
+\SHOWCODE{../Code_Extracts/Mem_Rsp_Type.tex}
 
 \vspace{4ex}
 
-\input{../Code_Extracts/Mem_Rsp.tex}
+\SHOWCODE{../Code_Extracts/Mem_Rsp.tex}
 
 \vspace{1ex}
 
-For load-requests smaller than XLEN, the data is returned in the
-least-significant bytes of the {\tt data} field.
+The {\tt data} field is only relevant when communicating data from
+memory to the CPU (LOAD and LR instructions).  When communicating 1, 2
+and 4 bytes, these are in the least-significant bytes of the {\tt
+data} field.
 
 \end{frame}
 

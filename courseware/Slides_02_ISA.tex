@@ -17,9 +17,13 @@
  \titlepage
 
  \begin{center}
-  \includegraphics[height=1cm]{../Figures/Bluespec_Logo_2022-10}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
  \end{center}
 \end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
 
 % ================================================================
 
@@ -27,7 +31,7 @@
 \frametitle{What is an ISA?}
 
 \begin{center}
-\includegraphics[height=0.8\textheight]{../Figures/Fig_What_is_an_ISA}
+\includegraphics[height=0.8\textheight]{Fig_What_is_an_ISA}
 \end{center}
 
 \end{frame}
@@ -70,7 +74,7 @@ Compilers only care about/know about architectural state.
 \frametitle{Modularity of the RISC-V ISA}
 
 \begin{center}
-\includegraphics[height=0.6\textheight]{../Figures/Fig_ISA_Modularity}
+\includegraphics[height=0.6\textheight]{Fig_ISA_Modularity}
 \end{center}
 
 \end{frame}
@@ -83,7 +87,7 @@ Compilers only care about/know about architectural state.
 From the RISC-V specification documents:
 
 \begin{center}
-\frame{\includegraphics[height=0.55\textheight]{../Figures/Fig_Instr_Encodings}}
+\frame{\includegraphics[height=0.55\textheight]{Fig_Instr_Encodings}}
 \end{center}
 
 \end{frame}
@@ -94,7 +98,7 @@ From the RISC-V specification documents:
 \frametitle{RISC-V Instruction Encodings; J-type immediates}
 
 \begin{center}
-\frame{\includegraphics[height=0.35\textheight]{../Figures/Fig_J_imm}}
+\frame{\includegraphics[height=0.35\textheight]{Fig_J_imm}}
 \end{center}
 
 \vfill
@@ -113,7 +117,7 @@ For BRANCH set of instructions (BEQ, BNE, BLT, BGE, BLTU, BGEU)
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[height=0.35\textheight]{../Figures/Fig_B_imm}}
+\frame{\includegraphics[height=0.35\textheight]{Fig_B_imm}}
 \end{center}
 
 \end{frame}
@@ -124,7 +128,7 @@ For BRANCH set of instructions (BEQ, BNE, BLT, BGE, BLTU, BGEU)
 \frametitle{RV32I Instructions}
 
 \begin{center}
-\includegraphics[height=0.85\textheight]{../Figures/Fig_RV32I_labeled}
+\includegraphics[height=0.85\textheight]{Fig_RV32I_labeled}
 \end{center}
 
 \end{frame}
@@ -137,7 +141,7 @@ For BRANCH set of instructions (BEQ, BNE, BLT, BGE, BLTU, BGEU)
 Excerpt from text of ISA specification document for LUI and AUIPC instructions
 
 \begin{center}
-\frame{\includegraphics[height=0.75\textheight]{../Figures/Fig_LUI_AUIPC}}
+\frame{\includegraphics[height=0.75\textheight]{Fig_LUI_AUIPC}}
 \end{center}
 
 \end{frame}
@@ -152,7 +156,7 @@ Execution semantics of LUI instruction
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=\textwidth]{../Figures/Fig_LUI}}
+\frame{\includegraphics[width=\textwidth]{Fig_LUI}}
 \end{center}
 
 \end{frame}
@@ -167,7 +171,7 @@ Execution semantics of AUIPC instruction
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=\textwidth]{../Figures/Fig_AUIPC}}
+\frame{\includegraphics[width=\textwidth]{Fig_AUIPC}}
 \end{center}
 
 \end{frame}
@@ -182,7 +186,7 @@ Execution semantics of JAL and JALR instructions (unconditional jumps)
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=\textwidth]{../Figures/Fig_JAL_JALR}}
+\frame{\includegraphics[width=\textwidth]{Fig_JAL_JALR}}
 \end{center}
 
 \end{frame}
@@ -193,7 +197,7 @@ Execution semantics of JAL and JALR instructions (unconditional jumps)
 \frametitle{Control and Status Registers (CSRs) for Trap-Handling}
 
 \begin{center}
-\frame{\includegraphics[width=\textwidth]{../Figures/Fig_Trap_CSRs}}
+\frame{\includegraphics[width=\textwidth]{Fig_Trap_CSRs}}
 \end{center}
 
 \vspace{1ex}
@@ -210,7 +214,7 @@ These CSRs can be explicitly read and written by CSRRxx instructions.
 \frametitle{Trap and Trap-return flow}
 
 \begin{center}
-\frame{\includegraphics[width=\textwidth]{../Figures/Fig_Trap_Return}}
+\frame{\includegraphics[width=\textwidth]{Fig_Trap_Return}}
 \end{center}
 
 \vspace{1ex}
@@ -260,7 +264,7 @@ For reading and writing CSRs from RISC-V code \\
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=0.8\textwidth]{../Figures/Fig_CSRRxx_spec}}
+\frame{\includegraphics[width=0.8\textwidth]{Fig_CSRRxx_spec}}
 \end{center}
 
 \end{frame}
@@ -271,7 +275,7 @@ For reading and writing CSRs from RISC-V code \\
 \frametitle{CSRRxx Instruction Semantics}
 
 \begin{center}
-\frame{\includegraphics[width=0.9\textwidth]{../Figures/Fig_CSRRxx}}
+\frame{\includegraphics[width=0.9\textwidth]{Fig_CSRRxx}}
 \end{center}
 
 {\footnotesize
@@ -293,7 +297,7 @@ From the RISC-V ISA specifications document
 \vspace{1ex}
 
 \begin{center}
-\frame{\includegraphics[width=0.6\textwidth]{../Figures/Fig_RV64I}}
+\frame{\includegraphics[width=0.6\textwidth]{Fig_RV64I}}
 \end{center}
 
 \end{frame}

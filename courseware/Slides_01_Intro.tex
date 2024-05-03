@@ -22,7 +22,11 @@
 \end{frame}
 
 
-% ****************************************************************
+% ================================================================
+
+\input{Reminders.tex}
+
+% ================================================================
 
 \begin{frame}
 \frametitle{Goals for this book/course}
@@ -46,7 +50,7 @@ These goals are complementary:
 
 \end{frame}
 
-% ****************************************************************
+% ================================================================
 
 \begin{frame}
 \frametitle{Learn {\BSV} to design the CPUs}
@@ -408,6 +412,47 @@ to a sequence of locations:
 
 % ================================================================
 
+\begin{frame}[fragile]
+\frametitle{Memory Hierarchies}
+
+\footnotesize
+
+Most modern computers have one or more levels of \emph{cache} memories
+between the CPU and main memory.
+
+\vspace{1ex}
+
+\begin{center}
+ \frame{\includegraphics[width=0.8\textwidth]{Fig_Mem_Hierarchy}}
+\end{center}
+
+\begin{itemize}
+
+ \item Each level typically holds a subset of memory locations held at
+       the next level.
+
+ \PAUSE{}
+
+ \item At any level L$_j$, if a request from level L$_{j-1}$ is for
+       one of these cached locations, it can respond immediately
+       (cache ``hit'').  Otherwise it is a ``miss'', and the memory
+       location needs to be fetched (``refill'') from level L$_{j+1}$
+       (to make room for this, it may have to write back some other
+       cached location to level L$_{j+1}$ (``writeback'')).
+
+ \PAUSE{}
+
+ \item Each level independently transacts with the next level
+       (although, usually, a miss at one level will trigger writeback
+       and refill transactions with the next level).  These are
+       usually also split-phase, and may or may not be pipelined.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}
 \frametitle{Kinds of Computer Memory}
 
@@ -503,47 +548,6 @@ bandwidth} (units: transactions/second, requests/second, bytes/second).
 Latency and bandwidth can vary (may depend on size of memory request,
 cache misses, virtual memory page faults, cache coherence traffic,
 ...).
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Memory Hierarchies}
-
-\footnotesize
-
-Most modern computers have one or more levels of \emph{cache} memories
-between the CPU and main memory.
-
-\vspace{1ex}
-
-\begin{center}
- \frame{\includegraphics[width=0.8\textwidth]{Fig_Mem_Hierarchy}}
-\end{center}
-
-\begin{itemize}
-
- \item Each level typically holds a subset of memory locations held at
-       the next level.
-
- \PAUSE{}
-
- \item At any level L$_j$, if a request from level L$_{j-1}$ is for
-       one of these cached locations, it can respond immediately
-       (cache ``hit'').  Otherwise it is a ``miss'', and the memory
-       location needs to be fetched (``refill'') from level L$_{j+1}$
-       (to make room for this, it may have to write back some other
-       cached location to level L$_{j+1}$ (``writeback'')).
-
- \PAUSE{}
-
- \item Each level independently transacts with the next level
-       (although, usually, a miss at one level will trigger writeback
-       and refill transactions with the next level).  These are
-       usually also split-phase, and may or may not be pipelined.
-
-\end{itemize}
 
 \end{frame}
 

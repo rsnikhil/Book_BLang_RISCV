@@ -82,8 +82,13 @@
 \addtolength{\hlessmmmm}{-4em}
 
 % ----------------
+% Inputting verbatim code fragments
+\newcommand{\SHOWCODE}[1]{{\footnotesize\input{#1}}}
+
+% ----------------
 % To allow redefinition of "pause" during development vs. deployment
 % Argument is vertical space command
+% \renewcommand{\PAUSE}[1]{#1}
 \newcommand{\PAUSE}[1]{#1\pause}
 
 % ----------------

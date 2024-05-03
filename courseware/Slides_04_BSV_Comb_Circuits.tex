@@ -7,12 +7,6 @@
 
 \date{L4: {\BSV}: Combinational Circuits}
 
-% ----------------
-% Switch off "pause" during development
-
-\renewcommand{\PAUSE}[1]{#1}
-% \renewcommand{\PAUSE}[1]{#1\pause}
-
 % ****************************************************************
 
 \begin{document}
@@ -27,6 +21,10 @@
  \end{center}
 
 \end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
 
 % ================================================================
 
@@ -57,7 +55,7 @@ We start with {\tt fn\_Decode}.
 
 The inputs to the Decode stage (see diagram on previous slide) are:
 
-\PAUSE{\vspace{1ex}}
+\vspace{1ex}
 
 \begin{itemize}
 
@@ -96,7 +94,7 @@ an address together.
 
 The outputs from the Decode stage, as shown in the diagram are:
 
-\PAUSE{\vspace{1ex}}
+\vspace{1ex}
 
 \begin{itemize}
 
@@ -762,15 +760,7 @@ and its README.
 The Decode stage computes a code that indicates which path should be taken. \\
 The code is defined as an {\tt enum} type:
 
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {OPCLASS_SYSTEM,     // EBREAK, ECALL, CSRRxx,
-              OPCLASS_CONTROL,    // BRANCH, JAL, JALR
-	      OPCLASS_INT,
-	      OPCLASS_MEM,        // LOAD, STORE, AMO
-	      OPCLASS_FENCE}      // FENCE
-OpClass
-deriving (Bits, Eq, FShow);
-\end{Verbatim}
+\SHOWCODE{../Code_Extracts/OpClass.tex}
 
 \end{frame}
 
@@ -781,15 +771,7 @@ deriving (Bits, Eq, FShow);
 
 \footnotesize
 
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {OPCLASS_SYSTEM,     // EBREAK, ECALL, CSRRxx,
-              OPCLASS_CONTROL,    // BRANCH, JAL, JALR
-	      OPCLASS_INT,
-	      OPCLASS_MEM,        // LOAD, STORE, AMO
-	      OPCLASS_FENCE}      // FENCE
-OpClass
-deriving (Bits, Eq, FShow);
-\end{Verbatim}
+\SHOWCODE{../Code_Extracts/OpClass.tex}
 
 \vspace{2ex}
 
