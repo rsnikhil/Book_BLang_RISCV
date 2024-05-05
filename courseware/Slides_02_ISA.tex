@@ -307,9 +307,10 @@ From the RISC-V ISA specifications document
 \begin{frame}
 \frametitle{RV64I instructions}
 
-In RV64, the 32 GPRs (General Purpose Registers) are each 64-bits wide.
+{\bf Architectural state:} In RV64, the 32 GPRs (General Purpose
+Registers) and the PC are each 64-bits wide.
 
-\vspace{1ex}
+\vspace{2ex}
 
 \begin{itemize}
 
@@ -332,6 +333,24 @@ In RV64, the 32 GPRs (General Purpose Registers) are each 64-bits wide.
     \end{itemize}}
 
 \end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Abstract algorithm for interpreting an ISA}
+
+\footnotesize
+
+\begin{center}
+\frame{\includegraphics[width=0.8\textwidth]{Fig_Instr_Exec}}
+\end{center}
+
+This is ``abstract'' in the sense that it just describes necessary
+functionality.  Different implementations will make choices as to
+whether or not these functions are pipelined; if pipelined, how many
+stages; whether or not there are concurrent pipelines; {\etc}
 
 \end{frame}
 

@@ -295,23 +295,36 @@ Accessing struct components using pattern-matching:
 \footnotesize
 
 \begin{minipage}{0.35\textwidth}
- Except for very early computers, most computers have a ``Harvard'' architecture:
+
+ Since the very days of computers, most computers have separate channels to memory:
+
  \begin{itemize}
 
-  \item Separate channels for Fetch to read from instruction memory (``IMem'')
-        and for LOAD/STORE instructions to read/write data memory (``DMem'').
+  \item ``IMem'': for Fetch to read from instruction memory
 
-  \item Instructions are not modified by the LOAD/STORE instructions.
+  \item ``DMem'': for LOAD/STORE instructions to read/write data memory
 
  \end{itemize}
+
  Typically, IMem and DMem can be accessed concurrently.
+
+To facilitate this concurrency, programs typically do not modify their
+ own instructions with LOAD/STORE instructions.
+
 \end{minipage}
 \hm
 \begin{minipage}{0.6\textwidth}
+
  \begin{center}
   \includegraphics[width=\textwidth]{Fig_Instr_Exec_w_structs}
  \end{center}
+
 \end{minipage}
+
+\vfill
+
+This organization is sometimes loosely called a ``Harvard Architecture''. \\
+See: \hm \url{https://en.wikipedia.org/wiki/Harvard_architecture}.
 
 \end{frame}
 
@@ -409,6 +422,16 @@ This is with an eye towards future extension of our implementation:
 
 % ================================================================
 
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Structs/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}[fragile]
 \frametitle{Memory responses}
 
@@ -438,7 +461,7 @@ data} field.
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Bit\_Vectors/} \\
+Please see directory: \hm {\tt Exercises/Ex\_05\_B\_Mem\_Req\_Rsp/} \\
 and its README.
 
 \end{frame}
