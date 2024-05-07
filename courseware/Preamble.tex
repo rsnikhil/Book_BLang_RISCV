@@ -88,8 +88,10 @@
 % ----------------
 % To allow redefinition of "pause" during development vs. deployment
 % Argument is vertical space command
-% \renewcommand{\PAUSE}[1]{#1}
-\newcommand{\PAUSE}[1]{#1\pause}
+
+% Choose with or without pauses
+% \newcommand{\PAUSE}[1]{#1\pause}
+\newcommand{\PAUSE}[1]{#1}
 
 % ----------------
 % Emojis

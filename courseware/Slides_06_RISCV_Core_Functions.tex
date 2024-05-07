@@ -1,0 +1,438 @@
+% -*- mode: fundamental -*-
+
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L6: RISC-V: Core functions for ISA execution}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
+ \end{center}
+
+\end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Flow of information between stages in Drum and Fife}
+
+\footnotesize
+
+\begin{center}
+\includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_structs}
+\end{center}
+
+\vspace*{2ex}
+
+The green annotations indicate the type of information flowing on each arrow.
+
+Each of these is a ``{\tt struct}'' type (also known as a ``record''):
+a heterogeneous grouping of \emph{fields} of various types.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Table of Contents}
+
+\tableofcontents
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Fetch}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE\tt fn\_Fetch}
+
+  \vspace{5ex}
+
+  Excerpts shown in next few slides.
+
+  Please also view the actual code in:
+  {\tt Code/src\_Common/Fn\_Fetch.bsv}
+
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Inputs and outputs of {\tt fn\_Fetch}}
+
+\footnotesize
+
+Direct output from {\tt fn\_Fetch} to Decode:
+
+\vspace{1ex}
+
+\SHOWCODE{../Code_Extracts/Fetch_to_Decode.tex}
+
+\vspace{5ex}
+
+Overall output of {\tt fn\_Fetch}
+
+\vspace{1ex}
+
+\SHOWCODE{../Code_Extracts/Result_F.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\tt fn\_Fetch}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Fn_Fetch.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\tt fn\_Fetch} is actually a pure function}
+
+\footnotesize
+
+{\tt fn\_Fetch} is actually a pure (side effect-free) function and
+could have been written without {\tt ActionValue\#()}:
+
+\vspace{2ex}
+
+\begin{minipage}{0.45\textwidth}
+ \begin{Verbatim}[frame=single]
+function ActionValue #(Result_F)
+         fn_Fetch (Bit #(XLEN)  pc,
+                   ...
+                   Bit #(64)    inum);
+   actionvalue
+      Result_F y = ?;
+      ...
+      return y;
+   endactionvalue
+endfunction
+ \end{Verbatim}
+\end{minipage}
+\hfill
+$\Longrightarrow$
+\hfill
+\begin{minipage}{0.45\textwidth}
+ \begin{Verbatim}[frame=single]
+function Result_F
+         fn_Fetch (Bit #(XLEN)  pc,
+                   ...
+                   Bit #(64)    inum);
+      Result_F y = ?;
+      ...
+      return y;
+endfunction
+ \end{Verbatim}
+\end{minipage}
+
+\vspace{2ex}
+
+We write it this way only to make it easy to add {\tt \$display()}
+statements for debugging in case we need them (when {\tt
+ActionValue\#()} would be necessary).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_06\_A\_Fetch/} \\
+and its README.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Decode}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE\tt fn\_Decode}
+
+  \vspace{5ex}
+
+  Excerpts shown in next few slides.
+
+  Please also view the actual code in:
+  {\tt Code/src\_Common/Fn\_Decode.bsv}
+
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Output of {\tt fn\_Decode}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Decode_to_RR.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\tt fn\_Decode}}
+
+\footnotesize
+
+\begin{center}\large
+ Please view the actual code in: \hm {\tt Code/src\_Common/Fn\_Decode.bsv}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_06\_B\_Decode/} \\
+and its README.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Dispatch}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE\tt fn\_Dispatch}
+
+  \vspace{5ex}
+
+  Excerpts shown in next few slides.
+
+  Please also view the actual code in:
+  {\tt Code/src\_Common/Fn\_Dispatch.bsv}
+
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Partial output of {\tt fn\_Dispatch}: direct to Retire}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/RR_to_Retire.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Partial output of {\tt fn\_Dispatch}: to Execute-Control}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/RR_to_EX_Control.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Partial output of {\tt fn\_Dispatch}: to Execute-Integer ALU}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/RR_to_EX.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Partial output of {\tt fn\_Dispatch}: to Execute-Integer ALU}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/RR_to_EX.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Full output of {\tt fn\_Dispatch}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Result_Dispatch.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\tt fn\_Dispatch}}
+
+\footnotesize
+
+\begin{center}\large
+ Please view the actual code in: \hm {\tt Code/src\_Common/Fn\_Dispatch.bsv}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_06\_C\_Dispatch/} \\
+and its README.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Execute Control}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE\tt fn\_Ex\_Control}
+
+  \vspace{5ex}
+
+  Excerpts shown in next few slides.
+
+  Please also view the actual code in:
+  {\tt Code/src\_Common/Fn\_Ex\_Control.bsv}
+
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Output of {\tt fn\_Ex\_Control}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/EX_Control_to_Retire.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\tt fn\_Ex\_Control}}
+
+\footnotesize
+
+\begin{center}\large
+ Please view the actual code in: \hm {\tt Code/src\_Common/Fn\_Ex\_Control.bsv}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_06\_E\_Ex\_Control/} \\
+and its README.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Execute Int}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE\tt fn\_Ex\_Int}
+
+  \vspace{5ex}
+
+  Excerpts shown in next few slides.
+
+  Please also view the actual code in:
+  {\tt Code/src\_Common/Fn\_Ex\_Int.bsv}
+
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Output of {\tt fn\_Ex\_Int}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/EX_to_Retire.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\tt fn\_Ex\_Int}}
+
+\footnotesize
+
+\begin{center}\large
+ Please view the actual code in: \hm {\tt Code/src\_Common/Fn\_Ex\_Int.bsv}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_06\_D\_Ex\_Int/} \\
+and its README.
+
+\end{frame}
+
+% ****************************************************************
+
+\input{Postamble.tex}
+
+% ****************************************************************
+
+\end{document}

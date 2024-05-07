@@ -623,36 +623,24 @@ above, take \verb|Bit#(n)| arguments and produce \verb|Bool| results.
 \index[BSV]{UInt@{\tt UInt}!Unsigned integer type}
 \index[BSV]{UInt@{\tt Integer}!Unbounded (non-synthesizable) Integer type}
 
-{\BSV} has four integer types, written as follows:
+These are the two main integer types that we use in {\BSV}:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-   Bit #(n)        // bit-vectors, bounded to n bits
-   Int #(n)        // signed integers, bounded to n bits
-   UInt #(n)       // unsigned integers, bounded to n bits
-   Integer         // Mathematical integers (unbounded, no bit-width limit)
+   Bit #(n)        // bit-vectors (unsigned integers), represented with n bits
+   Int #(n)        // signed integers, represented with n bits
 \end{Verbatim}
 }
 
 The most common type used in processor design (and possibly in all
-hardware design) is \verb|Bit#(n)|.  \verb|UInt#(n)| can used to
-represent unsigned integers, $n$ bits wide.  But since essentially the
-same operators (\verb|+|, \verb|-|, \verb|&|, \verb'|', shifts, ...,
-see Section~\ref{Bit_Vector_Ops}) are defined on both these types,
-this author mostly uses \verb|Bit#(n)| for unsigned integers, and
-rarely uses \verb|UInt#(n)|.
+hardware design) is \verb|Bit#(n)|. In {\BSV}, arithmetic and logical
+operations on \verb|Bit#(n)| types treat the values as \emph{unsigned}
+integers.
 
 \verb|Int#(n)| is used whenever we need to represent negative numbers
 and perform signed operations.  These are represented in bits in
 hardware in ``2's complement'' representation (see
 \url{https://en.wikipedia.org/wiki/Two%27s_complement}).
-
-\verb|Integer| is used for true mathematical integers, {\ie} they are
-unbounded, ranging from minus infinity to plus infinity (though in
-practice limited by the amount of memory in your computer!).  Being
-unbounded, they cannot be represented in any fixed-size hardware.
-\verb|Integer| is used only for compile-time integers, such as the
-size of a vector of modules.
 
 \index[BSV]{Wraparound arithmetic for fixed-width integer types}
 
@@ -661,7 +649,36 @@ Fixed-width integer types all ``wrap-around''.  For example, if we add
 \verb|3'b_000|; if we subtract 1 from a \verb|Bit#(3)| value
 \verb|3'b_000|, the result will be \verb|3'b_111|.
 
-Note that all four type names begin with an uppercase letter, as
+Note: for completeness we mention that there are two more basic
+integer types available in {\BSV}, but these are less frequently used
+(by this author).
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+   UInt #(n)       // unsigned integers, represented with n bits
+\end{Verbatim}
+}
+
+\verb|UInt#(n)| can be used to represent unsigned integers, $n$ bits
+wide.  However, this author mostly uses \verb|Bit#(n)| for unsigned
+integers, and rarely uses \verb|UInt#(n)|, since essentially the same
+operators (\verb|+|, \verb|-|, \verb|&|, \verb'|', shifts, ..., see
+Section~\ref{Bit_Vector_Ops}) are defined on both types.
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+   Integer         // Mathematical integers (unbounded, no bit-width limit)
+\end{Verbatim}
+}
+
+\verb|Integer| is used for true mathematical integers, {\ie} they are
+unbounded, ranging from minus infinity to plus infinity (though in
+practice limited by the amount of memory in your computer!).  Being
+unbounded, they cannot be represented in any fixed-size hardware.
+\verb|Integer| is used only for compile-time integers, such verbosity
+level for debugging, or the size of a vector of interfaces.
+
+Observe that all four type names begin with an uppercase letter, as
 discussed in Section~\ref{BSV_Syntax_of_Identifiers}.
 
 % ****************************************************************

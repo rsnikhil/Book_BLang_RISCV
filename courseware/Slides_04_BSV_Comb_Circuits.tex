@@ -462,9 +462,9 @@ Operators \\
 \hmmmm \verb|!| (boolean/logical NOT)  \\
 
 % ----------------
-\vspace{4ex}
+\vspace{10ex}
 
-CAUTION: \fbox{\small
+CAUTION: \fbox{
 \begin{minipage}{5in}
 
 {\tt Bool}, {\tt Bit\#(1)} and {\tt Int\#(1)} are distinct types, and cannot be mixed!
@@ -494,25 +494,36 @@ Bit\#(n)} arguments and produce {\tt Bool} results.
 
 \footnotesize
 
+These are the two main integer types that we use in {\BSV}:
+
 \begin{Verbatim}[frame=single, numbers=left]
-   Bit #(n)        // bit-vectors, bounded to n bits
-   Int #(n)        // signed integers, bounded to n bits
-   UInt #(n)       // unsigned integers, bounded to n bits
-   Integer         // Mathematical integers (unbounded, no bit-width limit)
+   Bit #(n)        // bit-vectors (unsigned integers), represented with n bits
+   Int #(n)        // signed integers, represented with n bits
 \end{Verbatim}
+
+\PAUSE{\vspace{10ex}}
+
+Note: there are two more basic integer types available in {\BSV}, that
+are less frequently used (by this author).
 
 \vspace{2ex}
 
-\begin{itemize}
+\begin{Verbatim}[frame=single]
+   UInt #(n)       // unsigned integers, represented with n bits
+\end{Verbatim}
 
- \item We rarely use \verb|UInt#(n)| because they are almost the same
-        as \verb|Bit#(n)|.
+We rarely use \verb|UInt#(n)| because they are basically like
+\verb|Bit#(n)| (same operators).
 
- \item \verb|Integer| is used for values that are only meaningful at
-     compile time and never represented in hardware (such as the size
-     of a vector of interfaces or modules).
+\vspace{5ex}
 
-\end{itemize}
+\begin{Verbatim}[frame=single]
+   Integer         // Mathematical integers (unbounded, no bit-width limit)
+\end{Verbatim}
+
+\verb|Integer| is used for values that are only meaningful at compile
+time and never represented in hardware (such as verbosity level for
+debugging or the size of a vector of interfaces).
 
 \end{frame}
 

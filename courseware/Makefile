@@ -3,6 +3,7 @@ SLIDES += Slides_02_ISA.pdf
 SLIDES += Slides_03_BSV_Program_Structure.pdf
 SLIDES += Slides_04_BSV_Comb_Circuits.pdf
 SLIDES += Slides_05_BSV_Structs.pdf
+SLIDES += Slides_06_RISCV_Core_Functions.pdf
 
 .PHONY: pdf
 pdf: $(SLIDES)
