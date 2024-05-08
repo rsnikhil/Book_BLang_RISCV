@@ -274,12 +274,12 @@ For example,
 
 \begin{itemize}
 
- \item In \verb|Bit #(n)|, \verb|n| is always of numeric kind.
+ \item In \verb|Bit #(n)|, \verb|n| always has numeric kind.
 
- \item In \verb|Vector #(n,t)|, \verb|n| is always of numeric kind,
- \verb|t| is always of value kind.
+ \item In \verb|Vector #(n,t)|, \verb|n| always has numeric kind,
+ \verb|t| always has value kind.
 
- \item In \verb|Tuple3 #(t1,t2,t3)|, all three parameters are always of value kind.
+ \item In \verb|Tuple3 #(t1,t2,t3)|, all three parameters always have value kind.
 
 \end{itemize}
 
@@ -321,7 +321,8 @@ For example,
  \vspace{1ex}
 
  Line 1: we let {\bsc} pick an initial value (usually picks
- \verb|'h_AAAA_..._AAAA| to stand out during debugging).
+ \verb|'h_AAAA_..._AAAA| to stand out during debugging). \\
+ \hmmmm Note: {\BSV} does not have any Verilog-like concept of ``X'' values.
 
  \vspace{1ex}
 
@@ -396,7 +397,7 @@ Comparison ops: result type is {\tt Bool}
    if (a != b) ...;        // not-equal to
    if (a < b) ...;         // less-than
    if (a <= b) ...;        // less-than-or-equal-to
-   if (a > b) ...;         // greather-than
+   if (a > b) ...;         // greater-than
    if (a >= b) ...;        // greater-than-or-equal-to
 \end{Verbatim}
 

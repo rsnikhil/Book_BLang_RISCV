@@ -15,9 +15,13 @@ import Semi_FIFOF :: *;
 // Local imports
 
 import Utils        :: *;
+import Arch         :: *;
 import Instr_Bits   :: *;
 import Mem_Req_Rsp  :: *;
 import Mems_Devices :: *;
+
+import Inter_Stage  :: *;
+import Fn_Fetch     :: *;
 
 // ****************************************************************
 
@@ -26,6 +30,28 @@ module mkTop (Empty);
 
    FIFOF #(Mem_Req) f_reqs <- mkFIFOF;
    FIFOF #(Mem_Rsp) f_rsps <- mkFIFOF;
+
+   function Action a_req (Bit #(XLEN) pc, Bit #(64) inum);
+      action
+	 let predicted_pc = 0;            // Only relevant in Fife
+	 let epoch        = 0;            // Only relevant in Fife
+	 let flog         = InvalidFile;  // log file
+	 let y <- fn_Fetch (pc, predicted_pc, epoch, inum, flog);
+
+	 f_reqs.enq (y.mem_req);
+
+	 $display ("y: ", fshow (y));
+	 $display ("y.to_D: ",    fshow_Fetch_to_Decode (y.to_D));
+	 $display ("y.mem_req: ", fshow_Mem_Req (y.mem_req));
+      endaction
+   endfunction
+
+   function Action a_rsp ();
+      action
+	 let mem_rsp <- pop_o (to_FIFOF_O (f_rsps));
+	 $display ("mem_rsp: ", fshow_Mem_Rsp (mem_rsp, True));
+      endaction
+   endfunction
 
    // Instantiate the memory model used by Drum and Fife.
    // We "stub out" the first five parameters and only use the last two.
@@ -50,26 +76,8 @@ module mkTop (Empty);
 	    mems_devices.init (init_params);
 	 endaction
 
-	 action // a_req
-            let mem_req = Mem_Req {req_type: funct5_LOAD,
-	                           size:     MEM_4B,
-				   addr:     'h_8000_0000,
-				   data:     ?,
-				   inum:     1,
-				   pc:       'h_8000_0000,
-				   instr:    ?};
-	    f_reqs.enq (mem_req);
-	    $display ("mem_req: ", fshow_Mem_Req (mem_req));
-	 endaction
-
-	 action // a_rsp
-	    let mem_rsp = f_rsps.first;
-	    f_rsps.deq;
-	    // Alternative idiom to do "first" and "deq" together
-	    // let mem_rsp <- pop_o (to_FIFOF_O (f_rsps));
-
-	    $display ("mem_rsp: ", fshow_Mem_Rsp (mem_rsp, True));
-	 endaction
+	 a_req ('h_8000_0000, 1);
+	 a_rsp;
       endseq);
 
 endmodule

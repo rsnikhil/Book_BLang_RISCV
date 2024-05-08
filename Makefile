@@ -16,6 +16,9 @@ help:
 
 TOPFILE = Book_BLang_RISCV
 
+# With BSV chapters only (no RISC-V chapters)
+# TOPFILE = Book_BLang
+
 SOURCES = \
 		Makefile \
 		blankpage.tex \
