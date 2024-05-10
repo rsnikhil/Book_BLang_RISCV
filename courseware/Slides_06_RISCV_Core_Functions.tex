@@ -203,6 +203,96 @@ and its README (a testbench for {\tt fn\_Fetch}).
 % ================================================================
 
 \begin{frame}
+\frametitle{Fields of struct {\tt Decode\_to\_RR}}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item The current PC: will be needed by BRANCH, JAL, AUIPC to compute
+       a target address relative to the current PC.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Was there an exception (Fetch memory error, or instruction is not legal)?
+       If so, what was the cause?
+
+ \PAUSE{\vspace{1ex}}
+
+ \item If no exception, what is the fall-through PC (needed for
+       next-PC update for most instructions, and for saved-PC
+       (``return address'') for JAL/JALR).
+
+ \PAUSE{\vspace{1ex}}
+
+ \item What is the instruction?  What is its broad classification:
+       Control (Branch or Jump)? Integer Arithmetic or Logic? Memory
+       Access?  This will help in choosing the execute stage pipeline.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it have zero, one or two input registers (``rs1'' and
+       ``rs2'')?  If so, which ones?  This will help the Register-Read
+       stage in reading registers and, for Fife, for managing ``hazards''.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it have zero or one output registers (``rd'')?  If so,
+       which one?  This will help the final Register Write stage in
+       writing back a value to a register.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Does it write memory?  In Fife, where we do speculative writes
+       to memory, this will help the Retire stage commit (finalize)
+       those writes.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item What is the ``immediate'' value, if any (after untangling all
+       different ways in which bits are permuted in different formats of
+       instructions.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Fields of struct {\tt Decode\_to\_RR}}
+
+\footnotesize
+
+Some {\tt Decode\_to\_RR} fields, such as \verb|has_rs1|, are used in
+later stages, and could be computed there from \verb|instr|; so why
+compute them here in Decode?
+
+\vspace{4ex}
+
+\begin{itemize}
+
+ \item If something is needed in more than one stage, computing it
+       once and carrying the value forward can save some hardware cost
+       (gates).  It also incurs a hardware cost: we have to allocate
+       state elements for the carried value in each inter-stage
+       buffer/FIFO.
+
+ \item Wherever something is computed, it adds to combinational delay
+       for that stage (lowering achievable clock speed).
+
+\end{itemize}
+
+\vspace{4ex}
+
+The decision between compute-and-carry {\vs} compute later is a
+balancing act between these kinds of considerations.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
 \frametitle{{\tt fn\_Decode}}
 
 \footnotesize

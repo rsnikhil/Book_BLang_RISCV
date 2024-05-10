@@ -42,147 +42,39 @@
 The green annotations indicate the type of information flowing on each arrow.
 
 Each of these is a ``{\tt struct}'' type (also known as a ``record''):
-a heterogeneous grouping of \emph{fields} of various types.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}
-\frametitle{Output from {\tt fn\_Decode} to the next stage}
-
-\footnotesize
-
-\SHOWCODE{../Code_Extracts/Decode_to_RR.tex}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}
-\frametitle{Fields of struct {\tt Decode\_to\_RR}}
-
-\footnotesize
-
-\begin{itemize}
-
- \item The current PC: will be needed by BRANCH, JAL, AUIPC to compute
-       a target address relative to the current PC.
-
- \PAUSE{\vspace{1ex}}
-
- \item Was there an exception (Fetch memory error, or instruction is not legal)?
-       If so, what was the cause?
-
- \PAUSE{\vspace{1ex}}
-
- \item If no exception, what is the fall-through PC (needed for
-       next-PC update for most instructions, and for saved-PC
-       (``return address'') for JAL/JALR).
-
- \PAUSE{\vspace{1ex}}
-
- \item What is the instruction?  What is its broad classification:
-       Control (Branch or Jump)? Integer Arithmetic or Logic? Memory
-       Access?  This will help in choosing the execute stage pipeline.
-
- \PAUSE{\vspace{1ex}}
-
- \item Does it have zero, one or two input registers (``rs1'' and
-       ``rs2'')?  If so, which ones?  This will help the Register-Read
-       stage in reading registers and, for Fife, for managing ``hazards''.
-
- \PAUSE{\vspace{1ex}}
-
- \item Does it have zero or one output registers (``rd'')?  If so,
-       which one?  This will help the final Register Write stage in
-       writing back a value to a register.
-
- \PAUSE{\vspace{1ex}}
-
- \item Does it write memory?  In Fife, where we do speculative writes
-       to memory, this will help the Retire stage commit (finalize)
-       those writes.
-
- \PAUSE{\vspace{1ex}}
-
- \item What is the ``immediate'' value, if any (after untangling all
-       different ways in which bits are permuted in different formats of
-       instructions.
-
-\end{itemize}
+a grouping of \emph{fields} of heterogeneous types.
 
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Fields of struct {\tt Decode\_to\_RR}}
+\frametitle{Memory requests}
 
 \footnotesize
 
-Some {\tt Decode\_to\_RR} fields, such as \verb|has_rs1|, are used in
-later stages, and could be computed there from \verb|instr|; so why
-compute them here in Decode?
+\SHOWCODE{../Code_Extracts/Mem_Req.tex}
 
-\vspace{4ex}
+\vspace{2ex}
 
-\begin{itemize}
+We will discuss {\tt Mem\_Req\_Type} in {\tt Mem\_Req\_Size} some
+following slides (they are just small bit-width scalars).
 
- \item If something is needed in more than one stage, computing it
-       once and carrying the value forward can save some hardware cost
-       (gates).  It also incurs a hardware cost: we have to allocate
-       state elements for the carried value in each inter-stage
-       buffer/FIFO.
+\vspace{1ex}
 
- \item Wherever something is computed, it adds to combinational delay
-       for that stage (lowering achievable clock speed).
+The {\tt data} field is only relevant when communicating data from the
+CPU to memory (STORE and AMO instructions).
 
-\end{itemize}
+\vspace{1ex}
 
-\vspace{4ex}
+When communicating 1, 2 and 4 bytes, these are in the
+least-significant bytes of the {\tt data} field.
 
-The decision between compute-and-carry {\vs} compute later is a
-balancing act between these kinds of considerations.
+\PAUSE{\vspace{4ex}}
 
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{{\BSV}: about ``{\tt deriving (Bits, FShow)}''}
-
-\footnotesize
-
-\begin{itemize}
-
- \item Because we said ``{\tt deriving (Bits)}'', {\bsc} will
-       automatically pick a hardware representation of this struct as
-       a bit-vector, by simply concatenating the bit-representations
-       of the fields.
-
- \item If we wanted a different representation, we omit ``{\tt
-       deriving (Bits)}'', and there is a way (``Typeclass
-       Instances'') to specify exactly what we want.
-
-\end{itemize}
-
-\PAUSE{\vspace*{5ex}}
-
-\begin{itemize}
-
- \item Because we said ``{\tt deriving (FShow)}'', {\bsc} will
-       automatically define an ``{\tt fshow()} function for this
-       struct, that will print each field separately.  Otherwise {\tt
-       \$display()} will simply print the flat bit-vector
-       representation of the struct (which will likely be hard to
-       read).
-
- \item If we wanted way to print the structa, we omit ``{\tt deriving
-       (FShow)}'', and there is a way (``Typeclass Instances'') to
-       define {\tt fshow()} to print what we want.
-
-\end{itemize}
+Note, we do not say ``{\tt deriving (Eq)}'' because we have no
+occasion to compare two entire Memory Requests for
+equality/inequality.
 
 \end{frame}
 
@@ -194,12 +86,11 @@ balancing act between these kinds of considerations.
 \footnotesize
 
 \begin{Verbatim}[frame=single, numbers=left]
-   Decode_to_RR x = Decode_to_RR {pc:           ... value of field ... ,
-                                  exception:    ... value of field ... ,
-                                  cause:        ... value of field ... ,
-                                  fallthru_pc:  ... value of field ... ,
-                                  instr:        ... value of field ... ,
-                                  ...};
+   Mem_Req x = Mem_Req {req_type: ... value of field ... ,
+                        size:     ... value of field ... ,
+                        addr:     ... value of field ... ,
+                        data:     ... value of field ... ,
+                        ...   };
 \end{Verbatim}
 The right-hand side is a ``struct expression'' whose value is a struct value.
 
@@ -214,12 +105,11 @@ Some shorthands: ``{\tt let}'' and don't-care values:
 \vspace*{2ex}
 
 \begin{Verbatim}[frame=single, numbers=left]
-   let x = Decode_to_RR {pc:           ... ,
-                         exception:    False,
-                         cause:        ?,
-                         fallthru_pc:  ... ,
-                         instr:        ... ,
-                         ...};
+   let  x   =  Mem_Req {req_type: MEM_REQ_LOAD,
+                        size:     ... value of field ... ,
+                        addr:     ... value of field ... ,
+                        data:     ?,
+                        ...   };
 \end{Verbatim}
 
 \end{frame}
@@ -236,15 +126,15 @@ These notations are standard in many programming languages.
 \vspace{5ex}
 
 \begin{Verbatim}[frame=single, numbers=left]
-   x.pc
-   x.instr
+   x.req_type
+   x.size
 \end{Verbatim}
 
 \vspace{5ex}
 
 \begin{Verbatim}[frame=single, numbers=left]
-   x.pc    = ... new value ... ;
-   x.instr = ... new value ... ;
+   x.req_type = MEM_REQ_STORE;
+   x.data     = ... new value ... ;
 \end{Verbatim}
 
 \end{frame}
@@ -252,16 +142,212 @@ These notations are standard in many programming languages.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Tuples: pre-defined structs with special notation}
+\frametitle{{\BSV}: Bit-representation of struct values}
 
 \footnotesize
 
-Example (from {\tt mkCSRs} module in file {\tt src\_Common/CSRs.bsv}).
+\begin{itemize}
+
+ \item Because we said ``{\tt deriving (Bits)}'', {\bsc} will
+       automatically pick a hardware representation of this struct as
+       a bit-vector, by simply concatenating the bit-representations
+       of the fields.  So, the size of the bit-vector for a struct
+       value is the sum of the sizes of the bit-vectors for the
+       fields.
+
+ \PAUSE{\vspace{4ex}}
+
+ \item If we wanted a different, custom representation, we omit ``{\tt
+       deriving (Bits)}'', and there is a way (``Typeclass
+       Instances'') to specify exactly what we want.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: printing/logging struct values (for debugging)}
+
+\footnotesize
+
+We can print a struct value directly, {\eg}
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+    Mem_Req mem_req;
+    ...
+    $display ("mem_req is: ", mem_req);
+\end{Verbatim}
+}
+
+\vspace{5ex}
+
+This will just print the hexadecimal notation for the full bit-vector
+representing the struct.  This can be difficult to read:
+
+\begin{itemize}
+ \item Some structs are large (hundreds of bits!)
+
+ \item Field boundaries may not align with hexadecimal bit boundaries
+       (every 4 bits), and so correlating the hex digits to the fields
+       can be tedious.
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: printing/logging struct values (for debugging)}
+
+\footnotesize
+
+Because we said ``{\tt deriving (FShow)}'', {\bsc} will automatically
+define an ``{\tt fshow()} function for this struct, that will print
+each field separately.
 
 \vspace{2ex}
 
-Constructing a 2-tuple value:
+{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
+    Mem_Req mem_req;
+    ...
+    $display ("mem_req is: ", fshow (mem_req));
+\end{Verbatim}
+}
+
+\PAUSE{\vspace{5ex}}
+
+If we wanted way to print the struct in a custom format, we omit
+``{\tt deriving (FShow)}'', and there is a way (``Typeclass
+Instances'') to define {\tt fshow()} to print what we want.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory requests: {\tt Mem\_Req\_Type}}
+
+\footnotesize
+
+We could define {\tt Mem\_Req\_Type} as an {\tt enum} type ({\tt
+MEM\_REQ\_LOAD}, {\tt MEM\_REQ\_STORE} ...).  However, looking ahead
+to possibly supporting the ``A'' extension in the future (Atomic
+Memory Ops (AMOs), see Unprivileged ISA Spec p.132), we observe that
+the ISA defines a 5-bit code for each AMO op.  So, we define:
+
+\vspace{4ex}
+
+\SHOWCODE{../Code_Extracts/Mem_Req_Type.tex}
+
+\vspace{4ex}
+
+For the AMOs, we will use the 5-bit codes as defined in the ISA (simplifies Decode!). \\
+For LOAD/STORE/FENCE, we use three codes that are not used by AMO ops.
+
+\vspace{4ex}
+
+\SHOWCODE{../Code_Extracts/funct5_MEMOPs.tex}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory requests: {\tt Mem\_Req\_Size}}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Mem_Req_Size.tex}
+
+\PAUSE{\vspace{2ex}}
+
+Why do we have a code for 8 bytes, since RV32I can only LOAD/STORE
+bytes (1 byte), halfwords (2 bytes) and words (4 bytes)?
+
+\PAUSE{\vspace{2ex}}
+
+This is with an eye towards future extension of our implementation:
+
+\begin{itemize}
+
+ \item If we support the D ISA extension (double-precision floating
+       point), we'll need to be able to load/store doublewords (8 bytes).
+       This could be in RV32 or RV64.
+
+ \item If we support RV64I, we'll need to be able to load/store
+       doublewords (8 bytes).
+
+ \PAUSE{\vspace{2ex}}
+
+ \item Even though RV32I and RV64I instructions are at most 32-bits
+       wide, the Fetch stage may choose to fetch more bits on each
+       memory access, effectively ``pre-fetching'' subsequent
+       instruction and reducing the number of memory accesses.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Structs/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Memory responses}
+
+\footnotesize
+
+Memory responses may report an exception (misaligned access,
+non-existent memory, ...).
+
+\vspace{2ex}
+
+\SHOWCODE{../Code_Extracts/Mem_Rsp_Type.tex}
+
+\vspace{4ex}
+
+\SHOWCODE{../Code_Extracts/Mem_Rsp.tex}
+
+\vspace{1ex}
+
+The {\tt data} field is only relevant when communicating data from
+memory to the CPU (LOAD and LR instructions).  When communicating 1, 2
+and 4 bytes, these are in the least-significant bytes of the {\tt
+data} field.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see directory: \hm {\tt Exercises/Ex\_05\_B\_Mem\_Req\_Rsp/} \\
+and its README.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Tuples: pre-defined immutable structs with special notation}
+
+\footnotesize
+
+Constructing a 2-tuple value: Example:
+\begin{Verbatim}[frame=single, numbers=left, label=from src\_Common/CSRs.bsv]
    function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
             fav_csr_read (Bit #(12) csr_addr);
       ...
@@ -325,144 +411,6 @@ To facilitate this concurrency, programs typically do not modify their
 
 This organization is sometimes loosely called a ``Harvard Architecture''. \\
 See: \hm \url{https://en.wikipedia.org/wiki/Harvard_architecture}.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Memory requests}
-
-\footnotesize
-
-\SHOWCODE{../Code_Extracts/Mem_Req.tex}
-
-\vspace{2ex}
-
-We will discuss {\tt Mem\_Req\_Type} in {\tt Mem\_Req\_Size} the following slides.
-
-\vspace{1ex}
-
-The {\tt data} field is only relevant when communicating data from the
-CPU to memory (STORE and AMO instructions).  When communicating 1, 2
-and 4 bytes, these are in the least-significant bytes of the {\tt
-data} field.
-
-\PAUSE{\vspace{4ex}}
-
-Note, we do not say ``{\tt deriving (Eq)}'' because we have no
-occasion to compare two entire Memory Requests for
-equality/inequality.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Memory requests: {\tt Mem\_Req\_Type}}
-
-\footnotesize
-
-We could define {\tt Mem\_Req\_Type} as an {\tt enum} type ({\tt
-MEM\_REQ\_LOAD}, {\tt MEM\_REQ\_STORE} ...).  However, looking ahead
-to possibly supporting the ``A'' extension in the future (Atomic
-Memory Ops (AMOs), see Unprivileged ISA Spec p.132), we observe that
-the ISA defines a 5-bit code for each AMO op.  So, we define:
-
-\vspace{4ex}
-
-\SHOWCODE{../Code_Extracts/Mem_Req_Type.tex}
-
-\vspace{4ex}
-
-For the AMOs, we will use the 5-bit codes as defined in the ISA (simplifies Decode!). \\
-For LOAD/STORE/FENCE, we use three codes that are not used by AMO ops.
-
-\vspace{4ex}
-
-\SHOWCODE{../Code_Extracts/funct5_MEMOPs.tex}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Memory requests: {\tt Mem\_Req\_Size}}
-
-\footnotesize
-
-\SHOWCODE{../Code_Extracts/Mem_Req_Size.tex}
-
-\PAUSE{\vspace{2ex}}
-
-Why do we have a code for 8 bytes, since RV32I can only LOAD/STORE
-bytes (1 byte), halfwords (2 bytes) and words (4 bytes)?
-
-\PAUSE{\vspace{2ex}}
-
-This is with an eye towards future extension of our implementation:
-
-\begin{itemize}
-
- \item If we support the D ISA extension (double-precision floating
-       point), we'll need to be able to load/store doublewords (8 bytes)
-
- \item If we support RV64I, we'll need to be able to load/store doublewords (8 bytes).
-
- \PAUSE{\vspace{2ex}}
-
- \item Even though RV32I and RV64I instructions are at most 32-bits
-       wide, the Fetch stage may choose to fetch 64 bits at a time,
-       effectively ``pre-fetching'' a next instruction and reducing
-       the number of memory accesses.
-
-\end{itemize}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}
-\frametitle{\EmojiExercise \hmm Exercise break}
-
-Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Structs/} \\
-and its README.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Memory responses}
-
-\footnotesize
-
-Memory responses may report an exception (misaligned access, non-existent memory, ...).
-
-\vspace{1ex}
-
-\SHOWCODE{../Code_Extracts/Mem_Rsp_Type.tex}
-
-\vspace{4ex}
-
-\SHOWCODE{../Code_Extracts/Mem_Rsp.tex}
-
-\vspace{1ex}
-
-The {\tt data} field is only relevant when communicating data from
-memory to the CPU (LOAD and LR instructions).  When communicating 1, 2
-and 4 bytes, these are in the least-significant bytes of the {\tt
-data} field.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}
-\frametitle{\EmojiExercise \hmm Exercise break}
-
-Please see directory: \hm {\tt Exercises/Ex\_05\_B\_Mem\_Req\_Rsp/} \\
-and its README.
 
 \end{frame}
 

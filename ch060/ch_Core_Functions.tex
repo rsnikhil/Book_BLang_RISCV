@@ -110,7 +110,7 @@ don't-care value).  The two fields of \verb|y| are then updated in
 lines 11 and 14, respectively, and \verb|y| is finally returned as the
 result of the function.
 
-We also use ``\verb|?|'' in line 17 the \verb|data| field is only
+We also use ``\verb|?|'' in line 17 as the \verb|data| field is only
 relevant in a STORE memory request, whereas this is a FETCH request.
 
 % ================================================================
@@ -132,17 +132,99 @@ and \verb|Mem_Req| outputs look correct.
 \section{The {\tt fn\_Decode} function}
 
 \label{Sec_fn_Decode}
+\label{Sec_struct_D_to_RR}
 
 \index[RV]{fn\_Decode@{\tt fn\_Decode} (Decode function)}
 \index[RV]{Decode function ({\tt fn\_Decode})}
 
-The core function for the Decode stage is called \verb|fn_Decode|.
-Its arguments are a struct of type \verb|Fetch_to_Decode| from the
-Fetch stage and a \verb|Mem_Rsp| memory response struct from memory.
-Its output struct type, \verb|Decode_to_RR|, was described in
-Section~\ref{Sec_struct_D_to_RR}.  The code for \verb|fn_Decode| is
-mostly a big if-then-else that analyses the incoming instruction and
-produces some summary information:
+The core function for the Decode stage is \verb|fn_Decode|.  Its
+arguments are a struct of type \verb|Fetch_to_Decode| from the Fetch
+stage (Section~\ref{Sec_fn_Fetch}) and a \verb|Mem_Rsp| memory
+response struct from memory (Section~\ref{Sec_Mem_Rsp}).  Its result
+is a struct \verb|Decode_to_RR|:
+
+\SHOWCODE{Code_Extracts/Decode_to_RR.tex}
+
+The field {\tt pc} carries the PC for this instruction.  This will be
+needed by BRANCH, JAL, JALR and AUIPC instructions to compute
+addresses that are offset from the current PC.  It will also be needed
+for any traps (exceptions) that may occur in the execution of this
+instruction, since trap-handling saves the PC in the {\tt mepc} CSR.
+
+The \verb|exception| flag indicates:
+
+\begin{itemize}
+
+ \item whether an error was encountered in the Fetch-to-Memory-to-Decode path, or
+
+ \item whether the Decode stage's analysis indicates that the
+       instruction is not legal (unrecognized 32-bit code).
+
+\end{itemize}
+
+When the exception flag is true, \verb|cause| and \verb|tval| fields
+provide more detail.
+
+If there is no exception (no Fetch memory error; instruction is
+legal), other fields provide more analytical detail for subsequent
+stages:
+
+\begin{itemize}
+
+\item The {\tt fallthru\_pc} is the address of the next instruction
+      following this one in memory.  For RV32I and RV64I, this will
+      always be PC+4, since all instructions are 4-bytes
+      long.\footnote{If we implement the ``C'' RISC-V ISA extension
+      (compressed instructions), the correct fall-through PC can be
+      PC+2.}  For most instructions, {\tt fallthru\_pc} is indeed the
+      unique next PC.  For conditional BRANCH instructions, this is
+      the next PC if the BRANCH is not taken.  For JAL and JALR
+      instructions (unconditional jumps), this is the PC saved by the
+      instruction in the {\tt ra} register (``return address'').
+
+\item The instruction itself, {\tt instr}.  This will be needed for
+      opcode details, the rs1, rs2 and rd register indexes, immediate
+      values, {\etc}
+
+\end{itemize}
+
+The next several fields are derived by analyzing the instruction.
+They could be re-derived wherever needed by re-analyzing the
+instruction, but we perform that work just once in the Decode stage
+and communicate the results forward.
+
+\begin{itemize}
+
+\item The \verb|opclass| field indicates which Execute-stage path in
+      Figure~\ref{Fig_Core_Simple_Instr_Exec} will process this
+      instruction.
+
+\item The \verb|has_rs1| and \verb|has_rs2| fields indicate whether
+      this instruction reads any rs1 and/or rs2 registers; this will
+      be control reading from the register file.
+
+\item The \verb|has_rd| field indicates whether instruction writes an
+      rd register.  This will control writing to the register file.
+
+\item The \verb|writes_mem| field indicates whether or not this
+      instruction writes to memory.  This is useful in Fife in the
+      Retire stage to know whether or not there may be a pending write
+      to memory that needs to be committed.
+
+\item The \verb|imm| field contains any ``immediate'' value in the
+      instruction. Refer to the top of each page of ``Table 24.2
+      Instruction listing for RISC-V'' in the Unprivileged
+      Spec~\cite{RISCV_Unpriv_2019_12_13}, which shows that the I-,
+      S-, B-, U- and J-type instructions have immediate values of
+      different sizes and encode them in different ways
+      (``bit-swizzled'').  We untangle these once in the Decode stage,
+      and pass on the normalized results in the \verb|imm| field.
+
+\end{itemize}
+
+The code for \verb|fn_Decode| is mostly a big if-then-else that
+analyses the incoming instruction and produces some summary
+information:
 
 \SHOWCODE{Code_Extracts/fn_Decode.tex}
 

@@ -2,8 +2,8 @@
 
 % ****************************************************************
 
-\chapter{BSV: Struct types, tuples, and\\
-RISC-V: Memory requests and responses}
+\chapter{BSV: Struct types and tuples; and\\
+RISC-V: Memory requests \& responses}
 
 \markboth{Ch \arabic{chapter}: BSV structs; RISC-V mem reqs and rsps}{\copyrightnotice}
 
@@ -21,21 +21,22 @@ RISC-V: Memory requests and responses}
 \index[BSV]{field!of a {\tt struct}}
 \index[BSV]{member!of a {\tt struct}}
 
-Various kinds of information need to be communicated between the
-stages of Figure~\ref{Fig_Instr_Exec}---program counter values,
-instructions, values read from registers, values to be written back to
-registers, and so on.  \verb|struct| data types (short for
-``structures'') are suitable for bundling together heterogeneous
-collections of values.  (This is the same concept in C and
-SystemVerilog; it is also called a ``record'' in some programming
-languages.)  Each component of a struct is called a ``field'' or a
-``member'' of the struct.
+In Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, various kinds of
+information need to be communicated between the stages---program
+counter values, instructions, values read from registers, values to be
+written back to registers, and so on.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_structs}}
   \caption{\label{Fig_Simple_Instr_Exec_w_structs}
-           Simple interpretation of RISC-V instructions
-	   (Fig.~\ref{Fig_Instr_Exec} with arrows annotated with {\tt struct} types)}
+           Simple interpretation of RISC-V instructions \\
+	   \hmmmm\hmm (Same as Fig.~\ref{Fig_Instr_Exec}, with arrows annotated with {\tt struct} types)}
 \end{figure}
+\verb|struct| data types (short for ``structures'') are suitable for
+bundling together heterogeneous collections of
+values.\footnote{Structs in {\BSV} are just like structs in C/C++ and
+SystemVerilog.  They are also known as ``records'' in some programming
+languages.}  Each component of a struct is called a ``field'' or a
+``member'' of the struct.
 Figure~\ref{Fig_Simple_Instr_Exec_w_structs} annotates
 Figure~\ref{Fig_Instr_Exec} with struct types communicated on each of
 the black arrows between stages, and each of the red arrows to and
@@ -50,200 +51,69 @@ in the file: \verb|src_Common/Inter_Stage.bsv|.
 \section{BSV: {\tt struct} types}
 
 \label{BSV_struct_types}
+\label{Sec_Mem_Req}
 
-Consider the black arrow from the Decode stage to the
-Register-read-and-Dispatch stage of
-Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.  We want to communicate
-several values, including:
+In Figure~\ref{Fig_Simple_Instr_Exec_w_structs}, consider the red
+arrow from the Fetch stage to the IMem port of memory, or the red
+arrow from the Execute DMem stage to the DMem port of memory.  We want
+to communicate several values, including:
 
-\begin{itemize}
-
-\item The current PC.  This will be needed by BRANCH, JAL, JALR and
-  AUIPC instructions to compute addresses that are offset from the
-  current PC.  It will be needed for any traps (exceptions) that may
-  occur, which save PC for the trap-handler.
-
-\item An \verb|exception| flag, indicating:
-
-  \begin{tightlist}
-
-    \item whether an error was encountered in the Fetch-to-Memory-to-Decode path, or
-
-    \item whether the Decode stage's analysis indicates that the
-          instruction is not legal (unrecognized 32-bit code).
-
-  \end{tightlist}
-
-  When the exception flag is true, \verb|cause| and \verb|tval| fields
-  provide more detail.
-
-\item If there is no exception (no Fetch memory error; instruction is
-      legal), other fields provide more analytical detail for
-      subsequent stages:
-
-  \begin{tightlist}
-
-    \item The ``fall-through'' PC, {\ie} the address of the next
-      instruction following this one in memory.  For RV32I and RV64I,
-      this will always be PC+4, since all instructions are 4-bytes
-      long.\footnote{If we implement the ``C'' RISC-V ISA extension
-      (compressed instructions), the correct fall-through PC may be
-      PC+2.}  For most instructions, the fall-through PC is indeed the
-      unique next PC.  For conditional BRANCH instructions, this is
-      the next PC if the BRANCH is not taken.  For JAL and JALR
-      instructions (unconditional jumps), this is the ``return
-      address'' saved by the instruction in a register.
-
-    \item The instruction itself.  This will be needed for opcode
-      details, the rs1, rs2 and rd register indexes, immediate values,
-      {\etc}
-  \end{tightlist}
-
-  The next several fields are derived by analyzing the instruction.
-  They could be re-derived wherever needed by re-analyzing the
-  instruction, but we perform that work just once in the Decode stage
-  and communicate the results.
-
-  \begin{tightlist}
-
-    \item The \verb|OpClass|.  This indicates to which Execute-stage
-      path in Figure~\ref{Fig_Simple_Instr_Exec_w_structs} we dispatch
-      for subsequent actions.
-
-    \item Whether the instruction reads rs1 and/or rs2 register
-      values.  This will be needed to control reading from the
-      register file.
-
-    \item Whether the instruction writes an rd register value.  This
-      will be needed to control writing to the register file.
-
-    \item Whether or not the instruction writes to memory.  This is
-      useful in Fife in the Retire stage to know whether or not there
-      may be a pending write to memory that needs to be committed.
-
-    \item The ``immediate'' value in the instruction. Refer to the top
-        of each page of ``Table 24.2 Instruction listing for RISC-V''
-        in the Unprivileged Spec~\cite{RISCV_Unpriv_2019_12_13}, which
-        shows that the I-, S-, B-, U- and J-type instructions have
-        immediate values of different sizes and encode them in
-        different ways (``bit-swizzled'').  We untangle these once in
-        the Decode stage, and pass on the clarified results in the
-        \verb|imm| field.
-  \end{tightlist}
-
-\end{itemize}
-
-This heterogeneous collection of values is most conveniently expressed
-as a \verb|struct| type:
-
-\label{Sec_struct_D_to_RR}
+\begin{tightlist}
+ \item The type of memory request: LOAD, STORE, {\etc}
+ \item The size of the memory request: 1, 2 or 4 bytes.
+ \item The address in memory that is to be accessed.
+ \item For a STORE, the data to be written.
+ \item ... (possibly additional fields for debugging) ...
+\end{tightlist}
 
 \index[BSV]{struct@{\tt struct}!type declaration}
+\index[RV]{Memory!Request}
 
-\SHOWCODE{Code_Extracts/Decode_to_RR.tex}
+This heterogeneous collection of values ({\ie} collection of values of
+different types) is most conveniently expressed as a \verb|struct|
+type:
 
-\index[BSV]{deriving!Bits}
+\SHOWCODE{Code_Extracts/Mem_Req.tex}
 
-Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
-will automatically work out a representation for \verb|Decode_to_RR|
-values in bits, using the straightforward method of simply
-concatenating the bit-vector representation of each field into a
-bit-vector for the whole struct.  The total bit-size of a
-\verb|Decode_to_RR| struct value is simply the sum of the bit-sizes of
-the individual fields.  If we had not said ``\verb|deriving(Bits)|'',
-we could explicitly provide some other custom representation in
-bits.\footnote{ In C/C++, compilers will often ``pad'' out fields
-(insert unused bits between fields) to be aligned on byte and word
-boundaries, for more efficient access in byte-structured memories;
-thus, a struct's size in C/C++ may be larger than the sum of the field
-sizes, and may even vary depending on the compiler's target
-architecture.  In hardware design, these values may reside in wires,
-registers, FIFOs, etc which have no ``byte-structured'' bias, and so
-we do not play any such ``padding'' games.}
+Here, we are defining a new type {\tt Mem\_Req} containing fields like
+{\tt req\_type}, {\tt size}, {\tt addr} and {\tt data}, each having a
+specific type.  We will discuss \verb|Mem_Req_Type| and
+\verb|Mem_Req_Size| soon (in Sections~\ref{Sec_Mem_Req_Type} and
+\ref{Sec_Mem_Req_Size}, respectively); for now, just think of them as
+enum types (small bit-width scalars).
 
-\index[BSV]{packing of struct fields and vector elements}
-\index[BSV]{structs!packing of fields}
-\index[BSV]{vectors!packing of fields}
-
-% ----------------
-\vspace{2ex}
-
-NOTE: \fbox{\small
-\begin{minipage}{5in}
-
-SystemVerilog makes a distiction beteen ``packed'' and ``unpacked'' values.
-
-\vspace{2ex}
-
-In BSV all struct and vector values are packed (no padding between
-fields/elements) unless the user has explicitly over-ridden the
-``deriving (Bits)'' directive with their own bit-representation
-function.
-
-\end{minipage}}
-% ----------------
-
-% ----------------
-\vspace{2ex}
-
-CAVEAT: \fbox{\small
-\begin{minipage}{5in}
-
-Unfortunately Verilog, the target language for the \emph{bsc}
-compiler, does not have any concept of structs.  When debugging
-Verilog code that has been produced by \emph{bsc} from BSV source
-code, a struct will appear as a flat bit-vector that aggregates all
-the fields.
-
-\vspace{1ex}
-
-Experienced BSV coders sometimes (perhaps temporarily for debugging)
-rearrange the order and sizes of fields in a struct so that they are
-well-aligned with 8-bit byte boundaries.  Then, during debugging,
-while printing the values in hexadecimal, or viewing the values in a
-waveform viewer, it becomes easier to read off the field values from
-the displayed hexadecimal digits.
-
-\end{minipage}}
-
-\vspace{2ex}
-% ----------------
-
-\index[BSV]{deriving!Fshow}
-
-Because we said ``\verb|deriving(FShow)|'', the \emph{bsc} compiler
-will automatically define an ``\verb|fshow()|'' function for this
-type: if we print \verb|fshow(|\emph{v}\verb|)|, it will print
-something like this:
-
-{\footnotesize
-\begin{Verbatim}[frame=single, numbers=left]
-Decode_to_RR {pc=..., exception = ..., instr=..., ... }
-\end{Verbatim}
-}
+The order in which the fields are declared has no semantic
+significance; the order can be chosen freely for best
+readability.\footnote{The order of fields will affect the bit-vector
+representation of the struct (see
+Section~\ref{Sec_struct_representation}) but that is an implementation
+detail, not a semantic property.}
 
 % ================================================================
 
-\subsection{Creating struct values}
+\subsection{Creating (constructing) struct values}
 
 \index[BSV]{struct!entire struct values}
 
-We can create a new value of type \verb|D_to_RR| with syntax like
+We can create a new value of type \verb|Mem_Req| with syntax like
 this:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-   Decode_to_RR x = Decode_to_RR {pc:           ... value of field ... ,
-                                  exception:    ... value of field ... ,
-                                  cause:        ... value of field ... ,
-                                  fallthru_pc:  ... value of field ... ,
-                                  instr:        ... value of field ... ,
-                                  ...};
+   Mem_Req x = Mem_Req {req_type: ... value of field ... ,
+                        size:     ... value of field ... ,
+                        addr:     ... value of field ... ,
+                        data:     ... value of field ... ,
+                        ...   };
 \end{Verbatim}
 }
 
-The right-hand side is sometimes called a ``struct expression'', {\ie}
-it is an expression which, when evaluated, produces a struct value.
+The identifier {\tt Mem\_Req} is used in two ways.  On the left, as
+usual, it is the \emph{type} of the identifier that we are declaring
+({\tt x}).  On the right, it is a \emph{constructor}, {\ie} it takes
+the field values and constructs a struct value.  The entire right-hand
+side is sometimes called a ``struct expression'', {\ie} it is an
+expression which, when evaluated, produces a struct value.
 
 % ----------------
 \vspace{2ex}
@@ -254,9 +124,9 @@ NOTE: \fbox{\small
 In C, we use the term ``value'' only for ``small'' items that are
 $\leq 64$ bits in size (integers, floating point values, and
 pointers).  This is an unfortunate legacy view perhaps tied to
-implementations detail---what can be passed in a register---which is
-not relevant in the semantics of a high-level language.  In more
-modern languages (including C++) we can have values of any size,
+implementation detail---things that can be passed in registers---which
+should not be relevant in the semantics of a high-level language.  In
+more modern languages (including C++) we can have values of any size,
 including structs, arrays, arrays of structs, and so on.
 
 \end{minipage}}
@@ -264,51 +134,48 @@ including structs, arrays, arrays of structs, and so on.
 \vspace{2ex}
 % ----------------
 
-The repetition of \verb|Decode_to_RR| above seems verbose; the
-left-hand side instance is the type, and the right-hand side instance
-is the ``struct constructor'' (think of it as a function that takes
-the field values as arguments and returns a struct value). The
-\emph{bsc} compiler's type-analysis is able to infer the type from the
-right-hand side, so we can just use the keyword ``\verb|let|'':
+The repetition of \verb|Mem_Req| above seems verbose.  The \emph{bsc}
+compiler's type-analysis is easily able to infer the type from the
+right-hand side, so we can just use the keyword ``\verb|let|'' ({\tt
+let}-bindings are discussed in Section~\ref{Sec_let_binding}):
 
 \index[BSV]{let@{\tt let}!binding an identifier with implicit type declaration}
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-   let x = Decode_to_RR {pc:           ... value of field ... ,
-                         exception:    ... value of field ... ,
-                         cause:        ... value of field ... ,
-                         fallthru_pc:  ... value of field ... ,
-                         instr:        ... value of field ... ,
-                         ...};
+   let  x   =  Mem_Req {req_type: ... value of field ... ,
+                        size:     ... value of field ... ,
+                        addr:     ... value of field ... ,
+                        data:     ... value of field ... ,
+                        ...   };
 \end{Verbatim}
 }
 
-The order in which the field values are given does not matter; the
-\emph{bsc} compiler will put the fields into the correct offsets in
-the struct value.
+The order in which the field values are given does not matter.  In
+particular, the order may be different from the order in the {\tt
+typedef} declaration.  The \emph{bsc} compiler will put the fields
+into the correct offsets in the struct value.
 
 Not all field values need be given in a struct expression.  The
 \emph{bsc} compiler will issue a warning for each unspecified field,
 and insert an ``unspecified'' (and unpredictable) value there.  You
 can indicate that a field is intentionally left unspecified (and
-suppress the compiler warning) using ``\verb|?|'', BSV's notation for
-a ``don't care'' value (these are discussed in
+suppress the compiler warning) using ``\verb|?|'', {\BSV}'s notation
+for a ``don't care'' value (these are discussed in
 Section~\ref{Sec_Dont_Care_Values}).
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-      let x = Decode_to_RR {pc:           ... ,
-                            exception:    False,
-                            cause:        ?,
-                            fallthru_pc:  ... ,
-                            instr:        ... ,
-                            ...};
+   let  x   =  Mem_Req {req_type: MEM_REQ_LOAD,
+                        size:     ... value of field ... ,
+                        addr:     ... value of field ... ,
+                        data:     ?,
+                        ...   };
 \end{Verbatim}
 }
 
-In our example, when the \verb|exception| field is false the
-\verb|cause| field is meaningless, and we indicate this explicitly
+In our example, when the \verb|req_type| field is \verb|MEM_REQ_LOAD|
+the \verb|data| field is meaningless, and we indicate this explicitly
 with ``\verb|?|''.
 
 % ================================================================
@@ -322,11 +189,10 @@ to SystemVerilog and C/C++:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-   x.pc
-   x.instr
+   x.req_type
+   x.size
 \end{Verbatim}
 }
-
 
 % ================================================================
 
@@ -339,10 +205,188 @@ notation common to SystemVerilog and C/C++:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-   x.pc    = ... new value ... ;
-   x.instr = ... new value ... ;
+   x.req_type = MEM_REQ_STORE;
+   x.data     = ... new value ... ;
 \end{Verbatim}
 }
+
+% ================================================================
+
+\subsection{Representation of a struct in bits}
+
+\label{Sec_struct_representation}
+
+\index[BSV]{deriving!Bits}
+
+Because we said ``\verb|deriving(Bits)|'' in the struct type
+declaration, the {\bsc} compiler will automatically work out a
+representation in bits for \verb|Mem_Req| struct values, using the
+straightforward method of simply concatenating the bit-vector
+representation of each field into a wider bit-vector for the whole
+struct.  The total bit-size of a \verb|Mem_Req| struct value is simply
+the sum of the bit-sizes of the individual fields.
+
+If we had \emph{not} said ``\verb|deriving(Bits)|'', the {\bsc}
+compiler will not define any bit-representation for this type.  As
+mentioned in Section~\ref{Sec_deriving_Bits}, (a) we do not need any
+hardware representation in bits for types that are only used at
+statically (at compile time) and (b) if we \emph{do} need a
+bit-representation, {\BSV} has a mechanism for specifying this
+explicitly (``typeclass instances'').
+
+% ----------------
+\vspace{2ex}
+
+NOTE: \fbox{\small
+\begin{minipage}{5in}
+
+\index[BSV]{packing of struct fields and vector elements}
+\index[BSV]{structs!packing of fields}
+\index[BSV]{vectors!packing of fields}
+
+In C/C++, compilers will often ``pad'' out fields (insert unused bytes
+between fields) so that fields are aligned on byte and word
+boundaries, for more efficient access in byte-structured memories.
+Thus, a struct's size in C/C++ may be larger than the sum of the field
+sizes, and may even vary depending on the compiler's target
+architecture or optimization flags.
+
+\vspace{1ex}
+
+In hardware design, struct values reside on wires, in registers, in
+FIFOs, {\etc} which have no ``byte-structured'' bias, and so we do not
+play any such ``padding'' games in {\BSV}.
+
+\vspace{1ex}
+
+SystemVerilog makes a distinction beteen ``packed'' and ``unpacked''
+values; the former may have padding (for efficient simulation) whereas
+the latter has no padding (for efficient hardware).
+
+\end{minipage}}
+% ----------------
+
+% ================================================================
+
+\subsection{Printing a struct for logging/debugging}
+
+We can print a struct value directly, {\eg}
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+    Mem_Req mem_req;
+    ...
+    $display ("mem_req is: ", mem_req);
+\end{Verbatim}
+}
+
+It will simply print a hexadecimal representation of the entire
+bit-vector representing {\tt mem\_req}.  This can be quite difficult
+to read, for two reasons.  First, the bit-vector representing a struct
+can be quite large (sometimes hundreds of bits!).  Second, because
+bits are packed, fields may not align with hexadecimal digit
+boundaries, and so one cannot correlate hexadecimal digits directly
+with fields.  A similar problem arises if we view a struct-valued
+signal in a waveform viewer, which does not know anything about {\BSV}
+types and just shows the hexadecimal value.
+
+For this reason, experienced {\BSV} coders sometimes (perhaps
+temporarily for debugging) rearrange the order and sizes of fields in
+a struct so that they are well-aligned with hexadecimal digit
+boundaries.
+
+\index[BSV]{deriving!Fshow}
+
+Because we said ``\verb|deriving(FShow)|'' in the type declaration,
+the \emph{bsc} compiler will automatically define an
+``\verb|fshow()|'' function for this type.  This gives us a way to
+print a struct in a more readable format:
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+    Mem_Req mem_req;
+    ...
+    $display ("mem_req is: ", fshow (mem_req));
+\end{Verbatim}
+}
+
+{\footnotesize
+(Note: we described \verb|deriving (FShow)| for enum types in
+Section~\ref{Sec_deriving_FShow}).}
+
+Now, the printout will look something like this:
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+Mem_Req { req_type: 'h1e, size: MEM_4B, addr: 'h0000000080000000,
+          data: 'h0000000000000000, ...}
+\end{Verbatim}
+}
+
+{\ie} the struct value display is formatted to show the struct type
+and the individual fields.
+
+% ================================================================
+
+\subsection{Memory request type}
+
+\label{Sec_Mem_Req_Type}
+
+A memory-request in RV32I is either a LOAD, a STORE or a FENCE.  We
+could define an enum type for this:
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum {MEM_REQ_LOAD,
+              MEM_REQ_STORE
+              MEM_REQ_FENCE} Mem_Req_Type
+deriving (Bits, FShow, Eq);
+\end{Verbatim}
+}
+
+which will use a 2-bit encoding (0 for LOAD, 1 for STORE, 2 for
+FENCE).  However, we look to the future where we might extend Drum and
+Fife to implement the ``A'' extension (for AMO or ``Atomic Memory
+Operations'').  The RISC-V ISA Unprivileged Spec document, Chapter 8,
+describes additional memory operations LR (Load-Reserved), SC
+(Store-Conditional), AMOSWAP, AMOADD, AMOXOR, AMOAND, AMOOR, AMOMIN,
+AMOMAX, AMOMINU, and AMOMAXU, each of which comes in a 32-bit version
+(in RV32 and RV64) and a 64-bit version (in RV64).  These operations
+are coded with 5 bits in the instruction (\verb|instr[31:27]|, which
+we call ``{\tt funct5}'').
+
+Accordingly, we use a 5-bit encoding for the memory request type.
+When we implement the A extension, we will directly use the 5-bit
+codes from the instruction.  For LOAD, STORE and FENCE we use 5-bit
+codes that are unused in the A extension:
+
+\SHOWCODE{Code_Extracts/funct5_MEMOPs.tex}
+
+% ================================================================
+
+\subsection{Memory request size}
+
+\label{Sec_Mem_Req_Size}
+
+An IMem request is for one 32-bit instruction (4 bytes).\footnote{When
+implementing the ``C'' RISC-V ISA extension (compressed instructions),
+instructions can also be 16-bits (2 bytes).  When implementing more
+sophisticated Fetch units, we may actually fetch chunks larger than 4
+bytes, such as a full cache line.}
+
+An RV32I DMem request may be for 1, 2 or 4 bytes.  Looking to the
+future, accesses may also be for 8 bytes (doublewords in RV64I, and/or
+double-precision floating point values in the ``D'' ISA extension for
+RV32 and RV64).  We express these request-size options using an enum
+type:
+
+\SHOWCODE{Code_Extracts/Mem_Req_Size.tex}
+
+Similarly, we have also declared the \verb|addr| and \verb|data|
+fields in the \verb|Mem_Req| struct to be 64 bits, not 32.  For STORE
+requests of 1 and 2 bytes ({\ie} smaller than the \verb|data| field)
+we assume the data is passed in the least-significant bytes of the
+\verb|data| field.
 
 % ****************************************************************
 
@@ -352,15 +396,17 @@ notation common to SystemVerilog and C/C++:
 
 \index[BSV]{Tuples}
 
-Tuples are a built-in set of struct-like types and values in BSV that
-very convenient.  For example, when a function needs to return a pair
-of values, instead of declaring a struct type with two fields for the
-result, it is often more convenient to just use the built-in
-\verb|Tuple2| type.  Example (from the \verb|mkCSRs| module in file
-\verb|src_Common/CSRs.bsv|):
+Tuples are a special kind of pre-defined \emph{immutable} structs in
+{\BSV}.\footnote{
+Python has a similar concept of immutable tuples, and pattern-matching
+to access tuple components.
+}
+For example, when a function needs to return a pair of values, instead
+of declaring a struct type with two fields for the result, it is often
+more convenient to just use the built-in \verb|Tuple2| type.  Example:
 
 {\footnotesize
-\begin{Verbatim}[frame=single, numbers=left]
+\begin{Verbatim}[frame=single, numbers=left, label=in src\_Common/CSRs.bsv]
    function ActionValue #(Tuple2 #(Bool, Bit #(XLEN)))
             fav_csr_read (Bit #(12) csr_addr);
       ...
@@ -377,12 +423,13 @@ The expression in the \verb|return| statement shows how one can
 construct a 2-tuple value: simply apply the predefined function
 \verb|tuple2| to the two component values.
 
-Unlike structs, there is no assignment statement to update a field of
-a tuple, nor is there is any ``.field'' notation for component
-selection.
+Tuples are special in {\BSV} because, unlike structs, tuples are
+immutable---there is no assignment statement to update a field of a
+tuple.
 
-To select an individual field of a tuple, one can use one of the
-built-in selector functions:
+Tuples are also special in {\BSV} because there is no ``.field''
+notation for component selection.  To select an individual field of a
+tuple, one can use one of the built-in selector functions:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
@@ -411,13 +458,13 @@ The leading ``\verb|.|'' is important: ``\verb|x|'' would represent
 the value of an existing variable to be matched with the corresponding
 value in the tuple, whereas ``\verb|.x|'' \emph{introduces a new
 variable} \verb|x| to be bound to the corresponding value in the
-tuple; the latter is what we want.  We refer the reader to the BSV
+tuple; the latter is what we want.  We refer the reader to the {\BSV}
 Language Reference Guide~\cite{BSV_Lang_Ref_Guide} for many more
 capabilities of pattern-matching, including fields to be ignored,
 pattern-matching on structs and tagged unions, pattern-matching
 \verb|case| expressions, and more.
 
-BSV defines tuples of up to 8 components ({\tt Tuple\_3}, {\tt
+{\BSV} defines tuples of up to 8 components ({\tt Tuple\_3}, {\tt
 Tuple\_4}, ...) but we recommend not using tuples when you have more
 than, say, 2 or 3 components; define a struct instead, with readable
 and meaningful field names.
@@ -486,73 +533,6 @@ data.  Then there is a deliberately executed phase-change, where the
 virtual memory protections of the data-pages just written are changed
 so that they are now viewed as read-only instruction pages, after
 which these new instructions can be fetched.
-
-% ================================================================
-
-\subsection{Memory Requests}
-
-\label{Sec_Mem_Req}
-
-\index[RV]{Memory!Request}
-
-A memory-request in RV32I is either a LOAD, a STORE or a FENCE.  We
-could define an enum type for this:
-
-{\footnotesize
-\begin{Verbatim}[frame=single, numbers=left]
-typedef enum {MEM_REQ_LOAD,
-              MEM_REQ_STORE
-              MEM_REQ_FENCE} Mem_Req_Type
-deriving (Eq, FShow, Bits);
-\end{Verbatim}
-}
-
-which will use a 2-bit encoding (0 for LOAD, 1 for STORE, 2 for
-FENCE).  However, we look to the future where we might extend Drum and
-Fife to implement the ``A'' extension (for ``Atomic Memory
-Operations'').  The RISC-V ISA Unprivileged Spec document, Chapter 8,
-described additional memory operations LR (Load-Reserved), SC
-(Store-Conditional), AMOSWAP, AMOADD, AMOXOR, AMOAND, AMOOR, AMOMIN,
-AMOMAX, AMOMINU, and AMOMAXU, each of which comes in a 32-bit version
-(in RV32 and RV64) and a 64-bit version (in RV64).  These operations
-are coded with 5 bits in the instruction (\verb|instr[31:27]|).
-
-Accordingly, we use a 5-bit encoding for LOAD, STORE and FENCE, using
-5-bit codes that are not used in the A extension:
-
-\SHOWCODE{Code_Extracts/funct5_MEMOPs.tex}
-
-An IMem request is for one 32-bit instruction (four
-bytes).\footnote{When implmenting the ``C'' RISC-V ISA extension
-(compressed instructions), instructions can also be 16-bits (2 bytes).
-When implementing more sophisticated Fetch units, we may actually
-fetch much larger chunks, such as a full cache line.}  A DMem request
-may be for one, two or four bytes.  We express these request-size
-options using an enum type:
-
-\SHOWCODE{Code_Extracts/Mem_Req_Size.tex}
-
-A memory request bundles a request type, a size, and an address.  For
-memory-writes, we also bundle the data to be stored.  We express this
-bundle using a struct:
-
-\SHOWCODE{Code_Extracts/Mem_Req.tex}
-
-In \verb|Mem_Req_Size|, the option \verb|Mem_8B| is not possible in
-RV32I.  Similarly, in \verb|Mem_Req| the \verb|addr| and \verb|data|
-fields need only be 32-bits wide for RV32I.  However, we have declared
-them as shown looking ahead into the future, where we may wish to
-implement RV64I, or where we may wish to implement the ``D'' ISA
-extension (double-precision floating point values, which are
-represented in 64-bits).
-
-For STORE requests of 1 and 2 bytes ({\ie} smaller than the \verb|data|
-field) we assume the data is passed in the least-significant bytes of
-the \verb|data| field.
-
-This is the information sent to Memory from the Read-PC-and-Fetch
-stage and also from the Execute-Memory-Ops stage in
-Figure~\ref{Fig_Simple_Instr_Exec_w_structs}.
 
 % ================================================================
 

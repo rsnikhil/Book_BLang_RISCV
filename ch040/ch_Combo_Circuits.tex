@@ -367,8 +367,7 @@ The {\BSV} statement:
 declares the identifier \verb|pc_val| to have the type
 \verb|Bit#(32)|, {\ie} a bit-vector of 32 bits, and initializes it to
 have the value shown in hexadecimal on the right-hand side.
-
-The general syntax is similar to C or Verilog:
+The general syntax is the same as in Verilog, SystemVerilog and C:
 \begin{quote}
 \emph{type} \emph{identifier} = \emph{initial\_value};
 \end{quote}
@@ -390,6 +389,41 @@ The initial value's size can be left unspecified:
 {\bsc} will infer that it should be 32 bits, and will zero-extend
 accordingly.  If the constant is too large for the context, {\bsc}
 will not silently truncate it; it will give an error-message instead.
+
+% ================================================================
+
+\subsection{``{\tt let}'' bindings---having {\bsc} infer the identifier's type}
+
+\label{Sec_let_binding}
+
+\index[BSV]{let@{\tt let}!binding an identifier with implicit type declaration}
+
+In an identifier binding, the \emph{type} on the left-hand side can
+usually be replaced by the keyword ``{\tt let}'', indicating that we
+would like {\bsc} compiler to infer the type for the identifier being
+defined.  For example:
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+   Bit #(32) pc_val  = 32'h_8000_0000;
+   ...
+   let       next_pc = pc_val + 4;
+\end{Verbatim}
+}
+
+Here, {\bsc} can infer that the type of the expression ``{\tt
+pc\_val+4}'' is \verb|Bit#(32)|, so this is equivalent to writing the
+type explicitly:
+
+{\footnotesize
+\begin{Verbatim}[frame=single, numbers=left]
+   ...
+   Bit #(32) next_pc = pc_val + 4;
+\end{Verbatim}
+}
+
+{\tt let}-bindings should be used judiciously, only where the type is
+also obvious to the human reader.
 
 % ================================================================
 
@@ -1176,21 +1210,28 @@ memory-access path.
 
 \subsection{{\tt deriving (Bits)}}
 
+\label{Sec_deriving_Bits}
+
 \index[BSV]{deriving Bits@{\tt deriving Bits}}
 \index[BSV]{Typeclasses}
 \index[BSV]{Typeclass!instance of}
 
 Because we said ``\verb|deriving(Bits)|'', the \emph{bsc} compiler
 will automatically represent them with the obvious codes 0, 1, 2, 3
-and 4 in a minimal bit-width (\verb|Bit#(3)|).  If we wanted an
-alternative (non-default) coding for these constants, we would
-\emph{not} say ``\verb|deriving(Bits)|'', and we would provide an
-explicit mapping function into codes (see ``typeclass instances'',
-later).
+and 4 in a minimal bit-width (\verb|Bit#(3)|).
+
+For a type that will only be used at compile time and never for a
+run-time value, there is no need to have a hardware reprsentation in
+bits.  If we \emph{do} want a custom representation in bits, {\BSV}
+has a mechanism by which we can specify this, but don't discuss this
+further here because it involves a more advqnced {\BSV} capability
+called ``typeclasses'' and ``typeclass instances''.
 
 % ================================================================
 
 \subsection{{\tt deriving (Eq)}}
+
+\label{Sec_deriving_Eq}
 
 \index[BSV]{deriving Eq@{\tt deriving Eq}}
 
@@ -1205,6 +1246,8 @@ equality/inequality explicitly (see ``typeclass instances'', later).
 % ================================================================
 
 \subsection{{\tt deriving (FShow)}}
+
+\label{Sec_deriving_FShow}
 
 \index[BSV]{deriving FShow@{\tt deriving FShow}}
 
