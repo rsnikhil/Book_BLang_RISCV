@@ -50,45 +50,54 @@ SOURCES = \
 		ch850_apx_Why_BSV/apx_Why_BSV.tex \
 		ch860_apx_Glossary/apx_Glossary.tex \
 		ch870/apx_BSV_importing_C.tex \
-		ch900_back/back.tex
+		ch880/apx_Exercises.tex \
+		ch900_back/back.tex \
+		testpage.tex
 
 .PHONY: p i p pp pip figs bib extract
 
-p: $(SOURCES)
+p: $(SOURCES)  tmp_latex
 	pdflatex  $(TOPFILE)
 
-i: $(SOURCES)
+i: $(SOURCES)  tmp_latex
 	makeindex $(TOPFILE)
 	makeindex $(TOPFILE).bdx -o $(TOPFILE).bnd
 	makeindex $(TOPFILE).rdx -o $(TOPFILE).rnd
 
-b: $(SOURCES)
+b: $(SOURCES)  tmp_latex
 	bibtex  $(TOPFILE)
 
 .PHONY: pp
-pp: $(SOURCES)
+pp: $(SOURCES)  tmp_latex
 	pdflatex  $(TOPFILE)
 	pdflatex  $(TOPFILE)
 
 .PHONY: pip
-pip: $(SOURCES)
+pip: $(SOURCES)  tmp_latex
 	pdflatex  $(TOPFILE)
 	makeindex $(TOPFILE)
 	makeindex $(TOPFILE).bdx -o $(TOPFILE).bnd
 	makeindex $(TOPFILE).rdx -o $(TOPFILE).rnd
 	pdflatex  $(TOPFILE)
+
+.PHONY: bib
+bib: tmp_latex
+	bibtex  $(TOPFILE)
+
+.PHONY: a
+a: ch880/apx_Exercises.tex
+	pdflatex  Appendix_E.tex
 
 .PHONY: figs
 figs:
 	make -C Figures png
 
-.PHONY: bib
-bib:
-	bibtex  $(TOPFILE)
-
 .PHONY: extract
 extract:
 	./Code_Extracts/Extract_latex_from_BSV.py  $(CODE_DIR)  Code_Extracts
+
+tmp_latex:
+	mkdir -p tmp_latex
 
 # ================================================================
 

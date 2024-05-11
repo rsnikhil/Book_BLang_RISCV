@@ -157,7 +157,7 @@ The STATE section instantiates various registers and FIFOs.  Next, the
 BEHAVIOR section contains two \emph{rules} (Chapter~\ref{ch_Rules_I}).
 In rule \verb|rl_Fetch_req|, the explicit condition is the expression:
 
-\hm\footnotesize \verb|(rg_running && (! f_F_from_Retire.notEmpty))|
+\hm {\footnotesize \verb|(rg_running && (! f_F_from_Retire.notEmpty))|}
 
 Rule \verb|rl_Fetch_req|'s implicit condition comes from the methods
 that it invokes, \verb|f_Fetch_to_Decode.enq ()| and

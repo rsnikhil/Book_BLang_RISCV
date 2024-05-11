@@ -113,19 +113,9 @@ result of the function.
 We also use ``\verb|?|'' in line 17 as the \verb|data| field is only
 relevant in a STORE memory request, whereas this is a FETCH request.
 
-% ================================================================
+% ----------------------------------------------------------------
 
-\hdivider
-
-% ----------------
-\Exercise
-
-Write a testbench for \verb|fn_Fetch()|, apply it to a number of
-32-bit values (PC values) and print the results using \verb|$display|
-and \verb|fshow|, and visually check that the \verb|Fetch_to_Decode|
-and \verb|Mem_Req| outputs look correct.
-
-\Endexercise
+\EXERCISE{Ex-06-A-Fetch}
 
 % ****************************************************************
 
@@ -139,9 +129,10 @@ and \verb|Mem_Req| outputs look correct.
 
 The core function for the Decode stage is \verb|fn_Decode|.  Its
 arguments are a struct of type \verb|Fetch_to_Decode| from the Fetch
-stage (Section~\ref{Sec_fn_Fetch}) and a \verb|Mem_Rsp| memory
-response struct from memory (Section~\ref{Sec_Mem_Rsp}).  Its result
-is a struct \verb|Decode_to_RR|:
+stage (discussed in Section~\ref{Sec_fn_Fetch}) and a \verb|Mem_Rsp|
+memory response struct from memory (discussed in
+Section~\ref{Sec_Mem_Rsp}).  Its result is a struct
+\verb|Decode_to_RR|:
 
 \SHOWCODE{Code_Extracts/Decode_to_RR.tex}
 
@@ -165,7 +156,7 @@ The \verb|exception| flag indicates:
 When the exception flag is true, \verb|cause| and \verb|tval| fields
 provide more detail.
 
-If there is no exception (no Fetch memory error; instruction is
+If there is no exception (no Fetch memory error, and instruction is
 legal), other fields provide more analytical detail for subsequent
 stages:
 
@@ -175,12 +166,12 @@ stages:
       following this one in memory.  For RV32I and RV64I, this will
       always be PC+4, since all instructions are 4-bytes
       long.\footnote{If we implement the ``C'' RISC-V ISA extension
-      (compressed instructions), the correct fall-through PC can be
-      PC+2.}  For most instructions, {\tt fallthru\_pc} is indeed the
-      unique next PC.  For conditional BRANCH instructions, this is
-      the next PC if the BRANCH is not taken.  For JAL and JALR
-      instructions (unconditional jumps), this is the PC saved by the
-      instruction in the {\tt ra} register (``return address'').
+      (compressed instructions), the fall-through PC could be PC+2.}
+      For most instructions, {\tt fallthru\_pc} is indeed the unique
+      next PC.  For conditional BRANCH instructions, this is the next
+      PC if the BRANCH is not taken.  For JAL and JALR instructions
+      (unconditional jumps), this is the PC saved by the instruction
+      in the {\tt ra} register (``return address'').
 
 \item The instruction itself, {\tt instr}.  This will be needed for
       opcode details, the rs1, rs2 and rd register indexes, immediate
@@ -276,12 +267,10 @@ immediate values can have different bit-widths.  We use the functions
 \verb|instr_imm_I()|, \verb|instr_imm_S()|, \verb|instr_imm_B()|,
 \verb|instr_imm_U()| and \verb|instr_imm_J()| to extract the and
 rearrange the immediate bits appropriately for each class of
-instruction.  Then, here in \verb|fn_Decode|, we zero- or sign-extend
-each immediate as appropriate so that, from this point onwards, each
-immediate can be treated as an ordinary \verb|Bit#(XLEN)| value.
-
-An exercise below suggests that you write the code for these
-\verb|instr_imm_X| functions; it's good practice for the BSV beginner!
+instruction (see Exercise in Section~\ref{BSV_functions}).  Then, here
+in \verb|fn_Decode|, we zero- or sign-extend each immediate as
+appropriate so that, from this point onwards, each immediate can be
+treated as an ordinary \verb|Bit#(XLEN)| value.
 
 The final ``else'' clause is selected if the instruction does not
 match any of the forty RV32I instructions.  In this case we set the
@@ -297,30 +286,9 @@ wires corresponding to the \verb|Fetch_to_Decode| struct and the
 \verb|Decode_to_RR| struct, and filled with logic gates that compute
 each output wire as a function of the input wires.
 
-% ================================================================
+% ----------------------------------------------------------------
 
-\hdivider
-
-% ----------------
-\Exercise
-
-The provided source code includes the functions \verb|instr_imm_I()|,
-\verb|instr_imm_S()|, \verb|instr_imm_B()|, \verb|instr_imm_U()| and
-\verb|instr_imm_J()| (in file \verb|Instr_Bits.bsv|), but try to write
-them yourself first, and compare your solutions to the provided codes.
-
-% ----------------
-\Exercise
-
-Write a testbench for \verb|fn_Decode()|, apply it to a number of PC
-and instruction values.  For each input PC value, construct an
-\verb|Fetch_to_Decode| struct around it.  For each input instruction,
-construct a \verb|Mem_Rsp| struct around it, some with memory errors,
-some without.  Apply \verb|fn_Decode| to such pairs.  Print the
-results results using \verb|$display| and \verb|fshow|, and visually
-check that the \verb|D_to_RR| outputs look correct.
-
-\Endexercise
+\EXERCISE{Ex-06-B-Decode}
 
 % ****************************************************************
 
@@ -444,6 +412,10 @@ only be used when their flows are chosen and ignored otherwise.
 Lines 64-68 construct and return the final result with the four
 component structs.
 
+% ----------------------------------------------------------------
+
+\EXERCISE{Ex-06-C-Dispatch}
+
 % ****************************************************************
 
 \section{The {\tt fn\_EX\_Control} function}
@@ -493,71 +465,9 @@ target PC.
 The final section constructs the \verb|EX_Control_to_Retire| struct
 result and returns it.
 
-\vspace*{2ex}
+% ----------------------------------------------------------------
 
-\hdivider
-
-% ----------------
-\Exercise
-
-In {\tt fn\_EX\_Control}, the BRANCH, JAL and JALR clauses set the
-{\tt exception} field to true if the next PC is not aligned.
-
-\begin{enumerate}
-
-  \item What would happen if we did not set the exception field here?
-
-  \item See ``Section 2.5 Control Transfer Instructions'' in the
-      Unprivileged ISA specification document
-      \cite{RISCV_Unpriv_2019_12_13}) for a discussion of why we set
-      it here.
-
-\end{enumerate}
-
-% ----------------
-\Exercise
-
-Prove (informally) that the three-way if-then-else shown above in
-\verb|Fn_EX_Control| will catch all cases, {\ie} that we never need a
-final ``\verb|else|'' clause.  This requires reviewing
-\verb|fn_Decode| and tracking the flow of information through the
-Register-Read-and-Dispatch stage (including \verb|fn_Dispatch)|, into
-\verb|fn_Control|.
-
-% ----------------
-\Exercise
-
-In \verb|Fn_EX_Control|, can we change the final ``\verb|else if|'':
-
-{\footnotesize
-\begin{Verbatim}[frame=single]
-   else if (is_JALR (instr)) begin
-\end{Verbatim}
-}
-
-into a simple ``\verb|else|'', {\ie} omit the the \verb|is_JALR|
-check?
-
-{\footnotesize
-\begin{Verbatim}[frame=single]
-   else begin
-\end{Verbatim}
-}
-
-What might be the hardware implication of such a change?
-
-% ----------------
-\Exercise
-
-In the final section of {\tt fn\_EX\_Control}, why do we have:
-\verb|data: x.fallthrough_pc|? \\
-\emph{Hint}: review the semantics of JAL and JALR instructions.
-
-What if this is a BRANCH instruction?
-
-What if this is a JAL or JALR instruction with \verb|rd| = 0?
-
-\Endexercise
+\EXERCISE{Ex-06-D-Ex-Control}
 
 % ****************************************************************
 
@@ -645,65 +555,9 @@ rely on the fact that exactly one of \verb|y_OP| and \verb|y_OP_IMM|
 can be relevant; the other one must be zero (and therefore has no
 effect through the OR'ing).
 
-\hdivider
+% ----------------------------------------------------------------
 
-% ----------------
-\Exercise
-
-Lines 11-45 could instead have been written this way:
-
-{\footnotesize
-\begin{Verbatim}[frame=single, numbers=left]
-   Bit #(XLEN) y = 0;
-   if (opcode == opcode_OP) begin
-      ...
-      ... y = ...
-   end
-   else if (opcode == opcode_OP_IMM) begin
-      ...
-      ... y = ...
-   end
-   return y;
-\end{Verbatim}
-}
-
-Discuss the hardware tradeoffs between writing it in these two ways.
-{\emph Hints:} Consider:
-
-\begin{tightlist}
-
-  \item Sequentiality of if-then-else.
-  \item Ability (or not) to prove exhaustiveness of conditions in nested if-then-else.
-  \item Ability (or not) to prove mutual-exclusivity of conditions in nested if-then-else.
-  \item Discussion in Section~\ref{Sec_MUXes} on parallel and
-    sequential multiplexers (mux).  Note: in our code, we have
-    explicitly coded a parallel mux.
-
-\end{tightlist}
-
-% ----------------
-\Exercise
-
-Note that the ISA has ADD and ADDI instructions, but no corresponding
-SUB and SUBI (subtract) instructions.  Why not?
-
-% ----------------
-\Exercise
-
-Justify the presence or absence of the ``{\tt pack}'' operator in each
-case of {\tt fn\_IALU}.
-
-% ----------------
-\Exercise
-
-Suppose we want to extend {\tt fn\_IALU} so it also works when XLEN=64
-({\ie} for RV64I).  What needs to change to accommodate this?
-
-\emph{Hint:} it only matters in the shift-amount of the shift
-instructions, where the shift-amount can be 6-bits wide instead of
-5-bits (allowing a maximum of 63-bit shifts instead of 31 bits).
-
-\Endexercise
+\EXERCISE{Ex-06-E-Ex-Int}
 
 % ****************************************************************
 

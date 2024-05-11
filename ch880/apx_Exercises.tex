@@ -1,0 +1,871 @@
+% -*- mode: fundamental -*-
+
+% ****************************************************************
+
+\chapter{Exercises}
+
+\markboth{Ch \arabic{chapter}: Exercises (DRAFT)}{\copyrightnotice}
+
+\setcounter{page}{1}
+\renewcommand{\thepage}{\Alph{chapter}-\arabic{page}}
+
+\label{apx_exercises}
+
+% ----------------
+
+NOTE: \fbox{
+\begin{minipage}{5in}
+
+\emph{This appendix may change are we improve or add new exercises.  Please
+ensure you have the latest version!}
+
+\end{minipage}}
+
+\vspace{5ex}
+% ----------------
+
+% ****************************************************************
+
+\hdivider
+
+\section*{Chapter 5: Structs, tuples, memory requests and responses}
+
+% ================================================================
+
+\subsection*{Ex-05-A-Structs: structs}
+
+\label{Ex-05-A-Structs}
+
+Please see the directory: \hm {\tt Exercises/Ex-05-A-Structs/} \\
+In this exercise we are going to use some actual Drum/Fife code;
+specifically, these files:
+
+\begin{tabbing}
+\hmmmm \= \verb|Code/src_Common/Instr_Bits.bsv| \\
+       \> \verb|Code/src_Common/Mem_Req_Rsp.bsv|
+\end{tabbing}
+
+\begin{itemize}
+
+\item[(1)] In \verb|Makefile|, study and understand the new additions
+    for this exercise.
+
+    Hint: think about the ``\verb|import|'' statements in
+    \verb|src_BSV/Top.bsv|.
+
+    In order to build, you will likely have to edit the definition of
+    \verb|BOOK_REPO| in the \verb|Makefile| to point at the correct
+    directory in your environment.
+
+    Study and understand the code in \verb|Top.bsv|.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+\item[(2)] Comment-out the \verb|import Instr_Bits| and \verb|import Mem_Req_Rsp|
+    statements, one at a time, and try to recompile.
+
+    Compilation will fail: in each case, observe and understand the error message.
+
+\item[(3)] Comment-out the \verb|data| field definition in the struct definition.
+
+    Recompile, and observe and understand the compiler message.
+
+    Recompile and run.  What is the difference between the value
+    printed for the \verb|data| field and what was printed earlier?
+
+\item[(4)] Make two copies of the \verb|$display()| statement. In the
+    two new copies replace:
+    \begin{tabbing}
+    \hm and \hm \= \kill
+                \> {\tt fshow (mem\_req)} \\
+    \hm with    \> {\tt mem\_req} \\
+    \hm and     \> {\tt fshow\_Mem\_Req (mem\_req)} \\
+    \hm respectively
+    \end{tabbing}
+
+    Note, \verb|fshow_Mem_Req()| is defined in the file
+    {\tt Code/src\_Common/Mem\_Req\_Rsp.bsv}.
+
+    Recompile and run. Observe and understand the differences in the
+    outputs from the original and from the two new statements.
+
+\item[(5)] In file \verb|Mem_Req_Rsp.bsv|, locate the function
+    \verb|fshow_Mem_Req_Type()|.  Understand the code (see
+    Section~\ref{Sec_Fmt_formatted_values} which explains the
+    \verb|Fmt| type and the \verb|$format()| function).
+
+    After the existing \verb|$display()| statement, add a line like this:
+
+    \hmm \verb|$display ("mem_req.req_type = ",| \\
+    \hmm \verb|          fshow_Mem_Req_Type (mem_req.req_type));|
+
+    Recompile and run. Observe and understand the behavior.
+
+    Compare the value printed for the \verb|req_type| field in the two
+    \verb|$display()| statements.
+
+\item[(6)] After the \verb|$display()| statement, add a line that
+    updates the \verb|mem_req_type| field of the struct by assigning
+    \verb|funct5_STORE| to the field (replacing its current value of
+    \verb|funct5_LOAD)|. Then, replicate the \verb|$display()|
+    statement to print the new value of the struct.
+
+    Recompile and run (you should see output of original and new
+    \verb|$display|).  Observe and understand the behavior.
+
+\end{itemize}
+
+% ================================================================
+
+\subsection*{Ex-05-B-Mem-Req-Rsp: Memory Requests and Responses}
+
+\label{Ex-05-B-Mem-Req-Rsp}
+
+Please see the directory: \hm {\tt Exercises/Ex-05-B-Mem-Req-Rsp/} \\
+In these exercises we will write a testbench that sends read requests
+to a memory model and examines the memory responses.
+
+We are going to use some additional actual Drum/Fife code;
+specifically, these files:
+
+\begin{tabbing}
+\hmmmm \= \verb|Code/src_Common/Utils.bsv| \\
+       \> \hmmmm \= (for \verb|Initial_Params| struct definition) \\
+       \> \verb|Code/src_Top/Mems_Devices.bsv| \\
+       \>        \> (memory/devices model top-level) \\
+       \> \verb|Code/src_Top/C_Mems_Devices.c| \\
+       \>        \> (memory model implementation in C) \\
+       \> \verb|Code/src_Top/UART_model.c| \\
+       \>        \> (UART model implementation in C) \\
+       \> \verb|Code/vendor/bluespec_BSV_Additional_Libs/Semi_FIFOF.bsv| \\
+       \>        \> (for connections to memory model)
+\end{tabbing}
+
+\begin{itemize}
+
+\item[(1)] In \verb|Makefile|, study and understand the new additions
+    for this exercise.
+
+    Hint 1: think about the \verb|import| statements in \verb|src_BSV/Top.bsv|.
+
+    Hint 2: In file \verb|Code/src_Top/Mems_Devices.bsv| there are
+        some \verb|import "BDPI"| statements that refer to C functions
+        that are defined in the C files mentioned above.
+
+    In order to build, you will likely have to edit the definition of
+    \verb|BOOK_REPO| in the \verb|Makefile| to point at the correct
+    directory in your environment.
+
+    Study and understand the code in \verb|Top.bsv|.
+
+    When the program is run, the statement: \\
+    \hmm \verb|mems_devices.init (init_params);| \\
+    will initialize the memory model and load it with data from
+    \verb|test.memhex32|.
+
+    Study and understand the contents of file \verb|test.memhex32|.
+    It contains 16 instructions from the \verb|Hello World!| program,
+    starting at address 0x\_8000\_0000.
+
+    Study the file: \\
+    \hmm \verb|Tools/Hello_World_Example_Code/hello.RV32.bare.objdump| \\
+    and locate these 16 instructions. There you can see the assembly
+    language for these instructions.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+\item[(2)] There are two \verb|Top.bsv| files visible to the {\bsc} compiler:
+    \begin{tightlist}
+    \item In this exercise: \verb|./src_BSV/Top.bsv)|
+    \item In Drum/Fife:     \verb|Code/src_Top/Top.bsv|
+    \end{tightlist}
+    When we compile, why does {\bsc} pick the former and not the latter?
+
+\item[(3)] In \verb|./src_BSV/Top.bsv|, in module \verb|mkTop|, just
+    before \verb|mkAutoFSM|, define a function to encapsulate and
+    generalize the \verb|a_req| action:
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+      function Action a_req (Mem_Req_Type t,
+                             Mem_Req_Size s,
+                             Bit #(64)    a,    // addr
+                             Bit #(64)    d,    // data
+                             Bit #(64)    i);   // inum
+        ... body is a_req action with above arguments instead of constants ...
+      endfunction
+    \end{Verbatim}
+    }
+
+    Similarly, define a function to encapsulate and generalize the
+    \verb|a_rsp| action:
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+      function Action a_rsp ();
+        ... body is a_rsp action ...
+      endfunction
+    \end{Verbatim}
+    }
+
+    Replace the original \verb|a_req| and \verb|a_rsp| actions with
+    calls to these functions.  Note, you won't need
+    '\verb|action-endaction|' brackets around these 1-line calls.
+
+    Recompile and run and verify that the output is the same as before.
+
+\item[(4)] Add an additional memory request and response for the next
+    instruction ({\tt addr} = 0x\_8000\_0004, {\tt inum} = 2):
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+        // Original addr
+        a_req (..., 'h_8000_0000, ..., 1);
+        a_rsp;    
+        // Next instruction addr
+        a_req (..., 'h_8000_0004, ..., 2);
+        a_rsp;    
+    \end{Verbatim}
+    }
+
+    Recompile and run and verify that the output is as expected
+    (matches contents of \verb|test.memhex32|).
+
+\item[(5)] Add more calls to \verb|a_req()|/\verb|a_rsp()| (or replace
+    the earlier ones):
+
+    \begin{itemize}
+
+    \item Vary the \verb|Mem_Req_Size| argument to be, variously, 1, 2
+        and 4 bytes.
+
+    \item For the 2 and 4 bytes sizes, try both aligned and unaligned
+        addresses.
+    \end{itemize}
+
+    In each case, recompile and run, and observe and understand the
+    behavior.
+
+\item[(6)] In each run so far, observe that the memory system
+    announces the range of addresses that it implements for the memory
+    model:
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+    INFO: c_mems_devices_init
+      Mem system model
+       ADDR_BASE_MEM:  0x80000000 SIZEB_MEM:  0x10000000 (268435456) bytes
+    \end{Verbatim}
+    }
+
+    Note that the memory size is much larger than the contents of
+    \verb|test.memhex32|, which means that most of the locations
+    remain uninitialized.
+
+    Add more calls to \verb|a_req()|/\verb|a_rsp()| (or replace the
+    earlier ones):
+
+    \begin{itemize}
+    \item Try a LOAD from address 0x\_8000\_0040
+
+        (This address is implemented by the memory model, but is not
+         defined in \verb|test.memhex32|).
+
+    \item Try a LOAD from address 0x\_9000\_0000
+
+        (This address is not implemented by the memory model).
+    \end{itemize}
+
+    In each case, recompile and run, and observe and understand the output.
+
+\item[(7)] Add more calls to \verb|a_req()|/\verb|a_rsp()| (or replace
+    the earlier ones):
+
+    \begin{itemize}
+    \item Do a STORE to some memory location.
+
+    \item Then do a LOAD to read it back, and verify that the loaded
+          value is indeed what we stored.
+
+    \item Do LOADs with addresses on either side of the STORE address/size and
+          verify that the STORE did not disturb those locations.
+    \end{itemize}
+
+    In each case, recompile and run, and observe and understand the output.
+
+\item[(8)] In each run so far, observe that the memory system
+    announces the range of MMIO addresses that it implements for the
+    UART model:
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+    INFO: c_mems_devices_init
+       ...
+       ADDR_BASE_UART: 0x60100000 SIZEB_UART: 0x00001000 (4096) bytes
+    \end{Verbatim}
+    }
+
+
+    The UART models a standard 16550 UART, which has several
+    memory-mapped registers, but for this test we will only use
+    0x\_6010\_0000 which is the ``transmit buffer''.  Every time we
+    write a byte to the transmit buffer, it gets ``transmitted'' and
+    displayed on the screen.
+
+    Add more calls to \verb|a_req()|/\verb|a_rsp()| (or replace the
+    earlier ones): do a series of \verb|a_req()| calls, one for each
+    character in ``\verb|Hello World!\r\n|''.  Each call should be for
+    a 1-byte STORE, to address 0x\_6010\_0000, with data being the
+    ASCII hex code of that character.
+
+    Recompile and run, and observe and understand the behavior.
+
+    [Not so easy!] Why is ``\verb|Hello World!\r\n|'' all printed
+    together, instead of each character being printed as soon as we do
+    the corresponding STORE?  \emph{Hint:} See {\tt "// Write the
+    char to the output line buffer"} and lines 526-535 that follow, in
+    \verb|UART_Model.c|.
+
+\item[(9)] When printing ``\verb|Hello World!\r\n|'' ({\ie} 14
+    characters), we alternated 14 \verb|a_req()|'s with 14
+    \verb|a_rsp()|'s, like this:
+
+    \begin{tabbing}\footnotesize\tt
+    a\_req(); a\_rsp(); ...; a\_req(); a\_rsp();    // 14 pairs
+    \end{tabbing}
+
+    Reorganize the code so that we first have all 14 \verb|a_req()|'s
+    followed by all 14 \verb|a_rsp()|'s:
+
+    \begin{tabbing}\footnotesize\tt
+    a\_req(); ...; a\_req();    // 14 requests
+    a\_rsp; ...; a\_rsp();      // 14 responses
+    \end{tabbing}
+
+    Recompile and run, and observe and understand the behavior.
+
+    Hint: the path in and out of memory is pipelined (so we can send
+    in multiple requests before retrieving a response).  But it has a
+    finite depth, so when it ``fills up'', the pipeline gets stuck; it
+    cannot accept any more requests until we drain some responses.
+
+\item[(10)] Reorganize the code from this:
+
+    \begin{tabbing}\footnotesize\tt
+    a\_req(); ...; a\_req();    // 14 requests
+    a\_rsp; ...; a\_rsp();      // 14 responses
+    \end{tabbing}
+
+    to this:
+
+    \begin{tabbing}\footnotesize\tt
+    par
+       seq a\_req(); ...; a\_req(); endseq
+       seq a\_rsp; ...; a\_rsp();   endseq
+    endpar
+    \end{tabbing}
+
+    The '\verb|par|-\verb|endpar|' block allows its two components,
+    each of which is a sequence of 14 actions, to run \emph{concurrently}.
+
+    Recompile and run, and observe and understand the behavior.
+
+\item[(11)] Study the C files to see how the memory model and UART
+    model are implemented.
+
+\end{itemize}
+
+% ****************************************************************
+
+\hdivider
+
+\section*{Chapter 6: Core functions}
+
+% ================================================================
+
+\subsection*{Ex-06-A-Fetch}
+
+\label{Ex-06-A-Fetch}
+
+Please see the directory: \hm {\tt Exercises/Ex-06-A-Fetch/} \\
+This is a minimal ``unit testbench'' for \verb|fn_Fetch()|.  It
+instantiates the memory model used by Drum and Fife.  The testbench
+uses \verb|fn_Fetch()| to generate memory requests for simulating
+instruction-fetch.
+
+As in Ex-05-B-Mem-Req-Rsp, the file 'test.memhex32' contains 16
+instructions from the \verb|Hello World!| program starting at address
+0x\_8000\_0000.  When the program is run, the statement:
+
+{\footnotesize
+\begin{Verbatim}[frame=single]
+    mems_devices.init (init_params);
+\end{Verbatim}
+}
+
+will initialize the memory model and load it with data from
+\verb|test.memhex32|.
+
+\begin{itemize}
+
+\item[(1)] Exercise baseline
+
+    Study and understand the code in \verb|Top.bsv|.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+\item[(2)] Add a few more calls to \verb|a_req()| and \verb|a_rsp()|
+    to fetch a few more instructions from successive addresses
+    0x\_8000\_0004, ...0008, ... {\etc}.
+
+    Recompile and run.  Observe and understand the behavior.
+
+\item[(3)] Memory access errors
+
+    Add a few more calls to \verb|a_req()| and \verb|a_rsp()| to fetch
+    a few more instructions from:
+
+    \begin{tightlist}
+    \item An unimplemented address ({\eg} 0x\_9\_0000\_0000)
+    \item A misaligned address ({\eg} 0x\_8000\_0002)
+    \end{tightlist}
+
+    Recompile and run. Observe and understand the behavior.
+
+\item[(4)] Scope of identifiers
+
+    In \verb|Top.bsv|, the functions \verb|a_req()| and \verb|a_rsp()|
+    are defined inside module \verb|mkTop| after the instantiations of
+    FIFOs \verb|f_req| and \verb|f_rsp|.
+
+    Move the instantiations of FIFOs \verb|f_req| and \verb|f_rsp| so
+    that they come \emph{after} the two functions.
+
+    Recompile and run.  Observe and understand the behavior.
+
+\item[(5)] Interfaces can be passed as function arguments
+
+    Move the two function definitions \verb|a_req()| and
+    \verb|a_rsp()| to be \emph{outside} and \emph{before} module
+    \verb|mkTop|'s definition, as follows:
+
+    \begin{itemize}
+    \item Add an argument to \verb|a_req()|:
+
+          {\footnotesize
+\begin{Verbatim}[frame=single]
+    function Action a_req (... inum, FIFOF #(Mem_Reqs) f_reqs);
+\end{Verbatim}
+          }
+          and move this function out of the module, before the module,
+          at the top-level of the package.
+
+    \item Add an argument to \verb|a_rsp()|:
+          {\footnotesize
+\begin{Verbatim}[frame=single]
+    function Action a_rsp (FIFOF #(Mem_Rsps) f_rsps);
+\end{Verbatim}
+          }
+
+          and move this function out of the module, before the module,
+          at the top-level of the package.
+    \end{itemize}
+
+    In \verb|mkAutoFSM|,
+    \begin{tightlist}
+    \item in each invocation of \verb|a_req()|, add \verb|f_reqs| as an argument.
+    \item in each invocation of \verb|a_rsp()|, add \verb|f_rsps| as an argument.
+    \end{tightlist}
+
+    Recompile and run.  Verify that the behavior is the same as before.
+
+\end{itemize}
+
+This testbench performs a few so-called ``directed tests'' for
+\verb|fn_Fetch()|.  By generalizing the FSM to be a loop and to
+generate random addresses, the testbench can be made into a stronger
+``unit testbench'' that tests many more possibilities.  See
+Section~``3.8.1~LFSR'' in the {\bsc} Libraries Reference Guide for
+facilities to generate pseudo-random numbers.
+
+% ================================================================
+
+\subsection*{Ex-06-B-Decode}
+
+\label{Ex-06-B-Decode}
+
+Please see the directory: \hm {\tt Exercises/Ex-06-B-Decode/} \\
+This is a minimal unit testbench for \verb|fn_Decode()|.  It builds on
+the previous exercise, using an output of \verb|fn_Fetch()| and the
+memory response as its inputs.
+
+\begin{itemize}
+
+\item[(1)] Exercise baseline.
+
+    Study and understand the code in \verb|Top.bsv|.  It will be
+    useful to ``diff'':
+    \begin{tightlist}
+    \item \verb|Ex-06-A-Fetch/src_BSV/Top.bsv|
+    \item \verb|Ex-06-B-Decode/src_BSV/Top.bsv|
+    \end{tightlist}
+    to see what has changed.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+    Verify that the output of \verb|fn_Decode()| is correct for the
+    fetched instruction.  (Note, the program fetches a 32-bit
+    instruction from address 0x\_8000\_0000 (the particular
+    instruction can be seen in file \verb|test.memhex32|).  Locate
+    this instruction in the ``objdump'' file:
+
+    \hmm {\tt Code/Tools/Hello\_World\_Example\_Code/hello.RV32.bare.objdump }
+
+    which shows the assembly language code for the instruction.)
+
+\item[(2)] Repeat, for a few more instructions at other addresses.
+
+\item[(3)] Repeat, for a few more instructions at:
+    \begin{tightlist}
+    \item An unimplemented address ({\eg} 0x\_9\_0000\_0000)
+    \item A misaligned address ({\eg} 0x\_8000\_0002)
+    \end{tightlist}
+
+\item[(4)] Create a new \verb|test.memhex32| file with just 4 bytes of
+    data at 0x\_8000\_0000.  Edit the testbench to fetch just this one
+    instruction.
+
+    Repeat:
+    \begin{itemize}
+
+    \item Edit the 4 bytes to represent a different instruction that
+      will take the test program into a different branch of the
+      if-then-else's in \verb|fn_Decode()|.
+
+    \item Recompile and run. Verify that the output of
+      \verb|fn_Decode| is as expected.
+
+    \end{itemize}
+
+\end{itemize}
+
+% ================================================================
+
+\subsection*{Ex-06-C-Dispatch}
+
+\label{Ex-06-C-Dispatch}
+
+Please see directory: \hm {\tt Exercises/Ex-06-C-Dispatch/} \\
+This is a minimal unit testbench for \verb|fn_Dispatch()|.  It builds
+on the previous exercise, using the output of \verb|fn_Decode()| as
+its input.
+
+\begin{itemize}
+
+\item[(1)] Exercise baseline
+
+    Study and understand the code in \verb|Top.bsv|. It will be useful
+    to ``diff'':
+    \begin{tightlist}
+    \item \verb|Ex-06-B-Decode/src_BSV/Top.bsv|
+    \item \verb|Ex-06-C-Dispatch/src_BSV/Top.bsv|
+    \end{tightlist}
+    to see what has changed.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+    Verify that the output of \verb|fn_Dispatch()| is correct for the
+    fetched instruction.  (Note, the program fetches a 32-bit
+    instruction from address 0x\_8000\_0000 (the particular
+    instruction can be seen in file \verb|test.memhex32|).  Locate
+    this instruction in the ``objdump'' file:
+
+    \hmm {\tt Code/Tools/Hello\_World\_Example\_Code/hello.RV32.bare.objdump }
+
+    which shows the assembly language code for the instruction.)
+
+\item[(2)] The output of \verb|fn_Dispatch()| (type
+    \verb|Result_Dispatch|) has four sub-structs:
+    {\footnotesize\tt
+    \begin{tabbing}
+    \hm \= RR\_to\_EX\_Control \hm \= to\_EX\_Control; \kill
+        \> RR\_to\_Retire          \> to\_Retire; \\
+        \> RR\_to\_EX\_Control     \> to\_EX\_Control; \\
+        \> RR\_to\_EX              \> to\_EX; \\
+        \> Mem\_Req                \> to\_EX\_DMem;
+    \end{tabbing}}
+
+    The \verb|to_Retire| sub-struct has a field \verb|exec_tag| of type
+    \verb|Exec_Tag|.
+    \begin{tabbing}
+    The {\tt to\_EX\_Control} \= sub-struct is only valid when {\tt exec\_tag == EXEC\_TAG\_CONTROL}. \\
+    The {\tt to\_EX}          \> sub-struct is only valid when {\tt exec\_tag == EXEC\_TAG\_INT}. \\
+    The {\tt to\_EX\_DMem}    \> sub-struct is only valid when {\tt exec\_tag == EXEC\_TAG\_DMEM}.
+    \end{tabbing}
+
+    The code currently \verb|$display|'s all the sub-structs, whether
+    valid or not.  Replace this code with if-then-else's so that
+    sub-structs are only \verb|$display|'ed when they are valid.
+
+    Recompile and run to verify the code is running correctly.
+
+\item[(3)] Repeat, for a few more instructions at other addresses.
+
+\item[(4)] Repeat, for a few more instructions at:
+    \begin{tightlist}
+    \item An unimplemented address ({\eg} 0x\_9\_0000\_0000)
+    \item A misaligned address ({\eg} 0x\_8000\_0002)
+    \end{tightlist}
+
+\item[(5)] Create a new \verb|test.memhex32| file with just 4 bytes of
+    data at 0x\_8000\_0000.  Edit the testbench to fetch just this one
+    instruction.
+
+    Repeat:
+    \begin{itemize}
+
+    \item Edit the 4 bytes to represent a different instruction that
+      will take the test program into a different branch of the
+      if-then-else's in \verb|fn_Dispatch()|.
+
+    \item Recompile and run. Verify that the output of
+          \verb|fn_Dispatch()| is as expected.
+
+    \end{itemize}
+
+\end{itemize}
+
+% ================================================================
+
+\subsection*{Ex-06-D-Ex-Control}
+
+\label{Ex-06-D-Ex-Control}
+
+Consider {\tt fn\_EX\_Control} in Section~\ref{Sec_fn_EX_Control}.
+
+\begin{itemize}
+
+\item[(1)] The BRANCH, JAL and JALR clauses set the {\tt exception}
+    field to true if the next PC is not aligned.
+
+    What would happen if we did not set the exception field here?
+
+    (See ``Section 2.5 Control Transfer Instructions'' in the
+     Unprivileged ISA specification document
+     \cite{RISCV_Unpriv_2019_12_13} for a discussion of why we set it
+     here.)
+
+\item[(2)] Prove (informally) that the three-way if-then-else in
+    \verb|Fn_EX_Control| will catch all cases, {\ie} that we never
+    need a final ``\verb|else|'' clause.  This requires reviewing
+    \verb|fn_Decode| and tracking the flow of information through the
+    Register-Read-and-Dispatch stage (including \verb|fn_Dispatch)|,
+    into \verb|fn_Control|.
+
+\item[(3)] In \verb|Fn_EX_Control|, can we change the final ``\verb|else if|'':
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single]
+   else if (is_JALR (instr)) begin
+    \end{Verbatim}
+    }
+
+    into a simple ``\verb|else|'', {\ie} omit the the \verb|is_JALR|
+    check?
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single]
+   else begin
+    \end{Verbatim}
+    }
+
+    What might be the hardware implication of such a change?
+
+\item[(4)] In the final section of {\tt fn\_EX\_Control}, why do we
+    have: \verb|data: x.fallthrough_pc|?
+
+    \emph{Hint}: review the semantics of JAL and JALR instructions.
+
+    What if this is a BRANCH instruction?
+
+    What if this is a JAL or JALR instruction with \verb|rd| = 0?
+\end{itemize}
+
+Please see the directory: \hm {\tt Exercises/Ex-06-D-Ex-Control/} \\
+This is a minimal ``unit testbench'' for \verb|fn_Ex_Control()|.  It
+instantiates the memory model used by Drum and Fife.  It prepares
+input data for \verb|fn_Ex_Control()| using \verb|fn_Fetch()|,
+\verb|fn_Decode()|, and \verb|fn_Dispatch()|.
+
+\begin{itemize}
+
+\item[(5)] Study and understand the code in \verb|Top.bsv|. It will be
+    useful to ``diff'':
+
+    \begin{tightlist}
+    \item \verb|Ex-06-C-Dispatch/src_BSV/Top.bsv|
+    \item \verb|Ex-06-D-Ex-Control/src_BSV/Top.bsv|
+    \end{tightlist}
+    to see what has changed.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+    Verify that the output of \verb|fn_EX_Control()| is correct for
+    the fetched instructions. (Note, the program fetches two 32-bit
+    instructions from addresses 0x\_8000\_0000 and 0x\_8000\_003c (the
+    particular instruction can be seen in file \verb|test.memhex32|).
+    Locate this instruction in the ``objdump'' file:
+
+    \hmm {\tt Code/Tools/Hello\_World\_Example\_Code/hello.RV32.bare.objdump }
+
+    which shows the assembly language code for the instructions.)
+    The first of these two instructions is not a control
+    instruction, and the second is a control instruction (BNE).
+
+    For the two BNE instructions, we invoke \verb|a_rsp (0,0)| and
+    \verb|a_rsp (0,1)|.  The two arguments represent the rs1 and rs2
+    values.  BNE should be False for the first one, True for the
+    second (so the next PC will be different for the two cases).
+
+\item[(6)] Create a new \verb|test.memhex32| file with just 4 bytes of
+    data at 0x\_8000\_0000.  Edit the testbench to fetch just this one
+    instruction.
+
+    Repeat:
+    \begin{itemize}
+
+    \item Edit the 4 bytes to represent a different control instruction
+          (try BEQ, BNE, BLT, BGE, BLTU, BGEU, JAL, and JALR).
+
+    \item Recompile and run. Verify that the output of
+          \verb|fn_EX_Control()| is as expected.
+
+    \end{itemize}
+
+\end{itemize}
+
+% ================================================================
+
+\subsection*{Ex-06-E-Ex-Int}
+
+\label{Ex-06-E-Ex-Int}
+
+Consider {\tt fn\_IALU} in Section~\ref{Sec_fn_EX_Int}.
+
+\begin{itemize}
+
+\item[(1)] Lines 16-53 contain two if-statements without ``else''
+    clauses.  We could instead have written it this way:
+
+    {\footnotesize
+    \begin{Verbatim}[frame=single, numbers=left]
+   Bit #(XLEN) y = 0;
+   if (opcode == opcode_OP) begin
+      ...
+      ... y = ...
+   end
+   else if (opcode == opcode_OP_IMM) begin
+      ...
+      ... y = ...
+   end
+   return y;
+    \end{Verbatim}
+    }
+
+    Discuss the hardware tradeoffs between writing it in these two
+    ways.  {\emph Hints:} Consider:
+
+    \begin{tightlist}
+
+      \item Sequentiality of if-then-else.
+
+      \item Ability (or not) to prove exhaustiveness of conditions in
+          nested if-then-else.
+
+      \item Ability (or not) to prove mutual-exclusivity of conditions
+          in nested if-then-else.
+
+      \item Discussion in Section~\ref{Sec_MUXes} on parallel and
+        sequential multiplexers (mux).  Note: in our code, we have
+        explicitly coded a parallel mux.
+
+    \end{tightlist}
+
+\item[(2)] Justify the presence or absence of the ``{\tt pack}''
+    operator in each ``case'' arm in {\tt fn\_IALU}.
+
+\item[(3)] The RISC-V ISA has ADD, SUB and ADDI instructions, but no
+    SUBI instruction.  Why not?
+
+\item[(4)] Suppose we want to extend {\tt fn\_IALU} so it also works
+    when XLEN=64 ({\ie} for RV64I).  What needs to change to
+    accommodate this?
+
+    \emph{Hint:} it only matters in the shift-amount of the shift
+    instructions, where the shift-amount can be 6-bits wide instead of
+    5-bits (allowing a maximum of 63-bit shifts instead of 31 bits).
+
+\end{itemize}
+
+Please see the directory: \hm {\tt Exercises/Ex-06-E-Ex-Int/} \\
+This is a minimal ``unit testbench'' for \verb|fn_Ex_Int()|.  It
+instantiates the memory model used by Drum and Fife.  It prepares
+input data for \verb|fn_Ex_Int()| using \verb|fn_Fetch()|,
+\verb|fn_Decode()|, and \verb|fn_Dispatch()|.
+
+\begin{itemize}
+
+\item[(5)] Study and understand the code in \verb|Top.bsv|. It will be
+    useful to 'diff':
+    \begin{tightlist}
+    \item \verb|Ex-06-C-Dispatch/src_BSV/Top.bsv|
+    \item \verb|Ex-06-D-Ex-Int/src_BSV/Top.bsv|
+    \end{tightlist}
+    to see what has changed.
+
+    Compile and run the code using Verilator simulation or Bluesim
+    simulation.  Observe and understand the behavior.
+
+    Verify that the output of \verb|fn_EX_Int()| is correct for the
+    fetched instruction. (Note, the program fetches a 32-bit
+    instruction from address 0x\_8000\_0000 (the particular
+    instruction can be seen in file \verb|test.memhex32|).  Locate
+    this instruction in the ``objdump'' file:
+
+    \hmm {\tt Code/Tools/Hello\_World\_Example\_Code/hello.RV32.bare.objdump }
+
+    which shows the assembly language code for the instruction.)
+
+    For the instruction, we invoke \verb|a_rsp (0,0)|.  The two
+    arguments represent the rs1 and rs2 values (which may or may not
+    be relevant for different int opcodes).
+
+\item[(6)] Create a \verb|test.memhex32| file with just 4 bytes of
+    data at 0x\_8000\_0000.  Edit the testbench to fetch just this one
+    instruction.
+
+    Repeat:
+    \begin{itemize}
+
+    \item Edit the 4 bytes to represent a different integer instruction
+        (try various Int opcodes, with different rs1 and rs2 values).
+
+    \item Recompile and run. Verify that the output of
+          \verb|fn_EX_Int()| is as expected.
+
+    \end{itemize}
+
+\end{itemize}
+
+% ****************************************************************
+% Use this only if this chapter/appendix has an odd number of pages
+
+\input{blankpage}
+
+% ****************************************************************

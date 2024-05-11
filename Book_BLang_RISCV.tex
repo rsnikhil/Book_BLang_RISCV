@@ -128,7 +128,12 @@
 \newcommand{\ApExercise}%
     {\addtocounter{exercise}{1}{\bf Exercise \Alph{chapter}.\arabic{exercise}:}}
 
-\newcounter{tmpcounter}
+\newcommand{\EXERCISE}[1]{\hdivider \\
+{\bf EXERCISE:}
+  Please see #1 in Appendix~\ref{apx_exercises}, page \pageref{#1}.
+  \hfill {\normalsize$\Box$} \\
+\hdivider}
+
 % ----------------
 % CODE FONT (e.g. {\cf x := 0}).
 \newcommand{\cf}{\footnotesize\tt}
@@ -236,6 +241,10 @@
 \include{ch200/ch_RISCV_Further_Study}
 % ----------------------------------------------------------------
 
+% ----------------------------------------------------------------
+% \include{testpage}
+% ----------------------------------------------------------------
+
 % ****************************************************************
 
 \appendix
@@ -248,6 +257,8 @@
 \include{ch860_apx_Glossary/apx_Glossary}
 % ----------------------------------------------------------------
 \include{ch870/apx_BSV_importing_C}
+% ----------------------------------------------------------------
+\include{ch880/apx_Exercises}
 % ----------------------------------------------------------------
 
 \include{ch900_back/back}
