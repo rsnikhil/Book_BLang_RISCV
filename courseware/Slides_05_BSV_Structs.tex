@@ -57,15 +57,18 @@ a grouping of \emph{fields} of heterogeneous types.
 
 \vspace{2ex}
 
-We will discuss {\tt Mem\_Req\_Type} in {\tt Mem\_Req\_Size} some
+We will discuss {\tt Mem\_Req\_Type} and {\tt Mem\_Req\_Size} in some
 following slides (they are just small bit-width scalars).
+
+We will discuss the choice of 64 bits for {\tt addr} and {\tt data} in
+some following slides.
 
 \vspace{1ex}
 
 The {\tt data} field is only relevant when communicating data from the
 CPU to memory (STORE and AMO instructions).
 
-\vspace{1ex}
+\vspace{2ex}
 
 When communicating 1, 2 and 4 bytes, these are in the
 least-significant bytes of the {\tt data} field.
@@ -86,10 +89,10 @@ equality/inequality.
 \footnotesize
 
 \begin{Verbatim}[frame=single, numbers=left]
-   Mem_Req x = Mem_Req {req_type: ... value of field ... ,
-                        size:     ... value of field ... ,
-                        addr:     ... value of field ... ,
-                        data:     ... value of field ... ,
+   Mem_Req x = Mem_Req {req_type: funct5_LOAD,
+                        size:     MEM_SIZE_4B,
+                        addr:     'h_8000_0000,
+                        data:     ?,
                         ...   };
 \end{Verbatim}
 The right-hand side is a ``struct expression'' whose value is a struct value.
@@ -105,9 +108,9 @@ Some shorthands: ``{\tt let}'' and don't-care values:
 \vspace*{2ex}
 
 \begin{Verbatim}[frame=single, numbers=left]
-   let  x   =  Mem_Req {req_type: MEM_REQ_LOAD,
-                        size:     ... value of field ... ,
-                        addr:     ... value of field ... ,
+   let  x   =  Mem_Req {req_type: funct5_LOAD,
+                        size:     MEM_SIZE_4B,
+                        addr:     'h_8000_0000,
                         data:     ?,
                         ...   };
 \end{Verbatim}
@@ -125,6 +128,7 @@ These notations are standard in many programming languages.
 
 \vspace{5ex}
 
+Accessing fields:
 \begin{Verbatim}[frame=single, numbers=left]
    x.req_type
    x.size
@@ -132,6 +136,7 @@ These notations are standard in many programming languages.
 
 \vspace{5ex}
 
+Updating fields:
 \begin{Verbatim}[frame=single, numbers=left]
    x.req_type = MEM_REQ_STORE;
    x.data     = ... new value ... ;
@@ -174,13 +179,11 @@ These notations are standard in many programming languages.
 
 We can print a struct value directly, {\eg}
 
-{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
     Mem_Req mem_req;
     ...
     $display ("mem_req is: ", mem_req);
 \end{Verbatim}
-}
 
 \vspace{5ex}
 
@@ -210,13 +213,11 @@ each field separately.
 
 \vspace{2ex}
 
-{\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
     Mem_Req mem_req;
     ...
     $display ("mem_req is: ", fshow (mem_req));
 \end{Verbatim}
-}
 
 \PAUSE{\vspace{5ex}}
 
@@ -233,22 +234,26 @@ Instances'') to define {\tt fshow()} to print what we want.
 
 \footnotesize
 
-We could define {\tt Mem\_Req\_Type} as an {\tt enum} type ({\tt
-MEM\_REQ\_LOAD}, {\tt MEM\_REQ\_STORE} ...).  However, looking ahead
-to possibly supporting the ``A'' extension in the future (Atomic
-Memory Ops (AMOs), see Unprivileged ISA Spec p.132), we observe that
-the ISA defines a 5-bit code for each AMO op.  So, we define:
+We could define the memory request-type as an {\tt enum}:
+\begin{Verbatim}[frame=single, numbers=left]
+typedef enum { MEM_REQ_LOAD, MEM_REQ_STORE} Mem_Req_Type
+deriving (Bits, FShow, Eq);
+\end{Verbatim}
 
-\vspace{4ex}
+However, looking ahead to future support of the ``A'' extension
+(Atomic Memory Ops (AMOs), see Unprivileged ISA Spec p.132), we
+observe that the ISA defines a 5-bit code in the instruction for each
+AMO op.  If we use these 5 bits as-is, it will simplify decoding.  So,
+we use 5 bits for the memory request-type:
+
+\vspace{2ex}
 
 \SHOWCODE{../Code_Extracts/Mem_Req_Type.tex}
 
 \vspace{4ex}
+and we pick two 5-bit codes that are unused by the AMO ops for LOAD and STORE:
 
-For the AMOs, we will use the 5-bit codes as defined in the ISA (simplifies Decode!). \\
-For LOAD/STORE/FENCE, we use three codes that are not used by AMO ops.
-
-\vspace{4ex}
+\vspace{2ex}
 
 \SHOWCODE{../Code_Extracts/funct5_MEMOPs.tex}
 
@@ -265,10 +270,10 @@ For LOAD/STORE/FENCE, we use three codes that are not used by AMO ops.
 
 \PAUSE{\vspace{2ex}}
 
-Why do we have a code for 8 bytes, since RV32I can only LOAD/STORE
-bytes (1 byte), halfwords (2 bytes) and words (4 bytes)?
+Why {\tt MEM\_8B}?  (RV32I can only LOAD/STORE bytes (1 byte),
+halfwords (2 bytes) and words (4 bytes).)
 
-\PAUSE{\vspace{2ex}}
+\PAUSE{\vspace{1ex}}
 
 This is with an eye towards future extension of our implementation:
 
@@ -283,10 +288,26 @@ This is with an eye towards future extension of our implementation:
 
  \PAUSE{\vspace{2ex}}
 
- \item Even though RV32I and RV64I instructions are at most 32-bits
-       wide, the Fetch stage may choose to fetch more bits on each
-       memory access, effectively ``pre-fetching'' subsequent
-       instruction and reducing the number of memory accesses.
+ \item Even though RV32I and RV64I instructions are $\leq$ 32-bits
+       wide, Fetch may choose to fetch more bits on each memory
+       access, effectively ``pre-fetching'' subsequent instruction and
+       reducing the number of memory accesses.
+
+\end{itemize}
+
+\PAUSE{\vspace{2ex}}
+
+Why is the {\tt addr} field 64 bits instead of 32?  This is again with
+an eye towards future extension of our implementation:
+
+\begin{itemize}
+
+ \item If we support RV64I, addresses will be 64 bits.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item Even in RV32, physical memory/devices can allocated be at
+       addresses larger than the $2^{32}$ address space.
 
 \end{itemize}
 
@@ -297,8 +318,7 @@ This is with an eye towards future extension of our implementation:
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Please see directory: \hm {\tt Exercises/Ex\_05\_A\_Structs/} \\
-and its README.
+Please see Appendix E, Section Ex-05-A-Structs.
 
 \end{frame}
 
@@ -334,8 +354,7 @@ data} field.
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Please see directory: \hm {\tt Exercises/Ex\_05\_B\_Mem\_Req\_Rsp/} \\
-and its README.
+Please see Appendix E, Section Ex-05-B-Mem-Req-Rsp.
 
 \end{frame}
 

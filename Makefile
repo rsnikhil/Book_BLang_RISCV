@@ -84,9 +84,10 @@ pip: $(SOURCES)  tmp_latex
 bib: tmp_latex
 	bibtex  $(TOPFILE)
 
-.PHONY: a
-a: ch880/apx_Exercises.tex
-	pdflatex  Appendix_E.tex
+# One Chapter:
+.PHONY: o
+o: $(SOURCES)
+	pdflatex  One_Chapter.tex
 
 .PHONY: figs
 figs:

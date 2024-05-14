@@ -372,6 +372,31 @@ and its README.
 
 % ================================================================
 
+\begin{frame}[fragile]
+\frametitle{{\BSV}: ``{\tt let}'' bindings}
+
+\footnotesize
+
+When declaring an identifier, instead of specifying a type for the
+identifier, we can use the keyword ``{\tt let}'' and leave it to the
+{\bsc} compiler to infer the type:
+
+\vspace{2ex}
+
+\begin{Verbatim}[frame=single, numbers=left]
+   let pc_val = 32'h_8000_0000;    // pc_val's inferred type: Bit #(32) 
+   let pc_msb = pc_val [31];       // pc_msb's inferred type: Bit #(1)
+\end{Verbatim}
+
+\vspace{2ex}
+
+This mechanism should only be used where the type is obvious for the
+human reader.
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
@@ -694,6 +719,199 @@ bit-vectors, since they are themselves combinational circuits).
        be pure.
 
 \end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Pure {\vs} side-effecting functions}
+
+\footnotesize
+
+Consider two versions of a function ...
+
+\vspace{1ex}
+
+\begin{minipage}{0.3\textwidth}
+\hfill Pure (no side-effect):
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+function Bit #(32)
+         incr_pc_A (Bit #(32) pc);
+   return pc + 4;
+endfunction
+\end{Verbatim}
+\end{minipage}
+
+\vspace{1ex}
+
+\begin{minipage}{0.3\textwidth}
+\hfill Side-effecting (due to a {\tt \$display}):
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+function ActionValue #(Bit #(32))
+         incr_pc_B (Bit #(32) pc);
+   actionvalue
+      $display ("pc = %08h\n", pc);
+      return pc + 4;
+   endactionvalue
+endfunction
+\end{Verbatim}
+\end{minipage}
+
+\vspace{2ex}
+
+The return-type of a function (or interface method) identifies it as: \\
+\begin{tabbing}
+\hmmmm \= {\vs} \= side-effecting: \hm \= \kill
+       \>       \> pure:               \> {\tt Bit\#(32)} \\
+       \> {\vs} \> side-effecting:     \> {\tt ActionValue\#(Bit\#(32))}
+\end{tabbing}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Invoking pure {\vs} side-effecting functions}
+\footnotesize
+
+All functions are invoked using traditional syntax (like C/C++,
+Verilog, SystemVerilog):
+
+\begin{center}
+\begin{minipage}{0.2\textwidth}
+\begin{Verbatim}[frame=single]
+incr_pc_A (pc)
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.2\textwidth}
+\begin{Verbatim}[frame=single]
+incr_pc_B (pc)
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.2\textwidth}
+\begin{Verbatim}[frame=single]
+incr_pc_C (pc)
+\end{Verbatim}
+\end{minipage}
+\end{center}
+
+\PAUSE{\vspace{2ex}}
+
+When a pure function is invoked, its result has \emph{value type}, and
+so it can be bound to an identifier using traditional syntax:
+
+\begin{Verbatim}[frame=single]
+   let new_pc = incr_pc_A (pc);
+\end{Verbatim}
+
+\PAUSE{\vspace{2ex}}
+
+When an ActionValue function is invoked, its result has {\tt
+ActionValue} type---it represents an action that \emph{can be
+performed}.  To actually perform the action, we use the following
+notation:
+
+\begin{Verbatim}[frame=single]
+   let new_pc <- incr_pc_B (pc);
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{(Advanced) More on ``{\tt =}'' {\vs} ``{\tt <-}''}
+\footnotesize
+
+The two notations enable the actionvalue itself to be treated as a
+value and bound to an identifier.  Consider a third version of the
+function that has the same type as the second version:
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+function ActionValue #(Bit #(32))
+         incr_pc_C (Bit #(32) pc);
+   actionvalue
+      $display ("The pc is %08h\n", pc);
+      return pc + 4;
+   endactionvalue
+endfunction
+\end{Verbatim}
+\end{minipage}
+\end{center}
+
+The following code allows us to name the two actionvalues (without
+performing them), then select between the two, then perform the
+selected one.
+
+\begin{Verbatim}[frame=single]
+   ActionValue #(Bit#(32)) av1 = incr_pc_B (pc);
+   ActionValue #(Bit#(32)) av2 = incr_pc_C (pc);
+   ...
+   ActionValue #(Bit#(32)) av  = (b ? av1 : av2);
+   ...
+   let new_pc <- av;    // perform the action av1 or the action av2
+\end{Verbatim}
+
+This capability (``All types, including ActionValues, are first-class
+types'') is common in modern functional programming languages ({\eg}
+Haskell).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Pragmatics: Wrapping a pure function as an {\tt Actionvalue}}
+
+\footnotesize
+
+For a large/complex pure function, we sometimes deliberately define it
+as an {\tt ActionValue} type, even though it has no side-effect:
+
+\vspace*{1ex}
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+function Bit #(32)
+         incr_pc_A (Bit #(32) pc);
+   return pc + 4;
+endfunction
+\end{Verbatim}
+\end{minipage}
+$\Longrightarrow$
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+function ActionValue #(Bit #(32))
+         incr_pc_B (Bit #(32) pc);
+   actionvalue
+      $display ("pc = %08h\n", pc);
+      return pc + 4;
+   endactionvalue
+endfunction
+\end{Verbatim}
+\end{minipage}
+\end{center}
+
+\vspace{2ex}
+
+This is in anticipation of the possibility that we may want to add a
+side-effect later (a {\tt \$display()}) for debugging.
+
+\vspace{2ex}
+
+We can always remove the {\tt ActionValue} type later.
 
 \end{frame}
 
