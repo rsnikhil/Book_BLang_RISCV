@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.1485637"
-     inkscape:cx="397.47482"
-     inkscape:cy="323.93733"
+     inkscape:cx="397.24212"
+     inkscape:cy="323.93734"
      inkscape:window-width="2240"
      inkscape:window-height="1499"
      inkscape:window-x="193"
-     inkscape:window-y="61"
+     inkscape:window-y="33"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -531,12 +531,12 @@
          y="30.669937"
          id="tspan135">BSV topics</tspan></text>
     <path
-       style="fill:#0000ff;stroke:#0000ff;stroke-width:0.799997;stroke-dasharray:none;marker-end:url(#marker113098);fill-opacity:1"
-       d="M 54.356919,32.317724 V 131.59822"
+       style="fill:#0000ff;fill-opacity:1;stroke:#0000ff;stroke-width:0.799997;stroke-dasharray:none;marker-end:url(#marker113098)"
+       d="M 54.356919,32.262087 V 137.00752"
        id="path163" />
     <path
        style="fill:#d35f5f;stroke:#ffcc00;stroke-width:0.799999;stroke-dasharray:none;marker-end:url(#marker113098)"
-       d="M 130.20698,32.317724 V 131.71393"
+       d="M 130.20698,32.262087 V 137.1296"
        id="path164" />
     <rect
        style="fill:#ffcc00;stroke:#000000;stroke-width:0.199999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -571,12 +571,12 @@
          id="tspan113">Combinational circuits</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:3.175px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffcc00;stroke-width:0.264583;stroke:#000000"
+       style="font-size:3.175px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#ffcc00;stroke-width:0.1;stroke:#000000;stroke-dasharray:none"
        x="130.1232"
        y="30.669937"
        id="text115"><tspan
          sodipodi:role="line"
-         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.175px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';text-align:center;text-anchor:middle;fill:#ffcc00;stroke-width:0.264583;stroke:#000000"
+         style="font-style:italic;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:3.175px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold Italic';text-align:center;text-anchor:middle;fill:#ffcc00;stroke-width:0.1;stroke:#000000;stroke-dasharray:none"
          x="130.1232"
          y="30.669937"
          id="tspan2">RISC-V examples and topics</tspan></text>

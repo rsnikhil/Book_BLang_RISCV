@@ -399,7 +399,7 @@ statement like this:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-    Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
+   Reg #(Bit #(XLEN)) rg_pc <- mkReg (0);
 \end{Verbatim}
 }
 
@@ -526,8 +526,8 @@ The standard register file interface type in the BSV library is:
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 interface RegFile #(type index_t, type data_t);
-    method Action upd (index_t addr, data_t d);
-    method data_t sub (index_t addr);
+   method Action upd (index_t addr, data_t d);
+   method data_t sub (index_t addr);
 endinterface: RegFile
 \end{Verbatim}
 }
@@ -835,7 +835,7 @@ the {\tt pop} function on {\tt FIFOF}s in Section~\ref{Sec_FIFOF_pop}.
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-function ActionValue #(t) pop (FIFOF_O #(t) fo);
+function ActionValue #(t) pop_O (FIFOF_O #(t) fo);
    actionvalue
       let x = fo.first;
       fo.deq;
@@ -849,7 +849,7 @@ This is then invoked with the usual syntax for invoking ActionValues:
 
 {\footnotesize
 \begin{Verbatim}[frame=single]
-   let y <- pop (fo);
+   let y <- pop_O (fo);
 \end{Verbatim}
 }
 
@@ -882,7 +882,7 @@ function FIFOF_O #(t) to_FIFOF_O (FIFOF #(t) f);
          f.deq;
       endmethod
    endinterface
-endinterface
+endfunction
 \end{Verbatim}
 }
 
