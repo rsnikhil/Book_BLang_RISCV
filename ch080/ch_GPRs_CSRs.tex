@@ -73,26 +73,10 @@ The module instantiates a library register file {\tt rf}.  The methods
 simply invoke the underlying {\tt rf} methods.  The read-methods
 override this by returning 0 when the index is 0.
 
-% ----------------
-\hdivider
 
-\Exercise
-\hm In {\tt mkGPRs} we write the value when \emph{j} is zero, but we
-ignore it on reads.  Write a variant where, in {\tt write\_rd}, we
-alway write 0 when the index {\tt rd} is zero, and the read methods no
-longer check if {\tt rs1} or {\tt rs2} are 0.
+% ----------------------------------------------------------------
 
-In this variant, what happens if we try to read {\tt x0} before it is
-written for the first time?
-
-Compare the circuitry generated in the original and in the variant.
-Why might we choose one over the other?
-
-\Exercise
-\hm In {\tt mkGPRs} suppose we use {\tt mkRegFile(1,31)} instead of
-{\tt mkRegFileFull}.  What needs to change to accommodate this?
-
-\Endexercise
+\EXERCISE{Ex-08-A-GPR-Register-Files}
 
 % ================================================================
 

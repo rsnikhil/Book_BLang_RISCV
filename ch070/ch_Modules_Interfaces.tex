@@ -886,16 +886,9 @@ endfunction
 \end{Verbatim}
 }
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
-
-Write a similar function to transform a \verb|FIFOF| interface into a
-\verb|FIFOF_I| interface, with \verb|notFull| and \verb|enq| methods.
-
-\Endexercise
-% ----------------
+\EXERCISE{Ex-07-A-Interface-Transformers}
 
 % ================================================================
 
@@ -1112,18 +1105,9 @@ FIFOF}) that may be polymorphic.  In the previous sections, we defined
 new types \verb|GPRs_IFC #(reg_width)|, \verb|FIFOF_I #(t)| and
 \verb|FIFOF_O #(t)| that are also polymorphic.
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
-
-The types {\tt Mem\_Req} and {\tt Mem\_Rsp}
-(Sections~\ref{Sec_Mem_Req} and \ref{Sec_Mem_Rsp}) are monomorphic.
-Write polymorphic versions of these types that are parameterized on
-{\tt xlen}.
-
-\Endexercise
-% ----------------
+\EXERCISE{Ex-07-B-Polymorphic-Types}
 
 % ================================================================
 
@@ -1204,21 +1188,8 @@ endmoduile
 \end{Verbatim}
 }
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
-
-\hm In {\tt mkRISCV\_GPRs\_V} replace the explicit type declaration
-of {\tt ifc} with the {\tt let} keyword.
-
-\Exercise
-
-\hm Write a monomorphic wrapper for the BSV library {\tt mkFIFOF}
-module that specializes it into a FIFO that only carries {\tt Bool}
-values.  Add an annotation so the wrapper becomes a separate Verilog
-module.  Compile it and study the generated Verilog.
-
-\Endexercise
+\EXERCISE{Ex-07-C-Synthesizable-Modules}
 
 % ****************************************************************

@@ -24,6 +24,8 @@ ensure you have the latest version!}
 \vspace{5ex}
 % ----------------
 
+% \footnotesize
+
 % ****************************************************************
 
 \hdivider
@@ -864,8 +866,95 @@ input data for \verb|fn_Ex_Int()| using \verb|fn_Fetch()|,
 \end{itemize}
 
 % ****************************************************************
+
+\hdivider
+
+\section*{Chapter 7: BSV: Modules and Interfaces:
+Registers, Register Files and FIFOs}
+
+% ================================================================
+
+\subsection*{Ex-07-A: Interface Transformers}
+
+\label{Ex-07-A-Interface-Transformers}
+
+(Please refer to Section~\ref{Sec_interface_transfomers}.)
+
+Write a similar function to view the input side of a \verb|FIFOF|
+interface as a {\tt FIFOF\_I} interface.
+
+% ================================================================
+
+\subsection*{Ex-07-B: Polymorphic types}
+
+\label{Ex-07-B-Polymorphic-Types}
+
+(Please refer to Section~\ref{Sec_Polymorphic_Types}.)
+
+The types {\tt Mem\_Req} and {\tt Mem\_Rsp}
+(Sections~\ref{Sec_Mem_Req} and \ref{Sec_Mem_Rsp}) are monomorphic.
+Write polymorphic versions of these types that are parameterized on
+{\tt xlen} for the {\tt addr} field.
+
+% ================================================================
+
+\subsection*{Ex-07-C: Synthesizable modules}
+
+\label{Ex-07-C-Synthesizable-Modules}
+
+(Please refer Section~\ref{Sec_Polymorphic_Types_and_Synthesizability}.)
+
+\begin{itemize}
+
+\item In {\tt mkRISCV\_GPRs\_V} replace the explicit type declaration
+      of {\tt ifc} with the {\tt let} keyword.
+
+\item Write a monomorphic wrapper for the BSV library {\tt mkFIFOF}
+      module that specializes it into a FIFO that only carries {\tt
+      Bool} values.  Add an annotation so the wrapper becomes a
+      separate Verilog module.  Compile it and study the generated
+      Verilog.
+
+\end{itemize}
+
+% ****************************************************************
+
+\hdivider
+
+\section*{Chapter 8: RISC-V: Modules for GPRs and CSRs}
+
+% ================================================================
+
+\subsection*{Ex-08-A: GPR Register Files}
+
+\label{Ex-08-A-GPR-Register-Files}
+
+(Please refer Section~\ref{Sec_RISCV_regfile}.)
+
+\begin{itemize}
+
+\item In {\tt mkGPRs} we write the value when \emph{j} is zero, but we
+      ignore it on reads.  Write a variant where, in {\tt write\_rd},
+      we alway write 0 when the index {\tt rd} is zero, and the read
+      methods no longer check if {\tt rs1} or {\tt rs2} are 0.
+
+      In this variant, what happens if we try to read {\tt x0} before
+      it is written for the first time?
+
+      Compare the circuitry generated in the original and in the
+      variant.  Why might we choose one over the other?
+
+\item In {\tt mkGPRs} suppose we use {\tt mkRegFile(1,31)} instead of
+      {\tt mkRegFileFull}.  What needs to change to accommodate this?
+
+\end{itemize}
+
+% ****************************************************************
 % Use this only if this chapter/appendix has an odd number of pages
 
 \input{blankpage}
 
 % ****************************************************************
+
+% \normalsize
+

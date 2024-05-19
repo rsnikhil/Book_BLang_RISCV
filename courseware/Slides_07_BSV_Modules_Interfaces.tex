@@ -131,17 +131,14 @@
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Generating a Verilog module for a {\tt BSV} module}
+\frametitle{{\BSV}: Generating a Verilog module for a {\BSV} module}
 
 \footnotesize
 
 By default, wherever we have an instantiation of a module FOO, the
 {\bsc} compiler \emph{inlines} the corresponding FOO module definition
-at that place.
-
-\vspace{1ex}
-
-As a consequence, there will be no trace of module FOO in the generated Verilog.
+at that place.  As a consequence, there will be no trace of module FOO
+in the generated Verilog.
 
 \vspace{4ex}
 
@@ -154,9 +151,8 @@ module mkCPU (CPU_IFC);
 endmodule
 \end{Verbatim}
 
-This
 \begin{itemize}
- \item Makes {\bsc} generate a Verilog module for {\tt mkCPU}
+ \item Makes the {\bsc} compiler generate a Verilog module for {\tt mkCPU}.
 
  \item Wherever {\tt mkCPU} is instantiated, {\bsc} will instantiate
        that Verilog module there, instead of inlining it.
@@ -166,8 +162,17 @@ This
 \vspace{2ex}
 
 CAVEAT: all {\BSV} modules can be inlined, but not all {\BSV} modules
-can be converted into Verilog.  Briefly, the modules inputs and
-outputs all need to be representable as wires carrying bit-vectors.
+can be converted into Verilog:
+\begin{itemize}
+
+ \item The inputs and outputs of a Verilog module are all wires, carrying bit-vectors.
+
+ \item In {\BSV}, a parameter/result of a module may have a type with
+       no bit-vector representation; for example, the {\tt Integer}
+       type (unbounded mathematical integers).  Inlining this module
+       may reveal that this parameter is used in a way that does not
+       need a bit-vector.
+\end{itemize}
 
 \end{frame}
 
@@ -178,14 +183,62 @@ outputs all need to be representable as wires carrying bit-vectors.
 
 \footnotesize
 
-General scheme for all {\BSV} Hardware interfaces: \\
-\hmm (wires/buses) for {\tt ActionValue\#(t)}, {\tt Action} and value methods:
-
-\vspace{2ex}
+General hardware scheme for each {\BSV} method, depending on its output type:
 
 \begin{center}
 \includegraphics[width=\textwidth]{Fig_Interface_Buses}
 \end{center}
+
+\begin{itemize}
+
+ \item All methods have an output READY signal.  The method can be
+       invoked only when READY=1.
+
+ \item Side-effecting methods (output types {\tt Action}, {\tt
+       ActionValue \#($t$)}) have an input ENABLE signal.  The
+       side-effect only occurs on clock edges when ENABLE=1.
+
+ \item A method argument is an input bus.
+ \item A method result is an output bus.
+\end{itemize}
+
+READY/ENABLE signaling is fundamental for implementing {\BSV}'s
+compositional rule-based behavioral semantics (rule conditions, method
+conditions, rule atomicity).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{{\BSV}: Hardware interfaces: modeling Verilog/SystemVerilog ports}
+
+\footnotesize
+
+One can attach \emph{attributes} ``{\tt always\_ready}'' and ``{\tt
+always\_enabled}'' to a {\BSV} method, eliminating the READY and/or
+ENABLE signals, respectively (see documentation).
+
+\vspace{1ex}
+
+Note: the {\bsc} compiler will check that these attribute-assertions are true.
+
+\vspace{4ex}
+
+It is easy to model Verilog/SystemVerilog module ports:
+\begin{itemize}
+
+ \item A {\BSV} method with 0 arguments (no inputs) and 1 result
+       (output bus) that is always-ready becomes a simple
+       Verilog/SystemVerilog output port.
+
+ \item A {\BSV} {\tt Action} method (no output) with 1 argument (input
+       bus), that is always-ready and always-enabled becomes a simple
+       Verilog/SystemVerilog input port.
+\end{itemize}
+
+These are frequently used for {\BSV} modules that must interface with
+external Verilog/SystemVerilog IP.
 
 \end{frame}
 
@@ -215,8 +268,8 @@ state, {\ie} that store or retain values over time).
 
 \vspace{2ex}
 
-In {\BSV}, registers are treated just like user-defined modules. \\
-(unlike Verilog/System Verilog, where registers are special primitives, not modules).
+In {\BSV}, registers are just pre-defined modules. \\
+(In Verilog/System Verilog, registers are special primitives, not modules.)
 
 \vspace{2ex}
 
@@ -231,19 +284,21 @@ endinterface
 
 \vspace{1ex}
 
-Registers are instantiated just like user-defined modules:
+
+``{\tt mkReg}'' and ``{\tt mkRegU}'' are pre-defined {\BSV} modules
+for registers (instantiated just like user-defined modules).
+
+Examples:
 
 \begin{Verbatim}[frame=single]
-    // register with reset value
-   Reg #(Bit #(XLEN))  rg_pc <- mkReg (0);
+   Reg #(Bit #(XLEN))  rg_pc <- mkReg (0);    // 0 is the reset value
 
-   // uninitialized register (unspecified reset value)
-   Reg #(Bit #(XLEN))  rg_pc <- mkRegU;
+   Reg #(Bit #(XLEN))  rg_pc <- mkRegU;       // unspecified reset value
 \end{Verbatim}
 
 \vspace{2ex}
 
-In {\BSV}, registers are strongly-typed. \\
+{\BSV} registers are strongly-typed. \\
 A \verb|Reg #(Bit #(XLEN))| cannot contain a {\tt Bool} value,
   or a \verb|Mem_Req| value,
   or ... any value whose type is not \verb|Bit #(XLEN)| \\
@@ -332,13 +387,13 @@ Example:
 
 \footnotesize
 
-A Register File module is an array of registers.
+A Register File module is an array of $n$ registers.
 
 \vspace{4ex}
 
-Unlike a collection of individual registers, where we can
-simultaneously read and write all registers, a register file is
-organized and accessed like a memory through a read and write
+Unlike a collection of $n$ individual registers, where we can
+simultaneously read and write all of them, a register file is
+organized and accessed like a memory, through a read and write
 interface.
 
 \vspace{2ex}
@@ -349,8 +404,10 @@ interface.
        index $j$ (like a ``memory address'').
 
        The standard {\BSV} register file module has 5 read-ports,
-       {\ie} up to 5 registers can be read simultaneously (in RISC-V,
-       we need to read at least two registers simultaneously).
+       {\ie} up to 5 registers can be read simultaneously (no matter
+       how many registers are in the register file).
+
+       Note: in RISC-V, we need to read rs1 and rs2 simultaneously.
 
  \PAUSE{\vspace{2ex}}
 
@@ -361,8 +418,8 @@ interface.
 
 \PAUSE{\vspace{2ex}}
 
-A synthesis tool may implement a register file using an SRAM, instead
-of using random registers and muxes.
+A synthesis tool might implement a register file using an SRAM,
+instead of individual registers and muxes.
 
 \end{frame}
 
@@ -386,31 +443,29 @@ interface RegFile #(type index_t, type data_t);
 endinterface: RegFile
 \end{Verbatim}
 
-\vspace{2ex}
-
 ``\verb|index_t|'' is the type for the index (for RISC-V, with 32
 registers, we use \verb|Bit#(5)|).
 
 ``\verb|data_t|'' is the type of value stored in each of the
 registers (for RISC-V, this is \verb|Bit#(XLEN)|.
 
-\vspace{1ex}
+\vspace{2ex}
 
 {\BSV} register files are strongly typed, just like individul registers. \\
-(unlike Verilog/SystemVerilog, where register files just hold bit-vectors).
+(In Verilog/SystemVerilog, where register files just hold bit-vectors.)
 
 \vspace{2ex}
 
-Example of instantiating a 31-register register-file module:
+``{\tt mkRegFile}'' and ``{\tt mkRegFileFull}'' are pre-defined {\BSV}
+modules for register files (instantiated just like user-defined
+modules).
+
+Examples:
 
 \begin{Verbatim}[frame=single]
-RegFile #(Bit #(5), Bit #(XLEN)) gprs <- mkRegFile (1, 31);
-\end{Verbatim}
+RegFile #(Bit #(5), Bit #(XLEN)) gprs <- mkRegFile (1, 31);    // 31 registers; addrs 1..31
 
-Example of instantiating a 32-register register-file module:
-
-\begin{Verbatim}[frame=single]
-RegFile #(Bit #(5), Bit #(XLEN)) gprs <- mkRegFileFull;
+RegFile #(Bit #(5), Bit #(XLEN)) gprs <- mkRegFileFull;        // 32 registers; addrs 0..31
 \end{Verbatim}
 
 \end{frame}
@@ -455,19 +510,19 @@ interface FIFOF #(t);
 endinterface
 \end{Verbatim}
 
-``{\tt t}'' specifies the type of the elements that the FIFO carries. \\
-{\BSV} FIFOs are strongly typed.  A \verb|FIFOF #(Mem_Req)| cannot carry \verb|Mem_Rsp|s.
+``{\tt t}'' specifies the type of the elements in the FIFO.
 
-\PAUSE{\vspace{2ex}}
+{\BSV} FIFOs are strongly typed.  \hmmmm {\Eg} a \verb|FIFOF #(Mem_Req)| cannot hold \verb|Mem_Rsp|s.
 
-Any actual hardware FIFO module will have a fixed maximum
-capacity (the number of items that it can hold in the queue) after
-which it becomes ``full''.
+\vspace{4ex}
+
+The {\tt first} and {\tt deq} methods (``output side'') are enabled
+only when there is at least one item in the FIFO (it is not empty).
 
 \vspace{1ex}
 
-Different FIFO modules with the \verb|FIFOF #(t)| interface may have
-different capacities.
+The {\tt enq} method (``input side'') is enabled only when there is space
+available in the FIFO (it is not full).
 
 \end{frame}
 
@@ -478,13 +533,45 @@ different capacities.
 
 \footnotesize
 
-Instantiating FIFO modules: Examples:
+``{\tt mkFIFOF}'' and ``{\tt mkSizedFIFOF}'' are pre-defined {\BSV} modules for FIFOs
+(instantiated just like user-defined modules).
+
+Examples:
+
 \begin{Verbatim}[frame=single]
+   // "small" capacity, used like single-register buffers
    FIFOF #(Mem_Req) f_to_IMem   <- mkFIFOF;
    FIFOF #(Mem_Rsp) f_from_IMem <- mkFIFOF;
 
+   // Higher capacity
    FIFOF #(RR_to_Retire)  f_RR_to_Retire <- mkSizedFIFOF (8);
 \end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\bf RISC-V} (Fife): Balancing fork-join pipeline paths}
+
+\footnotesize
+
+\begin{center}
+\includegraphics[height=0.5\textheight]{Fig_Instr_Exec_w_FIFOs}
+\end{center}
+
+Suppose we use a small (capacity 1) FIFO \emph{fd} on the direct path
+from Fetch to Decode. After Fetch enqueues one item into \emph{fd}
+and to memory, it will get stuck---\emph{fd} is full, and will remain
+full until Decode receives the response from memory, when it will
+dequeue \emph{fd}.
+
+\vspace{1ex}
+
+For Fetch to continue, \emph{fd} needs higher capacity---equal to the
+number of items that may be ``in flight'' on the path to memory and
+back (memory requests, IMem, memory-responses).  In other words, the
+two paths must be ``balanced''.
 
 \end{frame}
 
