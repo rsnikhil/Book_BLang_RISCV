@@ -1373,7 +1373,7 @@ If-then-elses and conditional expressions can of course be nested:
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
-function Bool instr_opclass (Bit #(32) instr);
+function OpClass instr_opclass (Bit #(32) instr);
    OpClass result;
    if (is_legal_BRANCH (instr)
        || is_legal_JAL (instr)
