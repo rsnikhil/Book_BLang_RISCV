@@ -1,11 +1,9 @@
-% -*- mode: fundamental -*-
-
 % Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
 % Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
 
 \input{Preamble.tex}
 
-\date{L7: RISC-V: Modules and Interfaces}
+\date{L7: BSV: Modules and Interfaces}
 
 % ****************************************************************
 
@@ -703,7 +701,7 @@ into a {\tt FIFOF\_I} interface.
 \begin{frame}
 \frametitle{\EmojiExercise \hmm Exercise break}
 
-Please see Appendix E, Section Ex-07-A-Modules-Interfaces.
+Please see Appendix E, Exercise Ex-07-A-Interface-Transformers.
 
 \end{frame}
 
@@ -812,6 +810,181 @@ part:
 \begin{Verbatim}[frame=single]
    mkConnection (stage_F.fo_Fetch_to_Decode, stage_D.fi_Fetch_to_Decode);
 \end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Polymorphic and Monomorpic Types}
+
+\footnotesize
+
+A \emph{Polymorphic Type} is a type expression containing one or more
+type variables. Examples:
+
+\vspace{1ex}
+
+\begin{center}
+ \begin{minipage}{0.6\textwidth}
+  \begin{Verbatim}[frame=single]
+Reg #(t)
+RegFile #(index_type, content_type)    GPRs_IFC #(reg_width)
+FIFOF_I #(t)
+FIFOF_O #(t)
+  \end{Verbatim}
+ \end{minipage}
+ \begin{minipage}{0.35\textwidth}
+  Note: type variables begin with lower-case letter
+ \end{minipage}
+\end{center}
+
+\vspace{1ex}
+
+A \emph{Monomorphic Type} (or a \emph{concrete type} is a type
+expression that does not contain any type variables.  Examples:
+
+\vspace{1ex}
+
+\begin{center}
+ \begin{minipage}{0.6\textwidth}
+  \begin{Verbatim}[frame=single]
+Reg #(Bool)    Reg #(Int)    Reg #(Mem_Req)
+RegFile #(Bit #(5), Bit #(32))     GPRs_IFC #(32)
+FIFOF_I #(Mem_Req)
+FIFOF_O #(Mem_Rsp)
+  \end{Verbatim}
+ \end{minipage}
+ \begin{minipage}{0.35\textwidth}
+  Note: all type identifiers here begin with upper-case letter
+ \end{minipage}
+\end{center}
+
+\vspace{1ex}
+
+A polymorphic type reprsents all possible types you can get by
+substituting each type variable by any concrete type.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see Appendix E, Exercise Ex-07-B-Polymorphic-Types.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Synthesizable modules}
+
+\footnotesize
+
+Caveat:
+\fbox{
+ \begin{minipage}{0.9\textwidth}
+   Here we use the term ``synthesize'' to mean ``generate
+   Verilog'', as opposed to in-lining.
+
+   \vspace{1ex}
+
+   Elsewhere, the term
+   ``synthesize'' is used to mean ``from RTL, generate FPGA LUTs/ASIC gates''.
+ \end{minipage}}
+
+\vspace{5ex}
+
+By default, a {\BSV} module is \emph{in-lined} whereever it is instantiated.
+
+\vspace{1ex}
+
+We can precede a {\tt module} declaration {\tt mkFoo} with ``{\tt (*
+synthesize *)}'':
+
+\begin{Verbatim}[frame=single]
+   (* synthesize *)
+   module mkFoo (... interface type ...)
+      ...
+   endmodule
+\end{Verbatim}
+
+Then, {\bsc} will do the following:
+\begin{itemize}
+ \item It will generate a corresponding  Verilog module {\tt mkFoo}
+
+ \item At each place where {\tt mkFoo} is instantiated, {\bsc} will
+       generate Verilog code to instantiate the Verilog module {\tt mkFoo},
+       instead of in-lining.
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Synthesizable modules}
+
+\footnotesize
+
+Not all {\BSV} modules can be synthesized into Verilog, because some
+module parameter, method argument or method result may not be
+representable as a fixed-width bit-vector (which is needed to map it
+into a Verilog module port).
+
+\vspace{2ex}
+
+Example reason: \hm
+\fbox{
+ \begin{minipage}{0.8\textwidth}
+  If a method in the {\BSV} module's interface has an argument or
+  result of polymorphic type, then {\BSV} does not know what the width
+  will be (and the width can be different at different instantiations
+  with different concrete type).
+ \end{minipage}
+}
+
+Example reason: \hm
+\fbox{
+ \begin{minipage}{0.8\textwidth}
+  If a method in the {\BSV} module's interface has an argument
+  or result of type {\tt Integer} (unbounded mathematical integers),
+  then {\BSV} cannot fix a specific width for this bus.
+ \end{minipage}
+}
+
+\vspace{1ex}
+
+\PAUSE{\vspace{2ex}}
+
+However, \emph{all} {\BSV} modules can be inlined, and the containing
+module may be synthesizable into Verilog \\
+({\eg} because a polymorphic type has become concrete at this
+instance, or an {\tt Integer} parameter is now only used in a
+statically resolvable context).
+
+\PAUSE{\vspace{2ex}}
+
+We recomend using the ``{\tt (* synthesizable *)}'' attribute wherever
+possible because it will make Verilog debugging easier, and can help
+in downstream synthesis tools ({\eg} place and route).
+
+\PAUSE{\vspace{2ex}}
+
+If we have a polymorphic module, we can always make one or more
+monomorphic instances of that module; each of these may then be
+synthesizable into Verilog (see Section 7.6.1 in book for an example).
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see Appendix E, Exercise Ex-07-C-Synthesizable-Modules.
 
 \end{frame}
 

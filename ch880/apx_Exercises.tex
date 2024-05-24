@@ -874,7 +874,7 @@ Registers, Register Files and FIFOs}
 
 % ================================================================
 
-\subsection*{Ex-07-A: Interface Transformers}
+\subsection*{Ex-07-A-Interface-Transformers}
 
 \label{Ex-07-A-Interface-Transformers}
 
@@ -885,7 +885,7 @@ interface as a {\tt FIFOF\_I} interface.
 
 % ================================================================
 
-\subsection*{Ex-07-B: Polymorphic types}
+\subsection*{Ex-07-B-Polymorphic-Types}
 
 \label{Ex-07-B-Polymorphic-Types}
 
@@ -898,7 +898,7 @@ Write polymorphic versions of these types that are parameterized on
 
 % ================================================================
 
-\subsection*{Ex-07-C: Synthesizable modules}
+\subsection*{Ex-07-C-Synthesizable-Modules}
 
 \label{Ex-07-C-Synthesizable-Modules}
 
@@ -906,10 +906,10 @@ Write polymorphic versions of these types that are parameterized on
 
 \begin{itemize}
 
-\item In {\tt mkRISCV\_GPRs\_V} replace the explicit type declaration
+\item[(1)] In {\tt mkRISCV\_GPRs\_V} replace the explicit type declaration
       of {\tt ifc} with the {\tt let} keyword.
 
-\item Write a monomorphic wrapper for the BSV library {\tt mkFIFOF}
+\item[(2)] Write a monomorphic wrapper for the BSV library {\tt mkFIFOF}
       module that specializes it into a FIFO that only carries {\tt
       Bool} values.  Add an annotation so the wrapper becomes a
       separate Verilog module.  Compile it and study the generated
@@ -933,7 +933,7 @@ Write polymorphic versions of these types that are parameterized on
 
 \begin{itemize}
 
-\item In {\tt mkGPRs} we write the value when \emph{j} is zero, but we
+\item[(1)] In {\tt mkGPRs} we write the value when \emph{j} is zero, but we
       ignore it on reads.  Write a variant where, in {\tt write\_rd},
       we alway write 0 when the index {\tt rd} is zero, and the read
       methods no longer check if {\tt rs1} or {\tt rs2} are 0.
@@ -944,10 +944,58 @@ Write polymorphic versions of these types that are parameterized on
       Compare the circuitry generated in the original and in the
       variant.  Why might we choose one over the other?
 
-\item In {\tt mkGPRs} suppose we use {\tt mkRegFile(1,31)} instead of
+\item[(2)] In {\tt mkGPRs} suppose we use {\tt mkRegFile(1,31)} instead of
       {\tt mkRegFileFull}.  What needs to change to accommodate this?
 
 \end{itemize}
+
+% ================================================================
+
+\subsection*{Ex-08-B: CSRs}
+
+\label{Ex-08-B-CSRs}
+
+(Please refer Section~\ref{Sec_RISCV_CSRs}.)
+
+Write a testbench module that instantiates {\tt mkCSRs} and tests its
+interface methods.
+
+\begin{itemize}
+
+ \item Invoke the {\tt mav\_csrrxx()} method to write some CSRs and
+       read them back and print the results.
+
+ \begin{itemize}
+  \item Start by testing {\tt mtvec}, {\tt mepc}, {\tt mcause}, and {\tt mtval}.
+
+  \item Try reading and writing to a CSR address that is illegal (unimplemented CSR).
+
+  \item Try reading and writing to a CSR that is read-only ({\eg} {\tt MVENDORID}).
+ \end{itemize}
+
+ \item Use {\tt mav\_csrrxx()} to write {\tt mtvec}; invoke {\tt
+       mav\_exception} method and check that it returns what was
+       written in {\tt mtvec}.  Use {\tt mav\_csrrxx()} to read {\tt
+       mepc}, {\tt mcause} and {\tt mtval} and check that they are
+       correct.
+
+ \item Use {\tt mav\_csrrxx()} to write {\tt mepc}; invoke {\tt
+       read\_epc} and check that we get the correct value.
+
+ \item Invoke {\tt ma\_incr\_instret}, then use {\tt mav\_csrrxx()} to
+       read CSRs MINSTRET and MINSTRETH and check that we get the
+       correct value.
+
+ \item Invoke {\tt set\_TIME}, then use {\tt mav\_csrrxx()} to
+       read CSRs TIME and TIMEH and check that we get the
+       correct value.
+
+\end{itemize}
+
+[Advanced; optional] Why do we have CSRs TIME and TIMEH, but not MTIME
+and MTIMEH? \\
+\emph{Hint:} Read Section 3.2.1 in the Privileged ISA
+specification, as a starting point.
 
 % ****************************************************************
 % Use this only if this chapter/appendix has an odd number of pages
