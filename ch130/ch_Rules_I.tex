@@ -202,6 +202,10 @@ From this description, several things should be clear:
 
 \end{itemize}
 
+% ----------------------------------------------------------------
+
+\EXERCISE{Ex-13-A-Simultaneous-Actions}
+
 % ================================================================
 
 \subsection{Hardware representation of a rule in isolation}
@@ -267,76 +271,6 @@ compiler could choose to map {\BSV} code into so-called
 ``\emph{asynchronous logic}'' (which does not have clocks at all).
 
 \end{minipage}}
-
-\vspace{2ex}
-% ----------------
-
-% ----------------
-\hdivider
-
-\Exercise
-
-Consider the following two alternative ways of writing a rule (that
-differ only in the order of the rule-body statements):
-
-\begin{center}
-\begin{minipage}{2.5in}
- {\footnotesize
- \begin{Verbatim}[frame=single, label=BSV]
-   rule rl_r1 (... condition ...);
-    x <= y + 1;
-    y <= x + 2;
-   endrule
- \end{Verbatim}
- }
-\end{minipage}
-\hmm
-\begin{minipage}{2.5in}
- {\footnotesize
- \begin{Verbatim}[frame=single,label=BSV]
-   rule rl_r2 (... condition ...);
-    y <= x + 2;
-    x <= y + 1;
-   endrule
- \end{Verbatim}
- }
-\end{minipage}
-\end{center}
-
-\vspace{1ex}
-
-Sketch the semantic view (and possible hardware) for the two
-alternatives.  Is there any semantic difference between the two rules?
-
-\vspace{1ex}
-
-If the values of registers \verb|x| and \verb|y| are 10 and 20
-respectively, what are their values after the rule fires once?  What
-would the answer(s) be with the following similar-looking C
-statements?
-
-\begin{center}
-\begin{minipage}{2.5in}
- {\footnotesize
- \begin{Verbatim}[frame=single, label=C]
-    x = y + 1;
-    y = x + 2;
- \end{Verbatim}
- }
-\end{minipage}
-\hmm
-\begin{minipage}{2.5in}
- {\footnotesize
- \begin{Verbatim}[frame=single, label=C]
-    y = x + 2;
-    x = y + 1;
- \end{Verbatim}
- }
-\end{minipage}
-\end{center}
-
-\Endexercise
-% ----------------
 
 % ================================================================
 
@@ -584,9 +518,9 @@ endrule
        the other rule.  Whereas, if we execute the rule actions at the
        same instant, neither rule observes the update by the other
        rule.  Thus, sequential execution and parallel, instantaneous
-       execution will produce inconsistent results. (See also the
-       Exercise at the end of
-       Section~\ref{Sec_HW_representation_of_a_rule}.)
+       execution will produce inconsistent results. (See also Exercise
+       Ex-13-A-Simultaneous-Actions on
+       page~\pageref{Ex-13-A-Simultaneous-Actions}.)
 
 \end{itemize}
 

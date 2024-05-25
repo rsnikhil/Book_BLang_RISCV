@@ -52,6 +52,14 @@
 
 \section{{\BSV}: Rules: Introduction}
 
+\begin{frame}
+
+\begin{center}
+  {\LARGE Rules: Introduction}
+\end{center}
+
+\end{frame}
+
 % ================================================================
 
 \begin{frame}[fragile]
@@ -59,34 +67,46 @@
 
 \footnotesize
 
-``\emph{Rules}'' are the fundamental constructs in BSV to specify
-dynamic behavior.
+{\large ``\emph{Rules}'' are the fundamental constructs in {\BSV}
+ to specify dynamic behavior.}
 
-\vspace{2ex}
+\vspace{4ex}
 
-Rules appear in the body of BSV modules, and they may invoke methods
+A {\tt rule}-{\tt endrule} construct appears in the body of a {\BSV} modules.
+
+\vspace{1ex}
+
+It represents a combinational circuit that typically invokes methods
 in interfaces of other modules.
 
-\vspace{2ex}
+\vspace{1ex}
 
-An interface method is simply a ``mini-rule'' that is incorporated
-into a rule from which it is invoked.
+An interface method, in turn, is simply a ``mini-rule'' that is
+semantically a part of a rule or interface method from which it is
+invoked.
 
-\PAUSE{\vspace{5ex}}
+\vspace{1ex}
 
-Rule semantics can be understood in two incremental steps:
+Thus, a rule consists of a {\tt rule}-{\tt endrule} construct plus
+every method it invokes, plus every method that those methods invoke,
+and so on.  Thus, a rule can observe and update state in several modules.
+
+\PAUSE{\vspace{4ex}}
+
+The \emph{functionality} of rules (semantics, ``what does it do?'')
+can be understood in two incremental steps:
 
 \begin{itemize}
 
  \item Semantics of a rule in isolation
 
- \item Semantics of the collection of rules in a BSV program
+ \item Semantics of the collection of rules in a {\BSV} program
 
 \end{itemize}
 
-\PAUSE{\vspace{5ex}}
+\PAUSE{\vspace{4ex}}
 
-Finally, the performance of rules (how long does a computation take?)
+The \emph{performance} of rules (how long does a computation take?)
 can be understood by understanding how rules are mapped to clocks.
 
 \end{frame}
@@ -104,14 +124,10 @@ can be understood by understanding how rules are mapped to clocks.
 
 \vspace{5ex}
 
-Recall that an {\tt action}-{\tt endaction} block can be used to
-compose several sub-actions into a larger action, and can contain
-identifier bindings.
-
-\vspace{1ex}
-
 A rule body is an implicit {\tt action}-{\tt endaction} block; it can
 contain several sub-actions and identifier bindings.
+
+\vspace{1ex}
 
 \end{frame}
 
@@ -153,13 +169,22 @@ rule condition or in the rule body.
 \vspace{1ex}
 
 For example, if a rule invokes $f${\tt .first} or $f${\tt .deq}, the
-rule’s CAN\_FIRE condition cannot be true when $f$ is empty.
+implicit condition of those methods become part of the CAN\_FIRE
+condition of the rule.
 
 \end{frame}
 
 % ****************************************************************
 
 \section{Semantics of a rule in isolation}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE Semantics of a rule in isolation}
+\end{center}
+
+\end{frame}
 
 % ================================================================
 
@@ -177,7 +202,7 @@ outputs for various {\tt Action} and {\tt ActionValue} methods.
 Each {\tt Action} or {\tt ActionValue} method has an implicit boolean
 ENABLE argument (separate from its normal arguments and result).  An
 {\tt Action} or {\tt ActionValue} method
-\emph{performs} its action if its ENABLE argument is true.
+\emph{performs} its action only when its ENABLE argument is asserted.
 
 \end{frame}
 
@@ -205,8 +230,12 @@ Example: the diagram below illustrates the function represented by this rule.
 \end{minipage}
 
 \begin{center}
- \includegraphics[width=\textwidth]{Fig_Rule_Actions_1}
+ \includegraphics[width=0.85\textwidth]{Fig_Rule_Actions_1}
+
+ This is just a functional illustration; we will see shortly that this
+ maps straightforwardly into hardware.
 \end{center}
+
 
 \end{frame}
 
@@ -235,6 +264,11 @@ Example: the diagram below illustrates the function represented by this rule.
 
 \end{itemize}
 
+       
+\vspace{5ex}
+
+Terminology: when a rule executes, we also say that the rule \emph{fires}.
+
 \end{frame}
 
 % ================================================================
@@ -249,7 +283,11 @@ Example: the diagram below illustrates the function represented by this rule.
 The semantic view of a rule in Slide~\ref{isolated_rule_semantics}
 maps straightforwardly into hardware.
 
-\vspace{5ex}
+\vspace{1ex}
+
+(Green signals are READY signals; Red signals are ENABLE signals.)
+
+\vspace{4ex}
 
 \begin{center}
  \includegraphics[width=\textwidth]{Fig_Rule_Actions_1_2}
@@ -259,10 +297,23 @@ maps straightforwardly into hardware.
 
 % ================================================================
 
+\begin{frame}
+\frametitle{\EmojiExercise \hmm Exercise break}
+
+Please see Book Appendix E, Section Ex-13-A-Simultaneous-Actions.
+
+\end{frame}
+
+% ================================================================
+
 \begin{frame}[fragile]
-\frametitle{A rule firing cannot perform the same action more than once}
+\frametitle{Note: a rule firing cannot perform the same action more than once}
 
 \footnotesize
+
+The following example illustrates some absurdities:
+
+\vspace{2ex}
 
 \begin{minipage}{0.5\textwidth}
 \begin{Verbatim}[frame=single]
@@ -298,6 +349,14 @@ message like:
 
 \section{Semantics of a collection of rules}
 
+\begin{frame}
+
+\begin{center}
+  {\LARGE Semantics of a collection of rules}
+\end{center}
+
+\end{frame}
+
 % ================================================================
 
 \begin{frame}[fragile]
@@ -309,38 +368,55 @@ The semantics of a collection of {\BSV} rules is: execute one-rule-at-a-time:
 
 \begin{center}
  \fbox{
-  \begin{minipage}{4in}
+  \begin{minipage}{0.8\textwidth}
    while True \\
    \hmm Choose \emph{any} rule whose CAN\_FIRE is true \\
    \hmm \hmm Perform the actions in that rule's body \\
 
-   \hmm \hmm {\scriptsize Likely modifies state, affecting enabled
-             CAN\_FIRE signals for next iteration}
+   \hmm \hmm {\scriptsize (this will likely modify state, affecting enabled
+             CAN\_FIRE signals for the next iteration)}
   \end{minipage}
  }
 \end{center}
 
-{\BSV} \emph{implementations} may (and do) execute rules concurrently and in parallel, \\
-as long as it remains \emph{consistent} with one-rule-at-a-time semantics.
+By definition (because one-at-a-time):
+\begin{itemize}
 
-\vspace{4ex}
+ \item The state observed (reads) by a rule cannot be changing during rule execution
+
+ \item The state updates (writes) by a rule cannot be observed by any
+       other rule while it is changing.
+\end{itemize}
+
+\begin{center}
+\fbox{We also say: rules are \emph{atomic}}
+\end{center}
+
+\PAUSE{\vspace{2ex}}
+
+{\BSV} \emph{implementations} may (and do) execute rules concurrently and in parallel, \\
+as long as it remains \emph{consistent} with one-rule-at-a-time (atomic) semantics.
+
+\vspace{1ex}
 
 Analogies:
+\fbox{
+\begin{minipage}{0.8\textwidth}\tiny
 \begin{itemize}
- \item RISC-V Instruction Semantics are one-instruction-at-a-time. \\
+ \item RISC-V Instruction Semantics are one-instruction-at-a-time (instructions are atomic). \\
        This is the refence standard for ``correct'' behavior.
 
        RISC-V \emph{implementations} may (and do) re-order
        instructions and execute multiple instructions at a time
        (pipelining, superscalarity).
 
- \item C/C++ semantics are one-statement-at-a-time. \\
+ \item C/C++ semantics are one-statement-at-a-time (statements are atomic). \\
        This is the refence standard for ``correct'' behavior.
 
-       C/C++ \emph{implementations} may (and do) re-order statements,
-       and parts of statements, and exploit concurrency and
-       parallelism.
+       C/C++ \emph{implementations} may (and do) re-order and
+       interleave instructions for different statements.
 \end{itemize}
+\end{minipage}}
 
 \end{frame}
 
@@ -351,28 +427,30 @@ Analogies:
 
 \footnotesize
 
-NOTE: \fbox{\small
+NOTE: \fbox{
 \begin{minipage}{0.9\textwidth}
 
 The semantics of rules is non-deterministic---if CAN\_FIRE is true for
 several rules, we can choose any one.  This is common in formal
 specification languages for concurrent systems, allowing reasoning
-about correctness under all possible choices.
+about correctness under \emph{all} possible choices (different
+implementations may make different choices, statically or
+dynamically).
 
 \vspace{1ex}
 
-Nevertheless: the \emph{bsc} compiler removes all non-determinism (in
-a transparent and predictable way) when it compiles to hardware.
+The \emph{bsc} compiler makes particular choices, resulting in deterministic hardware.
 
 \end{minipage}}
 
 \vspace*{5ex}
 
-NOTE: \fbox{\small
+NOTE: \fbox{
 \begin{minipage}{0.9\textwidth}
 
-The functional correctness of a {\BSV} program only appeals to
-rule-at-a-time semantics, without any reference to clocks.
+Although {\BSV} is a hardware design language (HDL), functional
+correctness of a {\BSV} program only appeals to rule-at-a-time
+semantics, without any reference to clocks.
 
 \vspace{1ex}
 
@@ -382,8 +460,8 @@ reference to clocks or cycles.)
 
 \vspace{1ex}
 
-It is only for \emph{temporal properties} (``how fast is the
-implementation?'') do we need to appeal to clocks, cycles and
+It is only for reasoning about performance (``how fast is the
+implementation?'') that we need to appeal to clocks, cycles and
 implementation details.
 
 \end{minipage}}
@@ -393,6 +471,14 @@ implementation details.
 % ****************************************************************
 
 \section{Implementing rules in clocked digital hardware}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE Implementing rules in clocked digital hardware}
+\end{center}
+
+\end{frame}
 
 % ================================================================
 
@@ -647,12 +733,88 @@ but the user can assist it explicitly:
 
 % ****************************************************************
 
-\section{Equivalence of {\tt StmtFSM} and rules}
+\section{Rules: Final Comments}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE Rules: Final Comments}
+\end{center}
+
+\end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Equivalence of {\tt StmtFSM} and rules (1/3)}
+\frametitle{Rules: final comments}
+
+\footnotesize
+
+ \emph{Rules are a unique feature of {\BSV}. \\
+       We are unaware of any other HDL (Hardware Description Language)
+       where behavior is specified using rules.}
+
+\vspace{2ex}
+
+\begin{itemize}
+ \item Rules are the fundamental (and only) behavioral construct in {\BSV}.
+
+ \vspace{2ex}
+
+ \item Each rule is an \emph{atomic transaction} modifying system
+       state, which follows trivially from the rule-at-a-time
+       semantics.
+
+       \vspace{1ex}
+
+       Atomicity is one of the most powerful concepts in Computer
+       Science for reasoning about correctness of concurrent systems.
+
+ \vspace{2ex}
+
+ \item A rule comprises a syntactic {\tt rule}-{\tt endrule}
+       construct; every interface method invoked by that rule; every
+       method invoked by those methods; and so on.  The overall rule
+       condition ({\tt CAN\_FIRE}) encompasses the rule's explicit
+       condition and the implicit conditions of all those methods.
+
+       \vspace{1ex}
+
+       Thus, the atomicity of a rule is a \emph{non-local}
+       property---through its methods, it may observe and update state
+       across many modules.
+
+ \vspace{2ex}
+
+ \item The {\bsc} compiler compiles the rules in a design into clocked
+       digital hardware, attempting to maximize concurrency (number of
+       rules that can execute in a clock) while remaining consistent
+       with the rule-at-a-time semantics.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{{\tt StmtFSM} is just an EDSL for Rules}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE {\tt StmtFSM} is just an EDSL$^1$ for Rules}
+
+  \vspace{20ex}
+
+  {\footnotesize $^1$ Embedded Domain-Specific Language}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\tt StmtFSM} is just an EDSL for Rules (1/3)}
 
 \footnotesize
 
@@ -675,7 +837,7 @@ Anything coded with {\tt StmtFSM} can also be coded explicitly using rules.  Exa
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Equivalence of {\tt StmtFSM} and rules (2/3)}
+\frametitle{{\tt StmtFSM} is just an EDSL for Rules (2/3)}
 
 \footnotesize
 
@@ -730,7 +892,7 @@ We can convert this into rules mechanically as follows:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Equivalence of {\tt StmtFSM} and rules (3/3)}
+\frametitle{{\tt StmtFSM} is just an EDSL for Rules (3/3)}
 
 \footnotesize
 
@@ -743,60 +905,6 @@ sequencing, if-then-else, loops, and fork-join parallelism).
 
 When we have \emph{unstructured} rule flows, {\tt StmtFSM} is not
 appropriate, and we use rules directly ({\eg} in Fife).
-
-\end{frame}
-
-% ****************************************************************
-
-\section{Rules: Final Comments}
-
-\begin{frame}[fragile]
-\frametitle{Rules: final comments}
-
-\footnotesize
-
- \emph{Rules are a unique feature of {\BSV}. \\
-       We are unaware of any other HDL (Hardware Description Language)
-       where behavior is specified using rules.}
-
-\vspace{2ex}
-
-\begin{itemize}
- \item Rules are the fundamental (and only) behavioral construct in {\BSV}.
-
- \vspace{2ex}
-
- \item Each rule is an \emph{atomic transaction} modifying system
-       state, which follows trivially from the rule-at-a-time
-       semantics.
-
-       \vspace{1ex}
-
-       Atomicity is one of the most powerful concepts in Computer
-       Science for reasoning about correctness of concurrent systems.
-
- \vspace{2ex}
-
- \item A rule comprises a syntactic {\tt rule}-{\tt endrule}
-       construct; every interface method invoked by that rule; every
-       method invoked by those methods; and so on.  The overall rule
-       condition ({\tt CAN\_FIRE}) encompasses the rule's explicit
-       condition and the implicit conditions of all those methods.
-
-       \vspace{1ex}
-
-       Thus, the atomicity of a rule is a \emph{non-local}
-       property---through its methods, it may observe and update state
-       across many modules.
-
- \vspace{2ex}
-
- \item The {\bsc} compiler compiles the rules in a design into clocked
-       digital hardware, attempting to maximize concurrency (number of
-       rules that can execute in a clock) while remaining consistent
-       with the rule-at-a-time semantics.
-
-\end{itemize}
 
 \end{frame}
 

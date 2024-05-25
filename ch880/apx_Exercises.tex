@@ -30,6 +30,89 @@ ensure you have the latest version!}
 
 \hdivider
 
+\section*{Chapter 4: {\BSV}: Combinational circuits for the RISC-V Stage functions}
+
+% ================================================================
+
+\subsection*{Ex-04-A-Bit-Vectors: Bit-vectors}
+
+\label{Ex-04-A-Bit-Vectors}
+
+(Refer Sections~\ref{Sec_BSV_Bit_Vectors}-\ref{Sec_Dont_Care_Values}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_A\_Bit\_Vectors/} \\
+and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-B-Bit-Vectors-Slicing: Slicing Bit-vectors}
+
+\label{Ex-04-B-Bit-Vectors-Slicing}
+
+(Refer Section~\ref{Bit_Vector_Ops}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_B\_Bit\_Vectors\_Slicing/} \\
+and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-C-Bit-Vectors-Operations: Operations on Bit-vectors}
+
+\label{Ex-04-C-Bit-Vectors-Operations}
+
+(Refer Section~\ref{BSV_functions}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_C\_Bit\_Vectors\_Operations/} \\
+and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-D-Decode-Imm: Functions to decode immediates}
+
+\label{Ex-04-D-Decode-Imm}
+
+(Refer Section~\ref{BSV_functions}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_CC\_Functions/} \\
+and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-D-is-legal-XXX: Functions to check legality of instructions}
+
+\label{Ex-04-D-is-legal-XXX}
+
+(Refer Section~\ref{BSV_functions_2}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_D\_is\_legal\_XXX/} \\
+and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-E-FSM-Testbench: FSMs for testbenches}
+
+\label{Ex-04-E-FSM-Testbench}
+
+(Refer Section~\ref{BSV_small_testbench}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_E\_FSM\_Testbench/}
+\\ and its README.
+
+% ================================================================
+
+\subsection*{Ex-04-F-Enums-Muxes: Enums and Muxes}
+
+\label{Ex-04-F-Enums-Muxes}
+
+(Refer Sections~\ref{BSV_enum_types}-\ref{BSV_case_expressions}.)
+
+Please see directory: \hm {\tt Exercises/Ex\_04\_F\_Enums\_Muxes/} \\
+and its README.
+
+% ****************************************************************
+
+\hdivider
+
 \section*{Chapter 5: Structs, tuples, memory requests and responses}
 
 % ================================================================
@@ -996,6 +1079,98 @@ interface methods.
 and MTIMEH? \\
 \emph{Hint:} Read Section 3.2.1 in the Privileged ISA
 specification, as a starting point.
+
+% ****************************************************************
+
+\hdivider
+
+\section*{Chapter 10: RISC-V: The Drum CPU}
+
+% ================================================================
+
+\subsection*{Ex-10-A: Drum initialization}
+
+\label{Ex-10-A-Drum-initialization}
+
+(Please refer Section~\ref{Sec_Drum_CPU_module_behavior}.)
+
+What might happen if we omitted the ``{\tt await!(rg\_running)}''
+statement in the Drum CPU? (Try it in simulation!)
+
+\emph{Hint:} The FSM may start running before the PC has been initialized ...
+
+% ****************************************************************
+
+\hdivider
+
+\section*{Chapter 13: {\BSV}: Rules and their Semantics}
+
+% ================================================================
+
+\subsection*{Ex-13-A: All {\tt Action}s in a rule are simultaneous}
+
+\label{Ex-13-A-Simultaneous-Actions}
+
+(Please refer Section~\ref{Sec_Single_Rule_Semantics}.)
+
+Consider the following two alternative ways of writing a rule (that
+differ only in the order of the rule-body statements):
+
+\begin{center}
+\begin{minipage}{0.4\textwidth}
+ {\footnotesize
+ \begin{Verbatim}[frame=single, label=BSV]
+   rule rl_r1 (... condition ...);
+    x <= y + 1;
+    y <= x + 2;
+   endrule
+ \end{Verbatim}
+ }
+\end{minipage}
+\hmm
+\begin{minipage}{0.4\textwidth}
+ {\footnotesize
+ \begin{Verbatim}[frame=single,label=BSV]
+   rule rl_r2 (... condition ...);
+    y <= x + 2;
+    x <= y + 1;
+   endrule
+ \end{Verbatim}
+ }
+\end{minipage}
+\end{center}
+
+Sketch the semantic view (and possible hardware) for the two
+alternatives.  Is there any semantic difference between the two rules?
+
+If the values of registers \verb|x| and \verb|y| are 10 and 20
+respectively, what are their values after the rule fires once?  What
+would the answer(s) be with the following similar-looking C
+statements?
+
+\begin{center}
+\begin{minipage}{0.4\textwidth}
+ {\footnotesize
+ \begin{Verbatim}[frame=single, label=C/C++]
+{
+    x = y + 1;
+    y = x + 2;
+}
+ \end{Verbatim}
+ }
+\end{minipage}
+\hmm
+\begin{minipage}{0.4\textwidth}
+ {\footnotesize
+ \begin{Verbatim}[frame=single, label=C/C++]
+{
+    y = x + 2;
+    x = y + 1;
+}
+ \end{Verbatim}
+ }
+\end{minipage}
+\end{center}
 
 % ****************************************************************
 % Use this only if this chapter/appendix has an odd number of pages

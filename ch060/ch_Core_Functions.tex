@@ -267,10 +267,11 @@ immediate values can have different bit-widths.  We use the functions
 \verb|instr_imm_I()|, \verb|instr_imm_S()|, \verb|instr_imm_B()|,
 \verb|instr_imm_U()| and \verb|instr_imm_J()| to extract the and
 rearrange the immediate bits appropriately for each class of
-instruction (see Exercise in Section~\ref{BSV_functions}).  Then, here
-in \verb|fn_Decode|, we zero- or sign-extend each immediate as
-appropriate so that, from this point onwards, each immediate can be
-treated as an ordinary \verb|Bit#(XLEN)| value.
+instruction (see also Exercise Ex-04-D-Decode-Imm on
+page~\pageref{Ex-04-D-Decode-Imm}).  Then, here in \verb|fn_Decode|, we
+zero- or sign-extend each immediate as appropriate so that, from this
+point onwards, each immediate can be treated as an ordinary
+\verb|Bit#(XLEN)| value.
 
 The final ``else'' clause is selected if the instruction does not
 match any of the forty RV32I instructions.  In this case we set the
