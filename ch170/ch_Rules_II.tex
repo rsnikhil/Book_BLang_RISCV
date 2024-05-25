@@ -335,7 +335,7 @@ module mkFIFOF (FIFOF #(Bit #(32)));
    // INTERFACE
 
    method Bool notEmpty ();
-      return rg_Full;
+      return rg_full;
    endmethod
 
    method Bit #(32) first () if (rg_full);
@@ -347,7 +347,7 @@ module mkFIFOF (FIFOF #(Bit #(32)));
    endmethod
 
    method Bool notFull ();
-      return (! rg_Full);
+      return (! rg_full);
    endmethod
 
    method Action enq (Bit #(32) x) if (! rg_full);
@@ -383,35 +383,35 @@ Let us use a CReg to relax this constraint, in two different ways.
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
 module mkPipelineFIFOF (FIFOF #(Bit #(32)))
-   Reg #(Bit #(t))     rg_data  <- mkRegU;
+   Reg #(Bit #(t))      rg_data  <- mkRegU;
    Array #(Reg #(Bool)) crg_full <- mkCReg (3, False);
 
    // ----------------
    // INTERFACE
 
    method Bool notEmpty ();
-      return crg_Full [0];
+      return crg_full [0];
    endmethod
 
-   method Bit #(32) first () if (crg_Full [0]);
+   method Bit #(32) first () if (crg_full [0]);
       return rg_data;
    endmethod
 
-   method Action deq () if (crg_Full [0]);
-      crg_Full [0] <= False;
+   method Action deq () if (crg_full [0]);
+      crg_full [0] <= False;
    endmethod
 
    method Bool notFull ();
-      return (! crg_Full [1]);
+      return (! crg_full [1]);
    endmethod
 
-   method Action enq (Bit #(32) x) if (! crg_Full [1]);
+   method Action enq (Bit #(32) x) if (! crg_full [1]);
       rg_data      <= x;
-      crg_Full [1] <= True;
+      crg_full [1] <= True;
    endmethod
 
    method Action clear;
-      crg_Full [2] <= False;
+      crg_full [2] <= False;
    endmethod
 endmodule
 \end{Verbatim}
@@ -473,28 +473,28 @@ module mkPipelineFIFOF (FIFOF #(Bit #(32)));
    // INTERFACE
 
    method Bool notEmpty ();
-      return crg_Full [1];
+      return crg_full [1];
    endmethod
 
-   method Bit #(32) first () if (crg_Full [1]);
+   method Bit #(32) first () if (crg_full [1]);
       return crg_data [1];
    endmethod
 
-   method Action deq () if (crg_Full [1]);
-      crg_Full [1] <= False;
+   method Action deq () if (crg_full [1]);
+      crg_full [1] <= False;
    endmethod
 
    method Bool notFull ();
-      return (! crg_Full [0]);
+      return (! crg_full [0]);
    endmethod
 
-   method Action enq (Bit #(32) x) if (! crg_Full [0]);
+   method Action enq (Bit #(32) x) if (! crg_full [0]);
       crg_data [0] <= x;
-      crg_Full [0] <= True;
+      crg_full [0] <= True;
    endmethod
 
    method Action clear;
-      crg_Full [0] <= False;
+      crg_full [0] <= False;
    endmethod
 endmodule
 \end{Verbatim}
@@ -564,7 +564,7 @@ module mk... (...);
       ... f_bypass.enq (x);
    endrule
 
-   // Connect f_bypass's first/deq side to to f_pipeline's enq side
+   // Connect f_bypass's first/deq side to f_pipeline's enq side
    mkConnection (to_FIFO_O (f_bypass), to_FIFO_I (f_pipeline));
 
    // Consumer rule (from f_pipeline's first/deq side)

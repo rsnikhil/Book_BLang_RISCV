@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.7925777"
-     inkscape:cx="406.79262"
-     inkscape:cy="249.76924"
+     inkscape:cx="404.46502"
+     inkscape:cy="225.77707"
      inkscape:window-width="2560"
      inkscape:window-height="1500"
      inkscape:window-x="0"
-     inkscape:window-y="61"
+     inkscape:window-y="33"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -566,23 +566,23 @@
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#008000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-dasharray:none"
-       x="85.158539"
+       x="126.43353"
        y="35.619747"
        id="text16"><tspan
          sodipodi:role="line"
          style="font-size:2.11667px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2"
-         x="85.158539"
+         x="126.43353"
          y="35.619747"
          id="tspan16">mkPipelineFIFOF</tspan></text>
     <text
        xml:space="preserve"
        style="font-size:2.11667px;line-height:1;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#008000;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-dasharray:none"
-       x="126.65694"
+       x="85.381912"
        y="35.619747"
        id="text17"><tspan
          sodipodi:role="line"
          style="font-size:2.11667px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.2"
-         x="126.65694"
+         x="85.381912"
          y="35.619747"
          id="tspan17">mkBypassFIFOF</tspan></text>
   </g>
