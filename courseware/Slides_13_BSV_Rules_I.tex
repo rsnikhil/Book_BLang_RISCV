@@ -1,0 +1,810 @@
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L13: {\BSV}: Rules and their semantics}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
+ \end{center}
+
+\end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Flow of information between stages in Drum and Fife}
+
+\label{Slide_Instr_Steps}
+
+\footnotesize
+
+\begin{center}
+ \includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_structs}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Table of Contents}
+
+\tableofcontents
+
+\end{frame}
+
+% ****************************************************************
+
+\section{{\BSV}: Rules: Introduction}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Rules: the fundamental behavioral construct in {\BSV}}
+
+\footnotesize
+
+``\emph{Rules}'' are the fundamental constructs in BSV to specify
+dynamic behavior.
+
+\vspace{2ex}
+
+Rules appear in the body of BSV modules, and they may invoke methods
+in interfaces of other modules.
+
+\vspace{2ex}
+
+An interface method is simply a ``mini-rule'' that is incorporated
+into a rule from which it is invoked.
+
+\PAUSE{\vspace{5ex}}
+
+Rule semantics can be understood in two incremental steps:
+
+\begin{itemize}
+
+ \item Semantics of a rule in isolation
+
+ \item Semantics of the collection of rules in a BSV program
+
+\end{itemize}
+
+\PAUSE{\vspace{5ex}}
+
+Finally, the performance of rules (how long does a computation take?)
+can be understood by understanding how rules are mapped to clocks.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Rules: Syntax, and data types for the two components}
+
+\footnotesize
+
+\begin{center}
+ \includegraphics[width=6in,angle=0]{Fig_Rule_Structure}
+\end{center}
+
+\vspace{5ex}
+
+Recall that an {\tt action}-{\tt endaction} block can be used to
+compose several sub-actions into a larger action, and can contain
+identifier bindings.
+
+\vspace{1ex}
+
+A rule body is an implicit {\tt action}-{\tt endaction} block; it can
+contain several sub-actions and identifier bindings.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Rules: Implicit and overall condition}
+
+\footnotesize
+
+\begin{itemize}
+
+\item Both the rule condition and the body may invoke interface methods of
+      other modules.
+
+\item Each method has an ``implicit condition'' (type {\tt Bool}; READY signal in hardware)
+      indicating whether the method is currently enabled or not.
+
+      {\Eg} for a standard FIFO $f$ , the $f${\tt .first} and $f${\tt
+      .deq} methods have implicit conditions that are true only when
+      the FIFO is non-empty.
+
+\item A value-method like $f${\tt .first}, being
+      pure (not {\tt Action} or {\tt ActionValue}), may be invoked
+      both in rule conditions and in rule bodies.
+
+\item An {\tt Action} or {\tt ActionValue}  method like $f${\tt .deq} can
+      never be invoked in a rule condition, only in a rule body.
+
+\end{itemize}
+
+\vspace{5ex}
+
+The overall rule condition, also known as its ``CAN\_FIRE'' condition,
+is a conjunction (AND) of the rule’s explicit condition and implicit
+conditions of any invoked methods, whether those methods are in the
+rule condition or in the rule body.
+
+\vspace{1ex}
+
+For example, if a rule invokes $f${\tt .first} or $f${\tt .deq}, the
+rule’s CAN\_FIRE condition cannot be true when $f$ is empty.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Semantics of a rule in isolation}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Semantics of a rule in isolation}
+
+\footnotesize
+
+Each rule can be viewed as a pure function (therefore, a combinational
+circuit) whose inputs come from various methods and which produces
+outputs for various {\tt Action} and {\tt ActionValue} methods.
+
+\vspace{5ex}
+
+Each {\tt Action} or {\tt ActionValue} method has an implicit boolean
+ENABLE argument (separate from its normal arguments and result).  An
+{\tt Action} or {\tt ActionValue} method
+\emph{performs} its action if its ENABLE argument is true.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Semantics of a rule in isolation}
+
+\label{isolated_rule_semantics}
+
+\footnotesize
+
+\begin{minipage}{0.35\textwidth}
+Example: the diagram below illustrates the function represented by this rule.
+\end{minipage}
+\hm
+\begin{minipage}{0.6\textwidth}
+\begin{Verbatim}[frame=single]
+   rule rl_compute ((y != 0) && got_x && (f.first == 3));
+    if (y [0] == 1) w <= w + x;
+    x <= x << 1;
+    g.enq (w * f.first);
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_Rule_Actions_1}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Recapping some properties of rules}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item All {\tt Action}s in a rule are
+       performed \emph{simultaneously}, no matter what textual order
+       they may appear in the rule body.  We also say that the actions
+       all occur \emph{in parallel}.
+
+ \item All {\tt Action}s in a rule are performed
+       \emph{instantaneously}.
+
+ \item Explicit rule conditions and method implicit conditions are
+       combined to determine whether the rule executes at all.
+
+ \item Some actions in a rule may be further restricted by
+       if-then-else conditions in the rule.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Hardware representation of a rule in isolation}
+
+\label{Slide_HW_representation_of_a_rule}
+
+\footnotesize
+
+The semantic view of a rule in Slide~\ref{isolated_rule_semantics}
+maps straightforwardly into hardware.
+
+\vspace{5ex}
+
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_Rule_Actions_1_2}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{A rule firing cannot perform the same action more than once}
+
+\footnotesize
+
+\begin{minipage}{0.5\textwidth}
+\begin{Verbatim}[frame=single]
+    rule rl_foo (...);
+       x <= 2;           x <= 3;
+       f.enq (2);        f.enq (3);
+       g.deq;            g.deq;
+    endrule
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+We cannot, in the same instant:
+\begin{itemize}
+ \item write into a register more than once;
+ \item enqueue into a FIFO more than once;
+ \item dequeue from a FIFO more than once
+\end{itemize}
+\end{minipage}
+
+\vspace{5ex}
+
+The \emph{bsc} compiler will flag such errors in a program with a
+message like:
+
+\vspace{1ex}
+
+\hmmm ``Cannot compose actions in parallel''
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Semantics of a collection of rules}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Semantics of a collection of rules}
+
+\footnotesize
+
+The semantics of a collection of {\BSV} rules is: execute one-rule-at-a-time:
+
+\begin{center}
+ \fbox{
+  \begin{minipage}{4in}
+   while True \\
+   \hmm Choose \emph{any} rule whose CAN\_FIRE is true \\
+   \hmm \hmm Perform the actions in that rule's body \\
+
+   \hmm \hmm {\scriptsize Likely modifies state, affecting enabled
+             CAN\_FIRE signals for next iteration}
+  \end{minipage}
+ }
+\end{center}
+
+{\BSV} \emph{implementations} may (and do) execute rules concurrently and in parallel, \\
+as long as it remains \emph{consistent} with one-rule-at-a-time semantics.
+
+\vspace{4ex}
+
+Analogies:
+\begin{itemize}
+ \item RISC-V Instruction Semantics are one-instruction-at-a-time. \\
+       This is the refence standard for ``correct'' behavior.
+
+       RISC-V \emph{implementations} may (and do) re-order
+       instructions and execute multiple instructions at a time
+       (pipelining, superscalarity).
+
+ \item C/C++ semantics are one-statement-at-a-time. \\
+       This is the refence standard for ``correct'' behavior.
+
+       C/C++ \emph{implementations} may (and do) re-order statements,
+       and parts of statements, and exploit concurrency and
+       parallelism.
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Semantics of rules: two sometimes surprising observations}
+
+\footnotesize
+
+NOTE: \fbox{\small
+\begin{minipage}{0.9\textwidth}
+
+The semantics of rules is non-deterministic---if CAN\_FIRE is true for
+several rules, we can choose any one.  This is common in formal
+specification languages for concurrent systems, allowing reasoning
+about correctness under all possible choices.
+
+\vspace{1ex}
+
+Nevertheless: the \emph{bsc} compiler removes all non-determinism (in
+a transparent and predictable way) when it compiles to hardware.
+
+\end{minipage}}
+
+\vspace*{5ex}
+
+NOTE: \fbox{\small
+\begin{minipage}{0.9\textwidth}
+
+The functional correctness of a {\BSV} program only appeals to
+rule-at-a-time semantics, without any reference to clocks.
+
+\vspace{1ex}
+
+(Just as the functional correctness of a RISC-V implementation only
+appeals to one-instruction-at-a-time RISC-V ISA semantics, without any
+reference to clocks or cycles.)
+
+\vspace{1ex}
+
+It is only for \emph{temporal properties} (``how fast is the
+implementation?'') do we need to appeal to clocks, cycles and
+implementation details.
+
+\end{minipage}}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Implementing rules in clocked digital hardware}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Implementing rules in clocked digital hardware}
+
+\footnotesize
+
+Rule semantics provide only an abstract view of time: one rule
+executes \emph{before} or \emph{after} another, and we cannot ascribe
+any real-time measure (seconds, microseconds, nanoseconds) to rule
+executions.
+
+\vspace{5ex}
+
+Digital hardware is driven by a clock signal with a specific time-period:
+
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_Clock}
+\end{center}
+
+\vspace{2ex}
+
+The {\bsc} compiler tries to execute as many rules as possible in each
+clock cycle (for maximum performance).
+
+\vspace{2ex}
+
+However, there are some constraints that limit this concurrency.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Constraints on concurrent execution of rules in a clock (1/1)}
+
+\footnotesize
+
+Suppose we want to implement each rule in hardware as suggested in the
+diagram in Slide~\ref{Slide_HW_representation_of_a_rule}.
+
+\vspace{2ex}
+
+Then, conceptually, at each posedge, all enabled rules (whose
+CAN\_FIRE is true) will fire and perform their output actions.
+
+\vspace{2ex}
+
+But this would be wrong, for two reasons:
+
+\begin{itemize}
+
+ \item[(1)] Two rules may have \emph{Action Conflicts} or {\emph
+       Resource Conflicts} if executed in the same clock.
+
+       \vspace{2ex}
+
+       Two rules may invoke the same {\tt Action}/{\tt ActionValue}
+       method (write to the same register, or enqueue onto the same
+       FIFO, dequeue the same FIFO, {\etc}).  This is clearly not
+       feasible at the same instant (same clock posedge).
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Constraints on concurrent execution of rules in a clock (2/2)}
+
+\footnotesize
+
+\begin{itemize}
+
+ \item[(2)] Two rules may have \emph{Ordering Conflicts} if executed
+       in the same clock, {\ie} the \emph{ordering} can be
+       inconsistent with rule semantics.
+
+       \vspace{1ex}
+
+       Consider these two rules, with {\tt x} and {\tt y} initially both having the value 10:
+
+       \begin{center}
+       \begin{minipage}{0.4\textwidth}
+        {\footnotesize
+        \begin{Verbatim}[frame=single]
+rule rl_r1 (...);
+   x <= y + 1;
+endrule
+        \end{Verbatim}
+        }
+       \end{minipage}
+       \hmm
+       \begin{minipage}{0.4\textwidth}
+        {\footnotesize
+        \begin{Verbatim}[frame=single]
+rule rl_r2 (...);
+   y <= x + 2;
+endrule
+        \end{Verbatim}
+        }
+       \end{minipage}
+       \end{center}
+
+       \vspace{1ex}
+
+       According to the one-rule-at-a-time semantics,
+       rule \verb|rl_r1| may precede \verb|rl_r2|. \\
+       After \verb|rl_r1|, {\tt x} has the value 11.
+       Then, after \verb|rl_r2|, {\tt y} has the value 13.
+
+       \vspace{1ex}
+
+       Or, according to the one-rule-at-a-time semantics,
+       rule \verb|rl_r2| may precede \verb|rl_r1|. \\
+       After \verb|rl_r2|, {\tt y} has the value 12.
+       Then, after \verb|rl_r1|, {\tt x} has the value 13.
+
+       \vspace{1ex}
+
+       In either case, register state-update by one rule is observed
+       by the other rule.
+
+       \vspace{1ex}
+
+       Whereas, if we execute both rules in the same clock (at the
+       same instant), neither rule observes the update by the other
+       rule. {\tt x} gets the value 11, and {\tt y} gets the value 12.
+       This is inconsistent with the rule-at-a-time semantics, and
+       therefore an incorrect execution.
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Rule arbitration and scheduling (1/2)}
+
+\footnotesize
+
+In summary, when two rules are enabled in the same clock and they have
+any of the conflicts discussed above, one of them needs to
+be \emph{stalled} for that clock.
+
+\vspace{5ex}
+
+Analogy:
+\fbox{
+\begin{minipage}{0.9\textwidth}
+
+Managing rule conflicts is similar to managing \emph{write-write}
+and \emph{read-write hazards} in processor pipelines, where
+instruction I$_1$ writes to a register and the next instruction I$_2$
+reads from that register---we may have to stall I$_2$ until I$_1$ has
+performed its register-write.
+
+\end{minipage}}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Rule arbitration and scheduling (2/2)}
+
+\footnotesize
+
+Stalling a rule, when necessary, is performed by a \emph{rule
+controller} (also sometimes called a \emph{scheduler}).
+
+\begin{center}
+ \includegraphics[width=0.9\textwidth]{Fig_Rule_Actions_Controlled}
+\end{center}
+
+This is a combinational circuit whose inputs are the {\tt CAN\_FIRE}
+signals from all rules in the design.  For each {\tt CAN\_FIRE} input,
+it has a corresponding {\tt WILL\_FIRE} output signal, which connects
+to the ENABLE inputs of all the rule's actions.
+
+\vspace{1ex}
+
+The {\bsc} compiler designs a custom rule controller for each design,
+based on an analysis of the actual rules in the design.  It ensures
+that conflicting rules do not fire in the same clock.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Guiding {\bsc}'s creation of the rule controller}
+
+\footnotesize
+
+When two rules with conflicts may both be enabled simultaneously (both
+{\tt CAN\_FIRE}s true), the {\bsc} compiler uses various heuristics to
+decide which one will be stalled by the generated rule controller.
+
+\vspace{2ex}
+
+\begin{minipage}{0.5\textwidth}
+ {\bsc}'s choices are generally reasonable but, in rare cases, the
+ programmer may wish to specify an explicit priority preference:
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+rule rl_r1 (...);
+   ...
+endrule
+
+(* descending_urgency = "rl_r1, rl_r2" *)
+rule rl_r2 (...);
+   ...
+endrule
+\end{Verbatim}
+\end{minipage}
+
+\vspace{4ex}
+
+\begin{minipage}{0.5\textwidth}
+This attribute forces the rule controller to stall \verb|rl_r2|
+whenever \verb|rl_r1| executes, whether or not they conflict:
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+(* preempts = "rl_r1, rl_r2" *)
+\end{Verbatim}
+\end{minipage}
+
+\vspace{4ex}
+
+\begin{minipage}{0.5\textwidth}
+If two rules' {\tt CAN\_FIRE}s are mutually exclusive, they cannot
+conflict; this permits more efficient rule controller hardware.
+{\bsc} is quite good at recognizing mutual exclusivity automatically,
+but the user can assist it explicitly:
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{Verbatim}[frame=single]
+(* mutually_exclusive = "rl_r1, rl_r2" *)
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Equivalence of {\tt StmtFSM} and rules}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Equivalence of {\tt StmtFSM} and rules (1/3)}
+
+\footnotesize
+
+Anything coded with {\tt StmtFSM} can also be coded explicitly using rules.  Example:
+
+\begin{Verbatim}[frame=single]
+   Stmt s = while (b)
+               seq
+	          action1;
+	          if (c)
+		     action2;
+		  else
+		     action3;
+	          action4;
+               endseq
+\end{Verbatim}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Equivalence of {\tt StmtFSM} and rules (2/3)}
+
+\footnotesize
+
+We can convert this into rules mechanically as follows:
+\begin{itemize}
+\item Each {\tt Action} in the {\tt Stmt} becomes the body of a rule.
+
+\item We add a register {\tt rg\_step} to control the sequencing.  Each rule
+      is enabled for a particu lar value of {\tt rg\_step}; when it
+      executes, it updates {\tt rg\_step} to enable the next rule.
+
+\end{itemize}
+
+\begin{minipage}[t]{0.47\textwidth}
+\begin{Verbatim}[frame=single]
+   // rg_step == 7 means "idle"
+   // To start the FSM,
+   // environment sets rg_step <= 0
+   Reg #(Bit #(3)) rg_step <- mkReg (7);
+
+   rule rl_while (rg_step == 0);
+      rg_step <= (b ? 1 : 100);
+   endrule
+
+   rule rl_A1 (rg_step == 1);
+      action1;
+      rg_step <= (c ? 2 : 3);  // if-then-else
+   endrule
+\end{Verbatim}
+\end{minipage}
+\begin{minipage}[t]{0.47\textwidth}
+\begin{Verbatim}[frame=single]
+   rule rl_A2 (rg_step == 2);
+      action2;
+      rg_step <= 4;
+   endrule
+
+   rule rl_A3 (rg_step == 3);
+      action3;
+      rg_step <= 4;
+   endrule
+
+   rule rl_A4 (rg_step == 4);
+      action4;
+      rg_step <= 0;    // back to top of loop
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Equivalence of {\tt StmtFSM} and rules (3/3)}
+
+\footnotesize
+
+In summary, {\tt StmtFSM} is just an ``EDSL'' (Embedded
+Domain-Specific Language) within {\BSV} for \emph{structured} rule
+flows (rule flows that can be characterized as a composition of
+sequencing, if-then-else, loops, and fork-join parallelism).
+
+\vspace{5ex}
+
+When we have \emph{unstructured} rule flows, {\tt StmtFSM} is not
+appropriate, and we use rules directly ({\eg} in Fife).
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Rules: Final Comments}
+
+\begin{frame}[fragile]
+\frametitle{Rules: final comments}
+
+\footnotesize
+
+ \emph{Rules are a unique feature of {\BSV}. \\
+       We are unaware of any other HDL (Hardware Description Language)
+       where behavior is specified using rules.}
+
+\vspace{2ex}
+
+\begin{itemize}
+ \item Rules are the fundamental (and only) behavioral construct in {\BSV}.
+
+ \vspace{2ex}
+
+ \item Each rule is an \emph{atomic transaction} modifying system
+       state, which follows trivially from the rule-at-a-time
+       semantics.
+
+       \vspace{1ex}
+
+       Atomicity is one of the most powerful concepts in Computer
+       Science for reasoning about correctness of concurrent systems.
+
+ \vspace{2ex}
+
+ \item A rule comprises a syntactic {\tt rule}-{\tt endrule}
+       construct; every interface method invoked by that rule; every
+       method invoked by those methods; and so on.  The overall rule
+       condition ({\tt CAN\_FIRE}) encompasses the rule's explicit
+       condition and the implicit conditions of all those methods.
+
+       \vspace{1ex}
+
+       Thus, the atomicity of a rule is a \emph{non-local}
+       property---through its methods, it may observe and update state
+       across many modules.
+
+ \vspace{2ex}
+
+ \item The {\bsc} compiler compiles the rules in a design into clocked
+       digital hardware, attempting to maximize concurrency (number of
+       rules that can execute in a clock) while remaining consistent
+       with the rule-at-a-time semantics.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\input{Postamble.tex}
+
+% ****************************************************************
+
+\end{document}
+% ****************************************************************
