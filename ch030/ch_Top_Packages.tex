@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{BSV: Overview of the BSV program structure}
+\chapter{{\BSV}: Overview of the {\BSV} program structure}
 
-\markboth{Ch \arabic{chapter}: BSV: Packages}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: {\BSV}: Packages}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -16,19 +16,19 @@
 
 \section{Introduction}
 
-In this chapter we describe the top-level view of a BSV program.  The
-goal is to quickly develop an ability to scan BSV code (from Fife or
+In this chapter we describe the top-level view of a {\BSV} program.  The
+goal is to quickly develop an ability to scan {\BSV} code (from Fife or
 Drum or any other example) and to discern the structure and
 relationships of the components in the code.
 
-At the syntactic level, a BSV design can be organized into multiple
-source files, each containing a BSV ``\verb|package|''.  Packages
+At the syntactic level, a {\BSV} design can be organized into multiple
+source files, each containing a {\BSV} ``\verb|package|''.  Packages
 contain top-level definitions of types, values, functions, interfaces
 and modules.  The names of these entities are local to the package.
 Components defined in one package are visible in other packages using
 an ``\verb|import|'' statement.
 
-At the semantic level, a BSV design is organized into hardware
+At the semantic level, a {\BSV} design is organized into hardware
 ``\verb|module|s''.  Each module presents, to the outside world (the
 environment), an ``\verb|interface|'' containing ``\verb|method|s'',
 which constitute the API by which the environment interacts with the
@@ -39,20 +39,22 @@ It can invoke instances of other modules by invoking their interface
 methods.
 
 The sections of this chapter present an overview of these major
-components, after first showing a simple (even trivial) example BSV
+components, after first showing a simple (even trivial) example {\BSV}
 program.
 
 % ****************************************************************
 
-\section{A Minimal BSV program}
+\section{A Minimal {\BSV} program}
 
-Here is a minimal complete BSV program (although it is not very
+\label{Sec_Hello_World}
+
+Here is a minimal complete {\BSV} program (although it is not very
 interesting as hardware!).
 
 \index[BSV]{\$display@{\tt \$display} statements}
 
 {\footnotesize
-\begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex\_03\_A\_Hello\_World/Top.bsv]
+\begin{Verbatim}[frame=single, numbers=left, label=in file Exercises/Ex-03-A-Hello-World/Top.bsv]
 module mkTop (Empty);
 
    rule rl_once;
@@ -148,11 +150,8 @@ compiler to compile the generated Verilog into a Verilog simulation
 executable.
 
 % ----------------------------------------------------------------
-\Beginexercise
 
-Please see directory: \hm {\tt Exercises/Ex\_03\_A\_Hello\_World/} \\
-and its README.
-\Endexercise
+\EXERCISE{Ex-03-A-Hello-World}
 
 % ================================================================
 
@@ -211,15 +210,15 @@ in Section~\ref{Sec_display_and_fmt}.
 \index[BSV]{package@{\tt package}}
 \index[BSV]{endpackage@{\tt endpackage}}
 
-Like many programming languages, BSV has facilities to organize large
+Like many programming languages, {\BSV} has facilities to organize large
 programs into separately compilable, purposeful, reusable parts.  A
-BSV program may be organized into one or more \emph{files} or
+{\BSV} program may be organized into one or more \emph{files} or
 \emph{packages}.  This is illustrated in
 Figure~\ref{Fig_BSV_program_structure}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_program_structure}}
   \caption{\label{Fig_BSV_program_structure}
-           File-level view of a BSV program}
+           File-level view of a {\BSV} program}
 \end{figure}
 
 A package can contain a number of top-level statements (more detail
@@ -245,7 +244,7 @@ structure and contents of a package/file.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Package}}
   \caption{\label{Fig_BSV_Package}
-           What's in a BSV package/file?}
+           What's in a {\BSV} package/file?}
 \end{figure}
 
 The \verb|package|--\verb|endpackage| keywords bracketing the
@@ -285,9 +284,11 @@ recompiled unless the source file has subsequently been modified.
 
 % ----------------------------------------------------------------
 
-\subsection{Extending our example minimal BSV program}
+\subsection{Extending our example minimal {\BSV} program}
 
-Let us extend our minimal BSV program into one that is split into two
+\label{Sec_Top_and_DUT}
+
+Let us extend our minimal {\BSV} program into one that is split into two
 packages/files.  We create a new file \verb|DUT.bsv| that just defines
 some top-level scalar constants (strings, bit-vectors).
 
@@ -385,11 +386,9 @@ why we never had to mention the \verb|DUT.bsv| source file in the
 above commands.
 
 % ----------------------------------------------------------------
-\Beginexercise
 
-Please see directory: \hm {\tt Exercises/Ex\_03\_B\_Top\_and\_DUT/} \\
-and its README.
-\Endexercise
+\EXERCISE{Ex-03-B-Top-and-DUT}
+
 % ----------------------------------------------------------------
 
 % ----------------
@@ -455,7 +454,7 @@ NOTE: \fbox{\small
 In SystemVerilog, in {\tt import} statement, instead of ``{\tt *}''
 one can list just the names actually needed, one does not have to
 import all the names exported by another package.  This selective
-import is not currently supported in BSV.
+import is not currently supported in {\BSV}.
 
 \end{minipage}}
 % ----------------
@@ -523,9 +522,9 @@ be visible.
 
 \index[BSV]{interface@{\tt interface}!declaration (a module's API)!typical components in}
 
-A BSV interface declaration can appear as a top-level declaration in a
+A {\BSV} interface declaration can appear as a top-level declaration in a
 package.  It is a syntactic specification of the ``API'' (Application
-Programming Interface) of one or more BSV modules, {\ie} it names the
+Programming Interface) of one or more {\BSV} modules, {\ie} it names the
 \emph{methods} offered by a module, and their arguments and result
 types.  Figure~\ref{Fig_BSV_whats_in_an_interface_decl} shows examples
 of what one might find in an interface declaration (a top-level
@@ -562,7 +561,7 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_an_interface_decl}:
    \item \verb|Action|, \verb|ActionValue|, \verb|Bit|, \verb|Int|,
          \verb|Bool| (all standard types in the \emph{bsc} library)
 
-   \item \verb|FIFO_O| (defined in an additional BSV library,
+   \item \verb|FIFO_O| (defined in an additional {\BSV} library,
           and discussed in Section~\ref{Sec_Semi_FIFOs})
   \end{tightlist}
 
@@ -634,9 +633,11 @@ Some syntax notes for Figure~\ref{Fig_BSV_whats_in_a_module_decl}:
 
 % ----------------------------------------------------------------
 
-\subsection{Extending our example minimal BSV program further}
+\subsection{Extending our example minimal {\BSV} program further}
 
-Let us extend our minimal BSV program so that the DUT contains a
+\label{Sec_Module_and_Interface}
+
+Let us extend our minimal {\BSV} program so that the DUT contains a
 module with an interface.
 
 {\footnotesize
@@ -724,11 +725,8 @@ We can compile and link it for Bluesim and Verilator as before;
 running it produces the same outputs as before.
 
 % ----------------------------------------------------------------
-\Beginexercise
 
-Please see directory: \hm {\tt Exercises/Ex\_03\_C\_Module\_and\_Interface/} \\
-and its README.
-\Endexercise
+\EXERCISE{Ex-03-C-Module-and-Interface}
 
 % ****************************************************************
 
@@ -743,9 +741,9 @@ and its README.
 \index[BSV]{rule!typical components in}
 
 A ``\verb|rule|'' is the fundamental behavioral construct in
-BSV\footnote{Whereas ``{\tt always @(posedge CLK)}'' is the
+{\BSV}\footnote{Whereas ``{\tt always @(posedge CLK)}'' is the
 fundamental behavioral construct in Verilog and SystemVerilog.}. Zero
-or more rules may appear at the top-level of a BSV module.
+or more rules may appear at the top-level of a {\BSV} module.
 Figure~\ref{Fig_BSV_whats_in_a_rule} illustrates the typical
 components of a rule.
 
@@ -756,7 +754,7 @@ components of a rule.
 \end{figure}
 
 A rule condition is also known as its ``explicit condition'' and is
-always an expression of type Bool (and, therefore, by BSV's strong
+always an expression of type Bool (and, therefore, by {\BSV}'s strong
 type-checking rules, it cannot have a side- effect, {\ie} it cannot
 contain an Action).
 
@@ -764,7 +762,7 @@ The rule body as a whole is an expression of type \verb|Action|, and
 may contain many sub-actions, also of type \verb|Action|
 (\verb|Action| is a recursively defined type).
 
-BSV rules are discussed in more detail in Chapters~\ref{ch_Rules_I}
+{\BSV} rules are discussed in more detail in Chapters~\ref{ch_Rules_I}
 and \ref{ch_Rules_II}.  Rules are used in the Fife CPU
 (Chapter~\ref{ch_Fife_code}) and in a version of the Drum CPU
 (Chapter~\ref{ch_Drum_Rules}).
@@ -856,7 +854,7 @@ Javascript) these two phases exist, although they may be performed
 adjacently one after the other and may not be distinguishable to the
 user.
 
-In BSV (and in Verilog, SystemVerilog and VHDL), there are
+In {\BSV} (and in Verilog, SystemVerilog and VHDL), there are
 \emph{three} distinct phases: static (compilation),
 \emph{static-elaboration} and dynamic.  The compilation phase is just
 like in a software language compiler: parsing, type-checking, analysis
@@ -904,7 +902,7 @@ performed by the synthesis tool once, at the start of its operations.
 \index[BSV]{module!interaction via methods}
 
 Figure~\ref{Fig_BSV_module_interaction} illustrates the fundamental
-\emph{behavioral} structures in hardware produced from BSV.  Modules
+\emph{behavioral} structures in hardware produced from {\BSV}.  Modules
 contain rules, and rules interact with other modules by invoking the
 methods in their interfaces.
 \begin{figure}[htbp]
@@ -916,7 +914,7 @@ methods in their interfaces.
 At this level of abstraction, this looks just like objects and
 interaction between objects in an object-oriented programming
 language, and this is reasonable as an approximate mental model of
-what happens in a BSV program.  Some differences in BSV compared to
+what happens in a {\BSV} program.  Some differences in {\BSV} compared to
 traditional object-oriented programming languages:
 
 \begin{itemize}
@@ -925,11 +923,11 @@ traditional object-oriented programming languages:
        instantiated dynamically).  All module instantiation is done
        once, during static elaboration.
 
- \item Rules in BSV modules are (potentially) infinite processes.  A
+ \item Rules in {\BSV} modules are (potentially) infinite processes.  A
        rule can ``fire'' repeatedly whenever its explicit condition
        and the implicit conditions of the methods it invokes are true.
 
- \item All methods in BSV have implicit conditions that dictate when
+ \item All methods in {\BSV} have implicit conditions that dictate when
        they can be invoked.
 
  \item Each rule ``firing'' is \emph{atomic}---all its state updates
@@ -940,9 +938,9 @@ traditional object-oriented programming languages:
 
        Atomicity is the most powerful principle known in Computer
        Science for reasoning about correctness in the presence of
-       concurrency (such as rules in a BSV program or multithreading
+       concurrency (such as rules in a {\BSV} program or multithreading
        in a concurrent software program).  It is one of the key
-       features that distinguishes BSV from Verilog, SystemVerilog,
+       features that distinguishes {\BSV} from Verilog, SystemVerilog,
        and VHDL (indeed possibly all other hardware design languages).
 
 \end{itemize}
@@ -951,12 +949,12 @@ traditional object-oriented programming languages:
 
 \section{Conclusion}
 
-This chapter has given a top-level view of BSV programs, starting with
+This chapter has given a top-level view of {\BSV} programs, starting with
 a collection of files.  With this knowledge, it should possible to
-peruse a BSV program in multiple files in multiple directories (such
+peruse a {\BSV} program in multiple files in multiple directories (such
 as Drum or Fife) and start understanding its major structural
 components and how they are put together, {\ie} this chapter gives you
-the top-level structural ``vocabulary'' of BSV programs.  It does not
+the top-level structural ``vocabulary'' of {\BSV} programs.  It does not
 yet describe \emph{how} the resulting hardware works; that will begin
 in subsequent chapters.
 
