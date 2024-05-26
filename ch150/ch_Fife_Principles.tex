@@ -50,9 +50,9 @@ chapter:
 
 \begin{itemize}
 
-  \item Keeping the Fetch Stage Working with PC Prediction and Epochs
+  \item Continuing to Fetch, with PC Prediction and Epochs
 
-  \item Managing Register Read/Write Hazard with a Scoreboard
+  \item Managing Register Read/Write Hazards with a Scoreboard
 
   \item Retiring outputs of the Execute Stages in Order with Tags
 
@@ -62,7 +62,7 @@ chapter:
 
 % ****************************************************************
 
-\section{Keeping the Fetch Stage Working with PC Prediction and Epochs}
+\section{Continuing to Fetch, with PC Prediction and Epochs}
 
 \label{Sec_Epochs}
 
@@ -161,7 +161,12 @@ current PC.
 \subsection{Identifying and Flushing Wrong-path Instructions}
 
 Clearly, we need to identify and flush wrong-path instructions from
-the pipeline.
+the pipeline.  Figure~\ref{Fig_RISCV_Epochs} shows the general scheme.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Epochs}}
+  \caption{\label{Fig_RISCV_Epochs}
+           Using epochs to identify and discard mispredicted instructions}
+\end{figure}
 
 Suppose the Fetch stage issues requests for two instructions $i_1$ at
 address $a_1$ and $i_2$ at address $a_2$, where $a_2$ is predicted
@@ -222,22 +227,9 @@ accompanied by the new epoch value $e_1+1$.  Thus, the Retire stage
 knows exactly which instructions are wrong-path and it can discard
 them.
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
-
-We have describe \verb|rg_epoch| as a counter that is incremented on
-each recognition of a misprediction.  If the register contents have
-type \verb|Bit #(n)|, then this will wrap-around to 0 after $2^n$
-increments.  Is this a problem?
-
-\Exercise
-
-If \verb|rg_epoch| contains a \verb|Bit #(n)| value, how small can $n$ be?
-
-\Endexercise
-% ----------------
+\EXERCISE{Ex-15-A-Epoch-Bitwidth}
 
 % ================================================================
 
@@ -288,7 +280,13 @@ read-after-write \emph{dependency}.
 In this situation, we need to make $i_2$ wait in the Register-Read
 stage until $i_1$ has completed its update of $x_7$.  This is
 precisely the purpose of the \verb|scoreboard| shown in
-Figure~\ref{Fig_Instr_Exec_w_FIFOs}.
+Figure~\ref{Fig_Instr_Exec_w_FIFOs}.  The general scheme is shown in
+Figure~\ref{Fig_RISCV_Scoreboard}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Scoreboard}}
+  \caption{\label{Fig_RISCV_Scoreboard}
+           Using a scoreboard to manage register read/write hazards}
+\end{figure}
 
 The \verb|scoreboard| is an array of 32 1-bit registers (one bit for
 each GPR).  When an instruction (such as $i_1$) passes through the
@@ -312,51 +310,13 @@ the following Execute stage may become ``empty'', {\ie} there is no
 instruction occupying that stage.  We refer to this as a
 ``\emph{pipeline bubble}''.
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
+\EXERCISE{Ex-15-B-Hazards}
 
-For two consecutive instructions $i_1$ and $i_2$,
-  \begin{tightlist}
-    \item $i_1$ may want to write register $x_7$ and $i_2$ may want to read $x_7$,
-    \item $i_1$ may want to write register $x_7$ and $i_2$ may write to write $x_7$,
-    \item $i_1$ may want to read register $x_7$ and $i_2$ may want to read $x_7$,
-    \item $i_1$ may want to read register $x_7$ and $i_2$ may want to write $x_7$.
-  \end{tightlist}
-Above, we motivated scoreboards with the first scenario.  What about
-the other three scenarios?
+\EXERCISE{Ex-15-C-Write-Write-Hazards}
 
-\Exercise
-
-Write-write hazards can be treated just like read-after-write hazards.
-Alternatively the 1-bit in the scoreboard for a register (say $x_7$)
-can be generalized into an $n$ bit up/downcounter, indicating the
-number of instructions that have been allowed into Execute pipelines
-that intend to write $x_7$.  The Retire stage decrements this counter;
-the Register-Read stage stalls an instruction if these counters (for
-its input registers) are non-zero; and the Register-Read stage
-increments this counter for an instruction's destination register.
-
-\vspace{1ex}
-
-Implement a scoreboard module with this scheme.  What should happen if
-a counter reaches its maximum value?  How many bits should each
-counter have?
-
-\vspace{1ex}
-
-\Exercise
-
-In the counter-based scoreboard of the previous exercise, if there are
-multiple instructions in the Execute stages that intend to write
-$x_7$, in what order can those writes occur?  What would be the
-consequences of a wrong order?
-
-\emph{Hint:} The answer is in Section~\ref{Sec_Reorder_Tags}.
-
-\Endexercise
-% ----------------
+\EXERCISE{Ex-15-D-Write-Write-ordering}
 
 % ================================================================
 
@@ -377,6 +337,8 @@ be rolled back.
 % ================================================================
 
 \subsection{Bypassing}
+
+\label{Sec_Bypassing}
 
 \index[RV]{Bypassing}
 \index[RV]{Short-circuiting (bypassing)}
@@ -403,24 +365,11 @@ that the Register-Read stage can observe ``not-busy'' on the
 technique is generically called ``\emph{bypassing}'' or
 ``\emph{short-circuiting}''.
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
+\EXERCISE{Ex-15-E-Bypassing}
 
-Implement a scoreboard unit with bypassing/short-circuiting as
-described in the above note.
-
-\emph{Hint:} Needs BSV ``Concurrent Registers'' (advanced topic!)
-
-\Exercise
-
-What are the implications of bypassing/short-circuiting on the length
-of combinational paths in a design, and the consequent effect on
-achievable clock frequency?
-
-\Endexercise
-% ----------------
+% ----------------------------------------------------------------
 
 An even more advanced form of bypassing (with much more circuit
 complexity) would be:
@@ -452,17 +401,24 @@ complexity) would be:
 \index[RV]{Tags!EXEC\_TAG\_DMEM@{\tt EXEC\_TAG\_DMEM}}
 \index[RV]{Instruction ordering!tags for}
 
-In Figure~\ref{Fig_Instr_Exec_w_FIFOs}, each yellow box in the Execute
-stage is an independent pipeline handling a certain subset of the
-instruction set.  For example, ``Execute Control'' handles BRANCH, JAL
-and JALR instructions. ``Execute Integer Arithmetic and Logic Ops''
-handles LUI, AUIPC, and all arithmetic and logic instructions.  ``Exec
-Mem Op'' handles LOAD and STORE instructions.  If we extend Fife to
-handle the ``M'' ISA extension, we would have a pipeline for integer
-multiply and divide instructions.  If we extend Fife to handle the
-``F'' and ``D'' ISA extension, we would have a pipeline for floating
-point arithmetic.  The Register-Read-and-Dispatch stage sends
-information into these pipes depending on the kind of instruction.
+As shown in Figure~\ref{Fig_RISCV_Retire_Ordering},
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Retire_Ordering}}
+  \caption{\label{Fig_RISCV_Retire_Ordering}
+           Multiple pipelines in the Execute stage, of varying latencies}
+\end{figure}
+each yellow box in
+the Execute stage is an independent pipeline handling a certain subset
+of the instruction set.  For example, ``Execute Control'' handles
+BRANCH, JAL and JALR instructions. ``Execute Integer Arithmetic and
+Logic Ops'' handles LUI, AUIPC, and all arithmetic and logic
+instructions.  ``Exec Mem Op'' handles LOAD and STORE instructions.
+If we extend Fife to handle the ``M'' ISA extension, we would have a
+pipeline for integer multiply and divide instructions.  If we extend
+Fife to handle the ``F'' and ``D'' ISA extension, we would have a
+pipeline for floating point arithmetic.  The
+Register-Read-and-Dispatch stage sends information into these pipes
+depending on the kind of instruction.
 
 Instructions may have different latencies in traversing these Execute
 pipes.  For example, Control and Integer ops may typically traverse in
@@ -502,15 +458,20 @@ pipes from later instructions.
 \index[RV]{Store Buffer}
 
 Consider the Execute Memory Ops stage in
-Figure~\ref{Fig_Instr_Exec_w_FIFOs}, which issues LOAD and STORE
-requests to memory and collects their responses.  At this stage, the
-instruction is still speculative; it may be discarded when it reaches
-the Retire stage.  We must ensure that STORE instructions do not yet
-modify memory permanently.
+Figure~\ref{Fig_RISCV_Store_Buffer},
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Store_Buffer}}
+  \caption{\label{Fig_RISCV_Store_Buffer}
+           Speculative and non-speculative DMem access, with a Store Buffer}
+\end{figure}
+which issues LOAD and STORE requests to memory and collects their
+responses.  At this stage, the instruction is still speculative; it
+may be discarded when it reaches the Retire stage.  We must ensure
+that STORE instructions do not yet modify memory permanently.
 
-The mechanism for this purpose is the ``\emph{store buffer}'' shown
-Figure~\ref{Fig_Instr_Exec_w_FIFOs}.  This is a buffer in front of the
-memory system (between the CPU and the memory system).
+The mechanism for this purpose is the ``\emph{store buffer}'' shown in
+the diagram.  This is a buffer in front of the memory system (between
+the CPU and the memory system).
 
 \begin{tightlist}
 
@@ -557,16 +518,19 @@ quite differently from memory, in several ways:
     memory location does not (observably) disturb anything, but a LOAD
     from a device could switch on an LED, or increment a counter.
 
-  \item LOADs may not be idempotent.  For example, two successive
-    LOADs from a memory location return the same value, whereas two
-    successive LOADs from, say, a UART's ``receiver buffer register''
-    may return two successive (and different) characters from a
-    keyboard.
+  \item LOADs may not be idempotent (two identical LOADs cannot be
+    coalesced into one).  For example, two successive LOADs from a
+    memory location return the same value, whereas two successive
+    LOADs from, say, a UART's ``receiver buffer register'' may return
+    two successive (and different) characters from a keyboard.
 
   \item STOREs may have additional side-effects.  A STORE to a memory
     location merely stores the value there.  A STORE to a device
     register may display it on a screen, start a motor, release a
     wheel brake, and so on.
+
+  \item STOREs may not be idempotent (two identical STOREs cannot be
+    coalesced into one), because each may have its own side-effect.
 
   \item In memory, a LOAD returns the value stored there by the most
     recent STORE.  For a UART device, on the other hand, a STORE may
@@ -587,31 +551,9 @@ the memory operation: it sends the request to memory, collects the
 response, and retires the instruction.
 
 
-% ----------------
-\hdivider
+% ----------------------------------------------------------------
 
-\Exercise
-
-When the Retire stage sends a ``commit/discard'' message, how do we
-know that it applies to the pending STORE at the head of the
-store-buffer queue?
-
-\Exercise
-
-For a speculative LOAD, its value may come from memory or from the
-store-buffer.  In what order should it scan these sources?
-
-\Exercise
-
-Does the Retire stage need to send both ``commit'' and ``discard''
-messages?  If requests are accompanied by an instruction-number, the
-Retire stage could only send ``commit'' messages accompanied by the
-instruction-number.  The store-buffer can discard all pending STOREs
-with earlier instruction numbers.
-
-Discuss the implications of such a design on the size of the store-buffer.
-
-\Endexercise
+\EXERCISE{Ex-15-F-Store-Buffers}
 
 % ****************************************************************
 
@@ -649,10 +591,10 @@ The new additional details are:
 
        \begin{tightlist}
 
-        \item If-path instruction has an \verb|Rd|, we would have
-              taken a scoreboard reservation for it in the
-              Register-Read stage; we must now release that scoreboard
-              reservation.  We extend \verb|update_rd| to perform a
+        \item If the instruction has an \verb|Rd|, we would have taken
+              a scoreboard reservation for it in the Register-Read
+              stage; we must now release that scoreboard reservation.
+              We extend \verb|update_rd| to perform a
               scoreboard-release without a register-write.
 
         \item In the case of a non-deferred STORE instruction, we
