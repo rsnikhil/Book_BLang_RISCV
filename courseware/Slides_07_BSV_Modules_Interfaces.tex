@@ -816,6 +816,59 @@ part:
 % ================================================================
 
 \begin{frame}[fragile]
+\frametitle{{\BSV}: FIFO connections between separately compiled modules}
+
+\footnotesize
+
+\begin{minipage}{0.34\textwidth}
+We frequently use the following scheme to make a FIFO connection
+between separately compiled modules:
+\end{minipage}
+\hfill
+\begin{minipage}{0.64\textwidth}
+\includegraphics[width=\textwidth]{Fig_Composed_FIFO_modularity}
+\end{minipage}
+
+\PAUSE{\vspace{5ex}}
+
+The ``modularity'' benefits are discussed in the book, Section 17.5.  Briefly:
+
+\begin{itemize}
+
+ \item Despite there being two FIFOs, data can traverse from producer
+       to consumer in 1 tick, as desired.
+
+ \item The structure allows the producer and consumer to be compiled
+       independently by \emph{bsc}, with no ``rule-scheduling''
+       constraints leaking across stage boundaries.
+
+ \item There are no combinational paths crossing the stage boundary
+       (through the two FIFOs).
+
+ \item The structure allows us to reason about (and prove) correctness
+       of each stage completely independently of other stages.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Polymorphic and Monomorphic Types}
+
+% ================================================================
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE Polymorphic and Monomorphic Types}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
 \frametitle{{\BSV}: Polymorphic and Monomorpic Types}
 
 \footnotesize

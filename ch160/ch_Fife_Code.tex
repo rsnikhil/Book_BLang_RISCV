@@ -86,35 +86,36 @@ We next go through the code for the individual stage modules.
 
 \label{Sec_Fife_connections}
 
-Each of the FIFO-labeled black arrows in
-Figure~\ref{Fig_Instr_Exec_w_FIFOs_2} is a FIFO-like connection
-between stages.  The general scheme we use is illustrated in
-Figure~\ref{Fig_Fife_connections}.
+Section~\ref{Sec_connecting_separately_compiled_stages} and
+Figure~\ref{Fig_Fife_connections} discussed a technique to connect
+FIFO-like connections between separately compiled stage modules,
+illustrated in Figure~\ref{Fig_Fife_connections}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Composed_FIFO_modularity}}
   \caption{\label{Fig_Fife_connections}
            How we connect Fife stages}
 \end{figure}
 
-In the upstream (producer) stage we instantiate a
-\verb|mkPipelineFIFOF|.  The rules in the stage enqueue outgoing
-information into the \verb|FIFO_I| side of the FIFO using the
-\verb|enq| method, and we lift the \verb|FIFO_O| side to the
-stage-module interface.
+\begin{itemize}
 
-Conversely, in the downstream (consumer) stage we instantiate a
-\verb|mkBypassFIFOF|.  The rules in the stage consume incoming
-information from the \verb|FIFO_O| side of the FIFO using the
-\verb|first| and \verb|deq| methods, and we lift the \verb|FIFO_I|
-side to the stage-module interface.
+ \item Instantiate a {\tt mkBypassFIFOF} module in the producer stage
+       module; use its {\tt FIFOF\_I} semi-FIFO interface internally,
+       and lift its {\tt FIFOF\_O} semi-FIFO interface to the stage
+       module's interface.
 
-Finally, in the parent module (\verb|mkCPU|), we use
-\verb|mkConnection| to connect the exposed \verb|FIFO_O| and
-\verb|FIFO_I| ends of the FIFOs.
+ \item Instantiate a {\tt mkPipelineFIFOF} module in the consumer stage
+       module; use its {\tt FIFOF\_O} semi-FIFO interface internally,
+       and lift its {\tt FIFOF\_I} semi-FIFO interface to the stage
+       module's interface.
 
-PipelineFIFOs, BypassFIFOs and this way of connecting stages are
-discussed in great detail in Section~\ref{Sec_SpecialFIFOs}.  Suffice
-it to say, here, that:
+ \item In the parent module ({\tt mkCPU}), use {\tt mkConnection} to
+       connect the lifted {\tt FIFOF\_O} and {\tt FIFOF\_I}
+       interfaces.
+
+\end{itemize}
+
+The benefits of this technique are discussed in
+Section~\ref{Sec_SpecialFIFOs}.  Suffice it to say, here, that:
 
 \begin{tightlist}
 
