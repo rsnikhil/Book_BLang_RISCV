@@ -278,7 +278,7 @@ Loop flows:
  \item If the FSM reaches its end state, it executes a {\tt \$finish()} to stop simulation.
 
        Note:
-       \begin{itemize}
+       \begin{itemize}\footnotesize
         \item (It may not reach the end state if it has an infinite while-loop.)
 
         \item (It may not reach the end state if some action gets stuck,
@@ -301,9 +301,16 @@ Loop flows:
         sequentially producing test stimulus and squentially consuming
         outputs (although, in Drum, we also use it in the design).
 
- \item {\tt StmtFSM} can only express \emph{structured} processes.
-       For more complex flows, we directly use {\BSV} \emph{Rules}
-       ({\eg} in Fife).
+ \item {\tt StmtFSM} can only express \emph{structured} processes
+       (composed by nesting {\tt seq}-{\tt endseq}, {\tt if}, {\tt while}).
+
+       For more complex flows, and more fine-grain concurrency, we can
+       directly use {\BSV} \emph{Rules} ({\eg} we do this in Fife).
+
+       \vspace{1ex}
+
+       {\scriptsize [See also ``Section 9.11 Historical Note about Structured Programming''
+        for connections to modern software programming languages.]}
 
 \end{itemize}
 

@@ -3,7 +3,7 @@
 
 \input{Preamble.tex}
 
-\date{L10: RISC-V: The Drum CPU}
+\date{L16: RISC-V: The Fife pipelined CPU}
 
 % ****************************************************************
 
@@ -22,6 +22,8 @@
 
 % ================================================================
 
+\section{Reminders}
+
 \input{Reminders.tex}
 
 % ================================================================
@@ -34,7 +36,7 @@
 \footnotesize
 
 \begin{center}
- \includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_structs}
+ \includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_FIFOs}
 \end{center}
 
 \end{frame}
@@ -50,12 +52,12 @@
 
 % ****************************************************************
 
-\section{Drum CPU: Module Interface (same for Drum and Fife)}
+\section{Module Interface (same for Drum and Fife)}
 
 \begin{frame}
 
 \begin{center}
-  {\LARGE Drum CPU: Module Interface (same for Drum and Fife)}
+  {\LARGE Fife CPU: Module Interface (same for Drum and Fife)}
 \end{center}
 
 \end{frame}
@@ -63,34 +65,59 @@
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Module Interface}
+\frametitle{Module Interface}
 
 \footnotesize
 
-\SHOWCODE{../Code_Extracts/CPU_IFC.tex}
+
+% \SHOWCODE{../Code_Extracts/CPU_IFC.tex}
+% TODO: Fix up code-extraction to extract this automatically from source
+% from file 'CPU_IFC.bsv' line 27  tag CPU_IFC
+{\scriptsize
+\begin{Verbatim}[frame=single, numbers=left, label=src\_Common/CPU\_IFC.bsv: line 27 ...]
+interface CPU_IFC;
+   method Action init (Initial_Params initial_params);
+
+   // IMem
+   interface FIFOF_O #(Mem_Req) fo_IMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_IMem_rsp;
+
+   // DMem, speculative
+   interface FIFOF_O #(Mem_Req) fo_DMem_S_req;
+   interface FIFOF_I #(Mem_Rsp) fi_DMem_S_rsp;
+   interface FIFOF_O #(Retire_to_DMem_Commit)  fo_DMem_S_commit;
+
+   // DMem, non-speculative
+   interface FIFOF_O #(Mem_Req) fo_DMem_req;
+   interface FIFOF_I #(Mem_Rsp) fi_DMem_rsp;
+
+   // Set TIME
+   (* always_ready, always_enabled *)
+   method Action set_TIME (Bit #(64) t);
+endinterface
+\end{Verbatim}
+}
 
 \vspace{1ex}
 
-The four FIFOs are for IMem and DMem requests (to memory) and IMem and DMem responses (from memory).
-
-\vspace{2ex}
-
-The {\tt init} method is used to set the starting PC value (and other initial values).
-
-\vspace{1ex}
-
-The {\tt set\_TIME} method is used to update the {\tt time} CSR.
+The speculative DMem sub-interfaces: \\
+\hmm {\tt fo\_DMem\_S\_req} \hmm {\tt fi\_DMem\_S\_rsp} \hmm {\tt fo\_DMem\_S\_commit} \\
+were unused in Drum, and are used in Fife.
 
 \end{frame}
 
 % ****************************************************************
 
-\section{Drum CPU: Overall module structure and state}
+\section{Top-level {\tt mkCPU} module}
 
 \begin{frame}[fragile]
 
 \begin{center}
-  {\LARGE Drum CPU: Overall module structure and state}
+  {\LARGE Fife CPU: Top-level {\tt mkCPU} module}
+
+  \vspace{10ex}
+
+  In file: {\tt Code/src\_Fife/CPU.bsv}
 \end{center}
 
 \end{frame}
@@ -98,7 +125,7 @@ The {\tt set\_TIME} method is used to update the {\tt time} CSR.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Overall module structure}
+\frametitle{Overall Fife CPU module structure}
 
 \footnotesize
 
@@ -106,20 +133,14 @@ The {\tt set\_TIME} method is used to update the {\tt time} CSR.
 \begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
 (* synthesize *)
 module mkCPU (CPU_IFC);
-   // ================================================================
-   // STATE
+   // ****************************************************************
+   // STATE (sub-modules for pipeline stages)
    ...
 
    // ****************************************************************
-   // BEHAVIOR
-   ... help functions ...
-   ... major actions  ...
+   // STATE (sub-modules for inter-stage connections)
 
-   // ================================================================
-   // BEHAVIOR: FSM or Rules
-
-`include "Drum_FSM.bsv"
-
+   ...
    // ****************************************************************
    // INTERFACE
    ...
@@ -129,73 +150,135 @@ endmodule
 \hm
 \emph{Details in slides that follow}
 
-\end{frame}
+\vspace{5ex}
 
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Drum CPU: Module state (1/3)}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   // Don't run until the PC (and other things) are initialized
-   Reg #(Bool) rg_running <- mkReg (False);
-
-   // For debugging in simulation only
-   Reg #(File) rg_flog <- mkReg (InvalidFile);
-
-   Reg #(Bit #(64)) rg_inum <- mkReg (0);    // For debugging only
-
-   // The Program Counter
-   Reg #(Bit #(XLEN)) rg_pc   <- mkReg (0);
-
-   // General-Purpose Registers (GPRs)
-   GPRs_IFC #(XLEN)  gprs <- mkGPRs_synth;
-
-   // Control-and-Status Registers (CSRs)
-   CSRs_IFC csrs <- mkCSRs;
-\end{Verbatim}
-\end{minipage}
-\hm
-\emph{... more ...}
+Fife's {\tt mkCPU} module is actually simpler than Drum's {\tt mkCPU}
+because the major functionality is now in the separate stage
+sub-modules (Drum did not have stage sub-modules).
 
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Module state (2/3)}
+\frametitle{Fife module state (sub-modules for pipeline stages)}
 
 \footnotesize
 
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   // Inter-step registers
-   Reg #(Fetch_to_Decode)      rg_Fetch_to_Decode      <- mkRegU;
-   Reg #(Decode_to_RR)         rg_Decode_to_RR         <- mkRegU;
-   Reg #(Result_Dispatch)      rg_Dispatch             <- mkRegU;
-   Reg #(EX_Control_to_Retire) rg_EX_Control_to_Retire <- mkRegU;
-   Reg #(EX_to_Retire)         rg_EX_to_Retire         <- mkRegU;
-
-   // Regs to set up exception handling
-   Reg #(Bool)        rg_exception <- mkReg (False);
-   Reg #(Bit #(XLEN)) rg_epc       <- mkRegU;
-   Reg #(Bit #(4))    rg_cause     <- mkRegU;
-   Reg #(Bit #(XLEN)) rg_tval      <- mkRegU;
+\begin{minipage}{0.75\textwidth}
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+   // Pipeline stages
+   Fetch_IFC       stage_F          <- mkFetch;
+   Decode_IFC      stage_D          <- mkDecode;
+   RR_RW_IFC       stage_RR_RW      <- mkRR_RW;
+   EX_Control_IFC  stage_EX_Control <- mkEX_Control;  // Branch, JAL, JALR
+   EX_Int_IFC      stage_EX_Int     <- mkEX_Int;      // Integer ops
+   Retire_IFC      stage_Retire     <- mkRetire;
 \end{Verbatim}
 \end{minipage}
 \hm
-\emph{... more ...}
+\begin{minipage}{0.22\textwidth}
+Fife instantiates a sub-module for each of the pipeline stages
+\end{minipage}
 
-\vspace{2ex}
+
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Fife module state: sub-modules for inter-stage forward-flow connections}
+
+\footnotesize
+
+\begin{minipage}{0.75\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+   // Forward flow connections
+
+   // Fetch->Decode->RR-Dispatch, and direct path RR-Dispatch->Retire
+   mkConnection (stage_F.fo_Fetch_to_Decode,  stage_D.fi_Fetch_to_Decode);
+   mkConnection (stage_D.fo_Decode_to_RR,     stage_RR_RW.fi_Decode_to_RR);
+   mkConnection (stage_RR_RW.fo_RR_to_Retire, stage_Retire.fi_RR_to_Retire);
+
+   // RR-Dispatch->various EX
+   mkConnection (stage_RR_RW.fo_RR_to_EX_Control,
+		 stage_EX_Control.fi_RR_to_EX_Control);
+   mkConnection (stage_RR_RW.fo_RR_to_EX_Int,
+		 stage_EX_Int.fi_RR_to_EX_Int);
+
+   // Various EX->Retire
+   mkConnection (stage_EX_Control.fo_EX_Control_to_Retire,
+		 stage_Retire.fi_EX_Control_to_Retire);
+   mkConnection (stage_EX_Int.fo_EX_Int_to_Retire,
+		 stage_Retire.fi_EX_Int_to_Retire);
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.22\textwidth}
+Each connection is a FIFO
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Fife module state: sub-modules for inter-stage backward-flow connections}
+
+\footnotesize
+
+\begin{minipage}{0.75\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+   // Backward flow connections
+
+   // Fetch<-Retire (redirection)
+   mkConnection (stage_Retire.fo_Fetch_from_Retire, stage_F.fi_Fetch_from_Retire);
+   // RR-Dispatch<-Retire (register writeback)
+   mkConnection (stage_Retire.fo_RW_from_Retire, stage_RR_RW.fi_RW_from_Retire);
+\end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.22\textwidth}
+Each connection is a FIFO
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{FIFO connections between separately compiled Fife sub-modules}
+
+\footnotesize
+
+\begin{minipage}{0.22\textwidth}
+Each inter-stage FIFO {\tt mkConnection} has this form:
+\end{minipage}
+\hfill
+\begin{minipage}{0.75\textwidth}
+\includegraphics[width=\textwidth]{Fig_Composed_FIFO_modularity}
+\end{minipage}
+
+\PAUSE{\vspace{2ex}}
 
 \begin{itemize}
- \item Inter-step registers hold intermediate values across clock cycles.
 
- \item Exception registers hold values across clocks until we perform
-       the exception (in the final step).
+ \item Data can traverse from producer to consumer in 1 tick, as
+       desired, despite there being two FIFOs, because of the
+       semantics of {\tt mkBypassFIFOF} and {\tt mkPipelineFIFOF}
+       (Chapter 17).
+
+ \item The structure allows the producer and consumer to be compiled
+       independently by \emph{bsc}, with no ``rule-scheduling''
+       constraints leaking across stage boundaries.
+
+ \item There are no combinational paths crossing the stage boundary
+       (through the two FIFOs).
+
+ \item The structure allows us to reason about correctness of each
+       stage completely independently of other stages.
+
 \end{itemize}
 
 \end{frame}
@@ -203,31 +286,63 @@ endmodule
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Module state (3/3)}
+\frametitle{Fife module interface definitions}
 
 \footnotesize
 
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   // Paths to and from memory
-   FIFOF #(Mem_Req) f_IMem_req  <- mkFIFOF;
-   FIFOF #(Mem_Rsp) f_IMem_rsp  <- mkFIFOF;
+\begin{minipage}{0.75\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+   method Action init (Initial_Params initial_params);
+      rg_flog <= initial_params.flog;
 
-   FIFOF #(Mem_Req) f_DMem_req  <- mkFIFOF;
-   FIFOF #(Mem_Rsp) f_DMem_rsp  <- mkFIFOF;
+      stage_F.init (initial_params);
+      stage_D.init (initial_params);
+      stage_RR_RW.init (initial_params);
+      stage_EX_Control.init (initial_params);
+      stage_EX_Int.init (initial_params);
+      stage_Retire.init (initial_params);
+   endmethod
+
+   // IMem
+   interface fo_IMem_req = stage_F.fo_Fetch_to_IMem;
+   interface fi_IMem_rsp = stage_D.fi_IMem_to_Decode;
+
+   // DMem, speculative
+   interface fo_DMem_S_req    = stage_RR_RW.fo_DMem_S_req;
+   interface fi_DMem_S_rsp    = stage_Retire.fi_DMem_S_rsp;
+   interface fo_DMem_S_commit = stage_Retire.fo_DMem_S_commit;
+
+   // DMem, non-speculative
+   interface fo_DMem_req = stage_Retire.fo_DMem_req;
+   interface fi_DMem_rsp = stage_Retire.fi_DMem_rsp;
+
+   // Set TIME
+   method Action set_TIME (Bit #(64) t) = stage_Retire.set_TIME (t);
 \end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.22\textwidth}
+The {\tt init} method initializes this module and also each stage sub-module.
+
+\vspace{2ex}
+
+The {\tt set\_TIME} method is for updating the {\tt time} CSR.
 \end{minipage}
 
 \end{frame}
 
 % ****************************************************************
 
-\section{Drum CPU: some help functions}
+\section{Fetch stage}
 
 \begin{frame}[fragile]
 
 \begin{center}
-  {\LARGE Drum CPU: Some help-functions}
+  {\LARGE Fife CPU Fetch stage}
+
+  \vspace{10ex}
+
+  In file: \verb|Code/src_Fife/S1_Fetch.bsv|
 \end{center}
 
 \end{frame}
@@ -235,20 +350,20 @@ endmodule
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Some help-functions (1/3)}
+\frametitle{Fetch stage: interface}
 
 \footnotesize
 
-(Help-functions just encapsulate a few actions that are repeated in several places.)
+\begin{minipage}{0.725\textwidth}
+\SHOWCODE{../Code_Extracts/Fife_Fetch_IFC.tex}
+\end{minipage}
+\begin{minipage}{0.25\textwidth}
+Interface
 
 \vspace{5ex}
 
-This function writes a result of an instruction (a value) into the {\tt rd} register:
+The \verb|FIFO_I| from Retire carries redirection information.
 
-\vspace{4ex}
-
-\begin{minipage}{0.725\textwidth}
-\SHOWCODE{../Code_Extracts/Drum_upd_rd.tex}
 \end{minipage}
 
 \end{frame}
@@ -256,7 +371,225 @@ This function writes a result of an instruction (a value) into the {\tt rd} regi
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Some help-functions (2/3)}
+\frametitle{Fetch stage: implementation module}
+
+\footnotesize
+
+For module {\tt mkFetch} let us examine file: \verb|Code/src_Fife/S1_Fetch.bsv|
+
+\vspace{4ex}
+
+\begin{itemize}
+
+ \item Rule \verb|rl_Fetch_req| is the forward-flow ``fetching rule'',
+       repeatedly invoking \verb|fn_Fetch| to produce IMem requests
+       and information for Decode.
+
+       The expression ``\verb|rg_pc+4|'' is, more generally,
+       ``\verb|predict(rg_pc)|''.
+
+       In future we can substitute new, improved, predictor functions
+       (see book ``Section 18.3.6.4 Better next-PC prediction'').
+
+ \item Rule \verb|rl_Fetch_from_Retire| is the backward-flow.  It
+       receives \verb|Fetch_from_Retire| messages from Retire whenever
+       Retire needs to change the control flow to something other than
+       the predicted PC (due to BRANCH, JAL, JALR, or traps).  This
+       rule updates \verb|rg_pc| to the newly specified PC, and also
+       updates \verb|rg_epoch|.
+
+ \vspace{4ex}
+
+ \item The expression \verb|(! f_Fetch_from_Retire.notEmpty)|
+       in \verb|rl_Fetch_req|'s condition gives it lower priority
+       compared to \verb|rl_Fetch_from_Retire| when both are enabled.
+       The sooner we perform redirection, the fewer wrong-path
+       instructions will be fetched.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Decode stage}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE Fife CPU Decode stage}
+
+  \vspace{10ex}
+
+  In file: \verb|Code/src_Fife/S2_Decode.bsv|
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Decode stage: interface}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}
+\SHOWCODE{../Code_Extracts/Fife_Decode_IFC.tex}
+\end{minipage}
+\hmm
+Interface
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Decode stage: implementation module}
+
+\footnotesize
+
+For module {\tt mkDecode} code, let us examine file: \verb|Code/src_Fife/S2_Decode.bsv|
+
+\begin{itemize}
+
+\vspace{4ex}
+
+ \item Rule \verb|rl_Decode| is the forward-flow;
+       it repeatedly invokes \verb|fn_Decode| to produce
+       information for the next stage.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Register-Read and Dispatch stage (and Register-Write)}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE Fife CPU Register-Read and Dispatch stage \\
+          (and Register-Write)}
+
+  \vspace{10ex}
+
+  In file: \verb|Code/src_Fife/S3_RR_RW.bsv|
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Register-Read and Dispatch stage (and Register-Write): Interface}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}
+\SHOWCODE{../Code_Extracts/Fife_RR_RW_IFC.tex}
+\end{minipage}
+\hfill
+\begin{minipage}{0.25\textwidth}
+Interface
+
+\vspace{2ex}
+
+The four \verb|FIFO_O| interfaces feed the four execution paths.
+
+\vspace{2ex}
+
+The \verb|FIFO_I| from Retire carries information for register-write
+and release of scoreboard reservations.
+\end{minipage}
+
+\vspace{2ex}
+
+\verb|rg_oiaat| is used for ``one instruction at a time'' mode, and can be ignored for now.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Register-Read and Dispatch (and Register-Write)  stage: implementation module}
+
+\footnotesize
+
+For module {\tt mkRR\_RW} code, let us examine file: {\tt Code/src\_Fife/S3\_RR\_RW.bsv}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Execute-Control stage}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Execute-Control stage}
+
+\footnotesize
+
+Interface: \hmmmm
+\begin{minipage}{0.725\textwidth}
+\SHOWCODE{../Code_Extracts/Fife_EX\_Control_IFC.tex}
+\end{minipage}
+
+\vspace{5ex}
+
+For module {\tt mkEX\_Control} code, let us examine file: {\tt Code/src\_Fife/S4\_EX\_Control.bsv}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Execute-Int stage}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Execute-Int stage}
+
+\footnotesize
+
+Interface: \hmmmm
+\begin{minipage}{0.725\textwidth}
+\SHOWCODE{../Code_Extracts/Fife_EX\_Int_IFC.tex}
+\end{minipage}
+
+\vspace{5ex}
+
+For module {\tt mkEX\_Int} code, let us examine file: {\tt Code/src\_Fife/S4\_EX\_Int.bsv}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Retire}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Retire}
+
+\footnotesize
+
+Interface: \hmmmm
+\begin{minipage}{0.725\textwidth}
+\SHOWCODESCRIPT{../Code_Extracts/Fife_Retire_IFC.tex}
+\end{minipage}
+
+\vspace{1ex}
+
+For module {\tt mkRetire} code, let us examine file: {\tt Code/src\_Fife/S4\_Retire.bsv}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Some help-functions (2/3)}
 
 \footnotesize
 
@@ -277,7 +610,7 @@ This function increments the PC and the instruction-number, as we retire each in
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Some help-functions (3/3)}
+\frametitle{Some help-functions (3/3)}
 
 \footnotesize
 
@@ -297,12 +630,12 @@ This function records information for later trap-handling:
 
 % ****************************************************************
 
-\section{Drum CPU: top-level FSM}
+\section{top-level FSM}
 
 \begin{frame}[fragile]
 
 \begin{center}
-  {\LARGE Drum CPU: top-level FSM}
+  {\LARGE Fife CPU: top-level FSM}
 \end{center}
 
 \end{frame}
@@ -310,7 +643,7 @@ This function records information for later trap-handling:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: top-level FSM (1/2)}
+\frametitle{top-level FSM (1/2)}
 
 \footnotesize
 
@@ -332,7 +665,7 @@ the initial PC, so that we start fetching from the correct address.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: top-level FSM (2/2)}
+\frametitle{top-level FSM (2/2)}
 
 \footnotesize
 
@@ -350,10 +683,10 @@ the initial PC, so that we start fetching from the correct address.
 
 % ****************************************************************
 
-\section{Drum CPU: FSM Fetch step}
+\section{FSM Fetch step}
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: FSM Fetch step}
+\frametitle{FSM Fetch step}
 
 \footnotesize
 
@@ -370,10 +703,10 @@ the initial PC, so that we start fetching from the correct address.
 
 % ****************************************************************
 
-\section{Drum CPU: FSM Decode step}
+\section{FSM Decode step}
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: FSM Decode step}
+\frametitle{FSM Decode step}
 
 \footnotesize
 
@@ -390,10 +723,10 @@ the initial PC, so that we start fetching from the correct address.
 
 % ****************************************************************
 
-\section{Drum CPU: FSM Register-Read and Dispatch step}
+\section{FSM Register-Read and Dispatch step}
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: FSM Register-Read and Dispatch step}
+\frametitle{FSM Register-Read and Dispatch step}
 
 \footnotesize
 
@@ -411,12 +744,12 @@ the initial PC, so that we start fetching from the correct address.
 
 % ****************************************************************
 
-\section{Drum CPU: FSM Execute and Retire step}
+\section{FSM Execute and Retire step}
 
 \begin{frame}[fragile]
 
 \begin{center}
-  {\LARGE Drum CPU: FSM Execute and Retire step}
+  {\LARGE Fife CPU: FSM Execute and Retire step}
 \end{center}
 
 \end{frame}
@@ -424,7 +757,7 @@ the initial PC, so that we start fetching from the correct address.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: FSM Execute and Retire step flows}
+\frametitle{FSM Execute and Retire step flows}
 
 \begin{minipage}{0.75\textwidth}
  \includegraphics[width=\textwidth]{Fig_Retire_Layers_1}
@@ -449,7 +782,7 @@ Each ultimately resulting in up to 3 possible actions.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Updating the {\tt minstret} CSR (counting instructions retired)}
+\frametitle{Updating the {\tt minstret} CSR (counting instructions retired)}
 
 \footnotesize
 
@@ -482,7 +815,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Direct flow (1/4)}
+\frametitle{Execute and Retire Direct flow (1/4)}
 
 \footnotesize
 
@@ -507,7 +840,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Direct flow (2/4)}
+\frametitle{Execute and Retire Direct flow (2/4)}
 
 \footnotesize
 
@@ -538,7 +871,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Direct flow (3/4)}
+\frametitle{Execute and Retire Direct flow (3/4)}
 
 \footnotesize
 
@@ -561,7 +894,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Direct flow (4/4)}
+\frametitle{Execute and Retire Direct flow (4/4)}
 
 \footnotesize
 
@@ -594,7 +927,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Control flow}
+\frametitle{Execute and Retire Control flow}
 
 \footnotesize
 
@@ -635,7 +968,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire Int flow}
+\frametitle{Execute and Retire Int flow}
 
 \footnotesize
 
@@ -674,7 +1007,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire DMem flow (1/2)}
+\frametitle{Execute and Retire DMem flow (1/2)}
 
 \footnotesize
 
@@ -694,7 +1027,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: Execute and Retire DMem flow (2/2)}
+\frametitle{Execute and Retire DMem flow (2/2)}
 
 \footnotesize
 
@@ -733,7 +1066,7 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: action for exceptions}
+\frametitle{action for exceptions}
 
 \footnotesize
 
@@ -757,14 +1090,14 @@ measurement (instructions/cycle).
 
 % ****************************************************************
 
-\section{Drum CPU: Final Comments}
+\section{Final Comments}
 
 \begin{frame}[fragile]
-\frametitle{Drum CPU: final comments}
+\frametitle{{\BSV}: {\tt StmtFSM} final comments}
 
 \footnotesize
 
-Drum CPU code, using {\tt StmtFSM}, looks just like a C/C++ program
+Fife CPU code, using {\tt StmtFSM}, looks just like a C/C++ program
 with somewhat different syntax.
 
 \vspace{2ex}

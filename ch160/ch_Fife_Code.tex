@@ -250,7 +250,7 @@ Finally, the INTERFACE section of the module is simple.  After the
 
 \subsection{Prioritizing rule {\tt rl\_Fetch\_from\_Retire} over {\tt rl\_Fetch\_req}}
 
-\index[BSV]{Rules!prioritizing explicitly}
+\index[BSV]{rule!prioritizing explicitly}
 
 What would happen if we omit the condition
 ``\verb|(!f_Fetch_from_Retire.notEmpty)|'' in \verb|rl_Fetch_req|?  It
@@ -449,7 +449,7 @@ module.
 
 \label{Sec_Fife_Scoreboard}
 
-\index[BSV]{vector@{\tt vector}!library data type}
+\index[BSV]{vector!library data type}
 
 In Section~\ref{Sec_Scoreboards} we discussed the general principles
 of a scoreboard, and described it as an array of 1-bit values.  In BSV
@@ -473,7 +473,7 @@ So, we can define a \verb|Scoreboard| type as follows:
 \end{tabbing}
 
 \index[BSV]{replicate@{\tt replicate} {\tt vector} library function to create a vector value}
-\index[BSV]{vector@{\tt vector}!library {\tt replicate} function}
+\index[BSV]{vector!library {\tt replicate} function}
 
 The BSV Vector-library function:
 
@@ -490,8 +490,8 @@ like this, where all the vector elements are initialized to 0:
 \hmm Reg \#(Scoreboard) rg\_scoreboard <- mkReg (replicate (0));
 \end{tabbing}
 
-\index[BSV]{vector@{\tt vector}!of {\tt n} bits \emph{vs.} {\tt Bit\#(n)}}
-\index[BSV]{vector@{\tt vector}!representation in bits}
+\index[BSV]{vector!of {\tt n} bits \emph{vs.} {\tt Bit\#(n)}}
+\index[BSV]{vector!representation in bits}
 
 In hardware, a \verb|Vector#(32,Bit#(1))| value occupies exactly 32
 bits, {\ie} the size of the vector times the size of each element.

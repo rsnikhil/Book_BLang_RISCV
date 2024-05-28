@@ -207,7 +207,7 @@ SystemVerilog and C/C++:
 \label{Sec_Types_Intro}
 
 \index[BSV]{Data types}
-\index[BSV]{Types (data types; sets of values)}
+\index[BSV]{Types!Data types (sets of values)}
 
 \index[BSV]{Numeric Kind}
 \index[BSV]{Value Kind}
@@ -650,7 +650,7 @@ above, take \verb|Bit#(n)| arguments and produce \verb|Bool| results.
 \index[BSV]{Bit@{\tt Bit}!Integer type}
 \index[BSV]{Int@{\tt Int}!Integer type}
 \index[BSV]{UInt@{\tt UInt}!Unsigned integer type}
-\index[BSV]{UInt@{\tt Integer}!Unbounded (non-synthesizable) Integer type}
+\index[BSV]{UInt@{\tt Integer}!Unbounded Integer type (non-synthesizable)}
 
 These are the two main integer types that we use in {\BSV}:
 
@@ -905,7 +905,7 @@ Figure~\ref{Fig_Combo_Is_Legal_BRANCH} shows the hardware circuit described by t
   \caption{\label{Fig_Combo_Is_Legal_BRANCH}Testing for a legal BRANCH instruction}
 \end{figure}
 Some observations:
-\index[BSV]{bus (hardware, bundle of wires)}
+\index[BSV]{bus!hardware bundle of wires}
 \begin{tightlist}
 
  \item Lines with arrow-heads in the figure represent bundles of one
@@ -1025,13 +1025,15 @@ same as in SystemVerilog.
 
 \index[BSV]{Types!{\tt Action}}
 \index[BSV]{Types!{\tt ActionValue}}
-\index[BSV]{Action@{\tt Action} type of expression with side-effects}
-\index[BSV]{ActionValue@{\tt ActionValue} type of experssion with side-effects}
+\index[BSV]{Action@{\tt Action}!Type of expression with side-effect and no return value}
+\index[BSV]{ActionValue@{\tt ActionValue}!Type of experssion with side-effect and return value}
+\index[BSV]{Haskell!Influence on {\BSV}}
 
-{\BSV} has a system of data types and type-checking similar to Haskell in
-that it systematically distinguishes expressions which are ``pure''
+{\BSV} has a system of data types and type-checking similar to Haskell
+in that it systematically distinguishes expressions which are ``pure''
 (guaranteed not to have any side-effects) from expressions that may
-have side-effects.
+have side-effects.\footnote{For Haskell enthusiasts: {\tt Action} and
+{\tt ActionValue} are in the action monad.}
 
 The detailed reason for this distinction need not detain us
 now---suffice it to say here briefly that {\BSV}'s semantics are
@@ -1062,7 +1064,8 @@ functions may be defined in separate files, in libraries, and so on).
 systematically track purity/impurity of expressions.  Consider two
 function declarations:
 
-\index[BSV]{Haskell, monadic types similarity}
+\index[BSV]{Haskell!monadic types similarity}
+\index[BSV]{Haskell!Influence on {\BSV}}
 \index[BSV]{Monadic types!Haskell similarity}
 
 {\footnotesize
@@ -1105,12 +1108,13 @@ synonym for \verb|ActionValue #(void)|, where you can think of
 
 \index[BSV]{Combinational circuits!data types}
 \index[BSV]{Types!of combinational circuits}
+\index[BSV]{Types!``value types'' (not {\tt Action} or {\tt ActionValue})}
 
-Another pleasing consequence of {\BSV}'s type system is that we can
-identify precisely which expressions become combinational circuits.
-If the type of the expression is \emph{not} {\tt ActionValue\#($t$)}
-or {\tt Action}, then it \emph{must} be a combinational circuit, and
-\emph{vice versa}.
+A pleasing consequence of {\BSV}'s type system is that we can identify
+precisely which expressions become combinational circuits.  If the
+type of the expression is \emph{not} {\tt ActionValue\#($t$)} or {\tt
+Action}, then it \emph{must} be a combinational circuit, and
+\emph{vice versa}.  We also refer to such types as ``value types''.
 
 % ================================================================
 

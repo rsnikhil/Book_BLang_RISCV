@@ -160,7 +160,7 @@ FSMs.
 \label{Sec_Rules_StmtFSM}
 \label{Sec_StmtFSM}
 
-\index[BSV]{Rules}
+\index[BSV]{rule}
 \index[BSV]{StmtFSM@{\tt StmtFSM}!an abtstraction of rules}
 \index[BSV]{StmtFSM@{\tt StmtFSM}!structured process}
 
@@ -231,8 +231,7 @@ the Exercises so far.
 
 \section{Actions and the {\tt Action} type}
 
-\index[BSV]{Action@{\tt Action}: primitive type of actions}
-\index[BSV]{actions}
+\index[BSV]{Action@{\tt Action}!Type of actions}
 
 The fundamental building-block for \verb|StmtFSM| is the ``action'',
 which is a statement/expression of type \verb|Action|.  Some common
@@ -281,7 +280,7 @@ type \verb|Action|.
 
 \subsection{{\tt Action} blocks: composing actions into larger actions}
 
-\index[BSV]{action@{\tt action}-{\tt endaction} blocks}
+\index[BSV]{Action@{\tt Action}!{\tt action}-{\tt endaction} blocks}
 
 The \verb|Action| type is recursive: it is either a primitive action
 (like those described above), or it is a collection of things of type
@@ -316,7 +315,7 @@ change in meaning/behavior.
 
 \subsection{Binding names in {\tt Action} blocks}
 
-\index[BSV]{let@{\tt let}-bindings in {\tt Action} blocks}
+\index[BSV]{let@{\tt let}!in {\tt Action} blocks}
 
 It is often convenient to give a meaningful name to a sub-expression
 in an {\tt Action} block.  For example:
@@ -395,7 +394,7 @@ of a \verb|seq| block.
 \section{{\tt StmtFSM}: conditionals (if-then-else)}
 
 \index[BSV]{StmtFSM@{\tt StmtFSM}!if@{\tt if-then-else}: process conditional}
-\index[BSV]{if-then-else: ordinary expression \emph{vs} {\tt StmtFSM} process}
+\index[BSV]{if-then-else!Ordinary expression \emph{vs} {\tt StmtFSM} process}
 
 Conditional process execution can be expressed with traditional
 if-then-else notation:

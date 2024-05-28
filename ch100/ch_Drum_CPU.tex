@@ -211,6 +211,61 @@ result to the Instruction Memory by enqueueing it on the outgoing
 the module interface.  The outer environment of this module will
 dequeue it and forward it to memory.
 
+% ----------------------------------------------------------------
+
+\subsubsection{{\BSV}: {\tt Action} {\vs} zero-argument {\tt Action} function}
+
+We can also write a zero-argument function similar to \verb|a_Fetch|:
+
+{\footnotesize
+\begin{Verbatim}[frame=single]
+function Action fa_Fetch ();
+   action
+      ...
+      let y <- fn_Fetch (rg_pc,
+                         ...
+      rg_Fetch_to_Decode <= y.to_D;
+      f_IMem_req.enq (y.mem_req);
+      ...
+   endaction;
+endfunction
+\end{Verbatim}
+}
+
+The body of the function is the same as the right-hand side of the
+\verb|a_Fetch| binding.  When using these, we'd say:
+
+\begin{center}
+\fbox{\tt a\_Fetch;} \hmm or \hmm \fbox{fa\_Fetch ();}
+\end{center}
+
+respectively.  In both cases the expression is of type \verb|Action|.
+In the latter case, we have to \emph{apply} the function to zero
+arguments to get an {\tt Action} result.
+
+\index[BSV]{First class types}
+\index[BSV]{Types!First class}
+\index[BSV]{functions!zero argument}
+
+This is another example of the general principle in {\BSV}: ``all
+types are first-class''.  In the same way that we can declare
+variables, function arguments and results of scalar types, like
+\verb|Bit#(32)|, we can declare variables, function arguments and
+results of type {\tt Action}.  Indeed, the same is true for function
+types, modules types, rule types, interface types, ... any type.  It
+allows us to use many powerful idioms, such as parameterizing modules
+by modules, writing functions to generate rules, and so on, which are
+not possible in Verilog/SystemVerilog and VHDL.
+
+\index[BSV]{Haskell!Influence on {\BSV}}
+\index[BSV]{functions!higher-order}
+\index[BSV]{Higher-order functions}
+
+
+This is a key capability in {\BSV} that is inspired by modern
+functional programming languages like Haskell and OCaml, where we also
+use the term ``higher-order functions''.
+
 % ================================================================
 
 \subsection{FSM action for Decode}

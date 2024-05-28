@@ -56,14 +56,14 @@ on the complexities due to pipelining.  This is facilitated by the
 fact that \emph{Fife reuses most of the RISC-V functional code
 developed for Drum}.
 
-Both designs are coded in the BSV High-Level HDL (HL-HDL).  We
-interleave topics from BSV and CPU-design so that BSV can be learned
-gradually and incrementally.  After each step in learning BSV, we
+Both designs are coded in the {\BSV} High-Level HDL (HL-HDL).  We
+interleave topics from {\BSV} and CPU-design so that {\BSV} can be learned
+gradually and incrementally.  After each step in learning {\BSV}, we
 apply that new knowledge to another actual sub-design of the CPUs.
-Each chapter title is prefixed by ``RISC-V'' or ``BSV'' to indicate
-whether the chapter is primarily about RISC-V or mostly about BSV.
+Each chapter title is prefixed by ``RISC-V'' or ``{\BSV}'' to indicate
+whether the chapter is primarily about RISC-V or mostly about {\BSV}.
 
-By the end of this book, we will not only be quite fluent in BSV for
+By the end of this book, we will not only be quite fluent in {\BSV} for
 digital design, we will also have two RISC-V CPU designs that we can
 run in simulation and on FPGAs, {\ie} which can execute RISC-V
 binaries.
@@ -130,13 +130,13 @@ tools}.
 
 Most of the book is focused on designing and verifying Drum and Fife.
 
-We code our designs in BSV.  We use BSV for CPU itself, and for the
+We code our designs in {\BSV}.  We use {\BSV} for CPU itself, and for the
 top-level testbench.  For simulation, the supporting ``system''
 components---a Memory, UART and GPIO---are written in C and linked
 into the simulation executable.  For running on FPGA the supporting
 system components use some existing hardware infrastructure.
 
-We use the \emph{bsc} compiler to translate BSV code into Verilog RTL.
+We use the \emph{bsc} compiler to translate {\BSV} code into Verilog RTL.
 We simulate the generated Verilog in Verilator, a free and open-source
 Verilog simulation system (the generated Verilog can also run on any
 other Verilog simulator).
@@ -310,11 +310,11 @@ the design is FSM-sequenced through the stages shown in the diagram,
 completing all stages sequentially before starting on the next
 instruction.
 
-Drum is almost a direct transliteration into BSV code of the generic
+Drum is almost a direct transliteration into {\BSV} code of the generic
 ISA execution algorithm described in
-Section~\ref{Sec_ISA_Exec_Algorithm}.  In fact the BSV code will look
+Section~\ref{Sec_ISA_Exec_Algorithm}.  In fact the {\BSV} code will look
 very similar C/C++ code for a purely functional RISC-V simulator.
-Being written in BSV, however, we can compile and run it on actual
+Being written in {\BSV}, however, we can compile and run it on actual
 hardware (FPGAs, ASICs).
        
 The design of Drum will familiarize us with all the basic RISC-V
@@ -362,7 +362,7 @@ run a full-feature Operating System (OS), such as Linux.
 
 \subsection{Drum and Fife source codes}
 
-The full source codes (BSV) for Drum and Fife are included with this
+The full source codes ({\BSV}) for Drum and Fife are included with this
 book.  Excerpts of the actual code are taken, as-is, for inclusion in
 this book.  Excerpts look like this:
 
@@ -379,36 +379,36 @@ editor in which you can simultaneously view the actual sources.
 
 % ****************************************************************
 
-\section{About BSV, the HL-HDL we use for our designs}
+\section{About {\BSV}, the HL-HDL we use for our designs}
 
-Both designs are coded in BSV, a free, open-source, modern, High-Level
-Hardware Design Language (HL-HDL).  BSV code can be compiled into
+Both designs are coded in {\BSV}, a free, open-source, modern, High-Level
+Hardware Design Language (HL-HDL).  {\BSV} code can be compiled into
 Verilog, which can then be run on any Verilog simulator, or can be
 further processed by FPGA tools to run on FPGAs, or by ASIC tools for
 ASIC implemenetations.
 
-\index[BSV]{BH (alternate Haskell-like syntax)}
-\index[BSV]{Haskell!Influence on BSV}
-\index[BSV]{Haskell!BH alternate Haskell-like syntax for BSV}
+\index[BSV]{BH@{\BH} (alternate Haskell-like syntax)}
+\index[BSV]{Haskell!Influence on {\BSV}}
+\index[BSV]{Haskell!{\BH} alternate Haskell-like syntax for {\BSV}}
 
-BSV is a modern, high-level HDL taking inspiration from two sources in
+{\BSV} is a modern, high-level HDL taking inspiration from two sources in
 modern software programming languages.  First, for data types, program
-structure, and static elaboration, BSV directly emulates the Haskell
-functional programming language.  In fact, BSV is actually Haskell,
+structure, and static elaboration, {\BSV} directly emulates the Haskell
+functional programming language.  In fact, {\BSV} is actually Haskell,
 with a syntax closer to SystemVerilog.  For Haskell enthusiasts, there
 is an alternate syntax called ``BH'' which directly uses Haskell
 syntax; please see \emph{bsc} documentation for details.
 
-For specifying dynamic behavior, BSV emulates a class of formal
+For specifying dynamic behavior, {\BSV} emulates a class of formal
 specification languages for concurrent programming based on rules
 (including Term Rewriting Systems, Unity, TLA+, and Event-B).
 
-BSV is a ``universal'' digital hardware design language, like Verilog
+{\BSV} is a ``universal'' digital hardware design language, like Verilog
 and SystemVerilog.  Although here we focus on CPU design, it is
 suitable for any digital hardware design whatsoever.
 
 Appendix~\ref{apx_Why_BSV} has a more detailed justification of why we
-choose BSV over other hardware design languages like Verilog,
+choose {\BSV} over other hardware design languages like Verilog,
 SystemVerilog and VHDL.
 
 % ****************************************************************
@@ -436,13 +436,13 @@ elements for $n$-bit registers, FIFOs, memories, and so on.  We rely
 on \emph{compilers} (synthesis tools) to transform such descriptions
 into low-level gates, wires, flip-flops, {\etc}.
 
-Accordingly, we will focus here on BSV language-based hardware design,
+Accordingly, we will focus here on {\BSV} language-based hardware design,
 and skip the study of detailed low-level underlying circuits.  All our
 examples will be taken from Drum and Fife so that the motivation is
 clear.
 
 In the next few sections, we cover the basic digital hardware concepts
-that are adequate to launch us into designing Drum and Fife with BSV.
+that are adequate to launch us into designing Drum and Fife with {\BSV}.
 
 % ================================================================
 
@@ -473,12 +473,12 @@ buffer, memory, ....
 
 \subsection{Bit-vectors, values and buses}
 
-\index[BSV]{Bit-vector}
+\index[BSV]{Bit Vectors}
 \index[BSV]{bus}
 \index[BSV]{values!abstract entity coded in bits}
 
 All data in digital circuits are represented in binary form, as
-vectors of bits.  In BSV notation, the \emph{type} (data type) of a
+vectors of bits.  In {\BSV} notation, the \emph{type} (data type) of a
 bit-vector is written like this: ``{\tt Bit\#($n$)}'', where $n$ is
 the number of bits (width of the bit-vector).  A bit-vector may
 directly represent bits, or it may be an encoding of some higher-level
@@ -772,9 +772,9 @@ This book also contains:
 
 \begin{itemize}
 
- \item a detailed index of BSV topics, and
+ \item a detailed index of {\BSV} topics, and
        Chapter~\ref{ch_BSV_further_study} has suggestions for further
-       study of BSV;
+       study of {\BSV};
 
  \item a detailed index of RISC-V topics, and
        Chapter~\ref{ch_RISCV_further_study} has suggestions for

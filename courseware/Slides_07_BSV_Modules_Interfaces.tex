@@ -829,7 +829,7 @@ between separately compiled modules:
 \includegraphics[width=\textwidth]{Fig_Composed_FIFO_modularity}
 \end{minipage}
 
-\PAUSE{\vspace{5ex}}
+\PAUSE{\vspace{2ex}}
 
 The ``modularity'' benefits are discussed in the book, Section 17.5.  Briefly:
 
@@ -849,6 +849,28 @@ The ``modularity'' benefits are discussed in the book, Section 17.5.  Briefly:
        of each stage completely independently of other stages.
 
 \end{itemize}
+
+\begin{minipage}{0.2\textwidth}
+ Example: in Fife code \\
+ ({\tt Code/src\_Fife/})
+\end{minipage}
+\fbox{
+\begin{minipage}{0.75\textwidth}
+ \begin{itemize}\scriptsize
+
+  \item In {\tt S2\_Decode.bsv}, see {\tt f\_Decode\_to\_RR}
+        instantiation and {\tt fo\_Decode\_to\_RR} sub-interface
+        definition.
+
+  \item In {\tt S3\_RR\_RW.bsv}, see {\tt f\_Decode\_to\_RR}
+        instantiation and {\tt fi\_Decode\_to\_RR} sub-interface definition.
+
+  \item In {\tt CPU.bsv}, \\
+        \hm see instantiation of {\tt stage\_D} and {\tt stage\_RR\_RW} \\
+        \hm see: {\tt mkConnection (stage\_D.fo\_Decode\_to\_RR, stage\_RR\_RW.fi\_Decode\_to\_RR)}
+
+ \end{itemize}
+\end{minipage}}
 
 \end{frame}
 
@@ -915,7 +937,7 @@ FIFOF_O #(Mem_Rsp)
 
 \vspace{1ex}
 
-A polymorphic type reprsents all possible types you can get by
+A polymorphic type reprsents all possible types we can get by
 substituting each type variable by any concrete type.
 
 \end{frame}
@@ -950,7 +972,7 @@ Caveat:
 
 \vspace{5ex}
 
-By default, a {\BSV} module is \emph{in-lined} whereever it is instantiated.
+By default, a {\BSV} module is \emph{in-lined} wherever it is instantiated.
 
 \vspace{1ex}
 
@@ -1008,6 +1030,17 @@ Example reason: \hm
  \end{minipage}
 }
 
+Example reason: \hm
+\fbox{
+ \begin{minipage}{0.8\textwidth}
+
+  A {\BSV} module's parameter can be another {\BSV} module. {\Eg}, the
+  parameter may be a particular FIFO module ({\tt mkFIFOF}, {\tt
+  mkSizedFIFOF(n)}, ...) to be used inside another module.  There is
+  no corresponding concept in Verilog/SystemVerilog.
+ \end{minipage}
+}
+
 \vspace{1ex}
 
 \PAUSE{\vspace{2ex}}
@@ -1020,7 +1053,7 @@ statically resolvable context).
 
 \PAUSE{\vspace{2ex}}
 
-We recomend using the ``{\tt (* synthesizable *)}'' attribute wherever
+We recomend using the ``{\tt (* synthesize *)}'' attribute wherever
 possible because it will make Verilog debugging easier, and can help
 in downstream synthesis tools ({\eg} place and route).
 

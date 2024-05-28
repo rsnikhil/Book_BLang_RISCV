@@ -39,8 +39,8 @@ RISC-V CPUs.
 
 \label{Sec_Modules}
 
-\index[BSV]{Module}
-\index[BSV]{Module!(persisitent) state}
+\index[BSV]{module}
+\index[BSV]{module!(persisitent) state}
 
 Modules encapsulate modifiable \emph{state}.  Examples include
 Registers, Register Files and FIFOs (all of which are discussed later
@@ -48,7 +48,7 @@ in this chapter).  Modules with state are the only entities containing
 values that \emph{persist} over time, {\ie} a value ``written'' at one
 moment in time can be ``read'' at a later moment in time.
 
-\index[BSV]{Module!interface}
+\index[BSV]{module!interface}
 
 Modules also encapsulate external behavior, using \emph{interface
 methods}.  In this sense they are similar to ``objects'' in
@@ -101,7 +101,7 @@ encapsulate the logic of connecting two complementary interfaces.
 
 \label{Sec_rules1}
 
-\index[BSV]{rules!internal behavior, internal processes}
+\index[BSV]{rule!internal behavior, internal process}
 \index[BSV]{internal behavion: rules}
 
 Unlike most programming languages, {\BSV} modules typically also contain
@@ -220,11 +220,11 @@ appropriate width to carry values of type $t$.
 
 \label{Sec_Module_Definitions}
 
-\index[BSV]{Module!state}
-\index[BSV]{Module!behavior}
-\index[BSV]{Module!interface}
-\index[BSV]{Module!constructor}
-\index[BSV]{synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
+\index[BSV]{module!state}
+\index[BSV]{module!interface}
+\index[BSV]{module!behavior}
+\index[BSV]{module!constructor}
+\index[BSV]{synthesize@{\tt synthesize}!{\tt (* synthesize *)} attribute on modules for Verilog generation}
 
 A \emph{module definition} in {\BSV} describes a module with a particular
 interface type:
@@ -242,9 +242,6 @@ interface type:
 {\tt endmodule}
 \end{quote}
 
-\index[BSV]{synthesize@{\tt (* synthesize *)} attribute}
-\index[BSV]{Module!behavior}
-
 The \verb|(* synthesize *)| attribute at the top is optional.  With
 this attribute, the \emph{bsc} compiler create a separate Verilog
 module for this {\BSV} module.  Without the attribute, the compiler will
@@ -254,7 +251,7 @@ Section~\ref{Sec_Polymorphic_Types_and_Synthesizability} which
 desribes some modules where this attribute is ignored by the
 compiler.}
 
-\index[BSV]{Module!instance}
+\index[BSV]{module!instance}
 
 A module definition defines a module \emph{constructor}. The
 constructor can be invoked multiple times to obtain multiple
@@ -284,7 +281,7 @@ persistent values) uniformly as modules with interfaces.
 
 \label{Sec_Module_instantiation_and_method_invocation}
 
-\index[BSV]{Module!instantiation}
+\index[BSV]{module!instantiation}
 
 A module is \emph{instantiated} using this syntax:
 
@@ -297,7 +294,7 @@ arguments can be omitted.
 
 Subsequently, methods of the module can be invoked using the syntax
 
-\index[BSV]{Module!method invocation}
+\index[BSV]{module!method invocation}
 \index[BSV]{Method!invocation of module method}
 
 \hmmmm \emph{x}.\emph{method-name} {\tt (}\emph{method-arg},...,\emph{method-arg}{\tt );}
@@ -349,7 +346,7 @@ takes one argument, a value of type \verb|t|, and stores it in the
 register, over-writing any previous value and holding the new value
 until over-written by the next \verb|_write()|.
 
-\index[BSV]{Action@{\tt Action}: type of pure side-effect expressions}
+\index[BSV]{Action@{\tt Action}!Type of expression with side-effect and no return value}
 
 We will explain the {\tt Action} type of the {\tt \_write} method in
 more detail later.  For now, just think of it as the type of any
@@ -382,7 +379,7 @@ error from the \emph{bsc} compiler.
 
 \subsection{{\tt mkReg(}\emph{v}{\tt )} and {\tt mkRegU}: register module (constructor) from the {\BSV} library}
 
-\index[BSV]{Module!mkReg@{\tt mkReg} module (constructor)}
+\index[BSV]{module!mkReg@{\tt mkReg} module (constructor)}
 
 \index[BSV]{Register!mkReg@{\tt mkReg}!module (constructor)}
 \index[BSV]{mkReg@{\tt mkReg}!module (constructor)}
@@ -501,7 +498,7 @@ reminds us that there is an implicit ``{\tt \_read}'' on the latter.
 \label{Sec_Register_files}
 
 \index[BSV]{Register file}
-\index[BSV]{RegFile@{\tt RegFile}}
+\index[BSV]{RegFile@{\tt RegFile} register file interface}
 
 A register file is an array of registers with a common pair of methods
 to read or write a particular register identified by an index, which
@@ -573,7 +570,7 @@ compile-time type-error.).
 
 \label{Sec_RegFile_module}
 
-\index[BSV]{Module!mkRegFileFull@{\tt mkRegFileFull} module (constructor)}
+\index[BSV]{module!mkRegFileFull@{\tt mkRegFileFull} module (constructor)}
 \index[BSV]{Register file!mkRegFileFull@{\tt mkRegFileFull}!module (constructor)}
 \index[BSV]{Register file!mkRegFileFull@{\tt mkRegFileFull}!reset value}
 
@@ -598,8 +595,6 @@ wide.
 
 \section{{\BSV} Library Modules: FIFOs}
 
-\index[BSV]{FIFO}
-
 FIFOs (First-in-First-out) elements are \emph{ordered queues} of
 values and are broadly useful in many hardware designs (arguably as
 useful as registers).  We can enqueue a new value into a FIFO at the
@@ -615,13 +610,13 @@ an empty FIFO.
 \label{Sec_FIFOF_interface}
 
 \index[BSV]{Interface!FIFOF@{\tt FIFOF} FIFO interface}
-\index[BSV]{FIFOF@{\tt FIFOF} interface}
+\index[BSV]{FIFOF@{\tt FIFOF}!interface}
 \index[BSV]{FIFOF@{\tt FIFOF}!type of stored value}
-\index[BSV]{FIFOF@{\tt FIFOF} interface methods}
-\index[BSV]{FIFOF@{\tt FIFO} interface}
+\index[BSV]{FIFOF@{\tt FIFOF}!interface methods}
 
-A standard FIFO interface type in the {\BSV} library is:\footnote{The
-{\BSV} library also defines the {\tt FIFO\#(t)} interface which is the
+A standard FIFO interface type in the {\BSV} library is:\footnote{
+\index[BSV]{FIFO@{\tt FIFO}!interface (deprecated in favor of {\tt mkFIFOF})}
+The {\BSV} library also defines the {\tt FIFO\#(t)} interface which is the
 same as the {\tt FIFOF\#(t)} except that it omits the {\tt notEmpty}
 and {\tt notFull} methods.  We prefer the latter, which provides more
 capability.}
@@ -709,15 +704,15 @@ is then invoked with the usual syntax for invoking ActionValues:
 
 \subsection{FIFO modules (constructors): {\tt mkFIFOF} and more}
 
-\index[BSV]{Module!mkFIFOF@{\tt mkFIFOF} module (constructor)}
+\index[BSV]{module!mkFIFOF@{\tt mkFIFOF} module (constructor)}
 
-\index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
-\index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!reset value}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkFIFOF@{\tt mkFIFOF}!reset value}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!module (constructor)}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!reset value}
 
-\index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
-\index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!reset value}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkFIFOF@{\tt mkFIFOF}!module (constructor)}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkFIFOF@{\tt mkFIFOF}!reset value}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!module (constructor)}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!reset value}
 
@@ -726,7 +721,7 @@ single-element FIFOs, FIFOs of a specified depth (queue length), FIFOs
 with and without automatic flow-control, {\etc} The most commonly used
 is {\tt mkFIFOF}:
 
-\index[BSV]{FIFO!mkFIFOF@{\tt mkFIFOF}!instantiation}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkFIFOF@{\tt mkFIFOF}!instantiation}
 \index[BSV]{mkFIFOF@{\tt mkFIFOF}!instantiation}
 
 {\footnotesize
@@ -755,12 +750,12 @@ useful as an intermediate buffer between pipeline stages.
 
 \label{Sec_SpecialFIFOs_mention}
 
-\index[BSV]{Module!mkPipelineFIFOF@{\tt mkPipelineFIFOF} module (constructor)}
-\index[BSV]{FIFO!mkPipelineFIFOF@{\tt mkPipelineFIFOF}!module (constructor)}
+\index[BSV]{module!mkPipelineFIFOF@{\tt mkPipelineFIFOF} module (constructor)}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkPipelineFIFOF@{\tt mkPipelineFIFOF}!module (constructor)}
 \index[BSV]{mkPipelineFIFOF@{\tt mkPipelineFIFOF}!module (constructor)}
 
-\index[BSV]{Module!mkBypassFIFOF@{\tt mkBypassFIFOF} module (constructor)}
-\index[BSV]{FIFO!mkBypassFIFOF@{\tt mkBypassFIFOF}!module (constructor)}
+\index[BSV]{module!mkBypassFIFOF@{\tt mkBypassFIFOF} module (constructor)}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkBypassFIFOF@{\tt mkBypassFIFOF}!module (constructor)}
 \index[BSV]{mkBypassFIFOF@{\tt mkBypassFIFOF}!module (constructor)}
 
 {\tt mkPipelineFIFOF} and {\tt mkBypassFIFOF} are two FIFO module
@@ -783,7 +778,7 @@ Sometimes we need deeper FIFOs (higher capacity), in order to balance
 variations in data flow rates.  For this, we can use the following
 constructor:
 
-\index[BSV]{FIFO!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
+\index[BSV]{FIFOF@{\tt FIFOF}!mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
 \index[BSV]{mkSizedFIFOF@{\tt mkSizedFIFOF}!module (constructor)}
 
 {\footnotesize
@@ -824,7 +819,7 @@ items) on reset, {\ie} at the start of time for the circuit.
 
 \subsection{FIFOs are strongly typed}
 
-\index[BSV]{FIFO!strongly-typed}
+\index[BSV]{FIFOF@{\tt FIFOF}!strongly-typed}
 
 Each {\BSV} FIFO instance can only hold values of one particular type.
 
@@ -849,8 +844,8 @@ only interacts with the ```dequeue'' side.  The following
 ``Semi-FIFO'' interfaces interfaces for each ``end'' of a FIFO queue
 are useful for this purpose.  The enqueue (upstream) side:
 
-\index[BSV]{FIFOF_I@{\tt FIFOF\_I} semi-fifo interface}
-\index[BSV]{Semi-FIFO!{\tt FIFOF\_I} semi-fifo interface}
+\index[BSV]{FIFOF_I@{\tt FIFOF\_I}!Semi-FIFO interface ({\tt enq} subset/view of {\tt FIFOF})}
+\index[BSV]{Semi-FIFO!{\tt FIFOF\_I} semi-FIFO interface}
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
@@ -863,8 +858,8 @@ endinterface
 
 The dequeue (downstream) side:
 
-\index[BSV]{FIFOF_O@{\tt FIFOF\_O}: semi-fifo interface}
-\index[BSV]{Semi-FIFO!{\tt FIFOF\_O} semi-fifo interface}
+\index[BSV]{FIFOF_O@{\tt FIFOF\_O}!Semi-FIFO interface ({\tt first}/{\tt deq} subset/view of {\tt FIFOF})}
+\index[BSV]{Semi-FIFO!{\tt FIFOF\_O} semi-FIFO interface}
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
@@ -879,7 +874,7 @@ endinterface
 There is no extra hardware implied here; these are simply limited
 ``views'', or abstractions, of an existing FIFO interface.
 
-\index[BSV]{FIFOF\_O@{\tt FIFOF\_O}!pop\_o@{\tt pop\_o} method}
+\index[BSV]{FIFOF_O@{\tt FIFOF\_O}!pop\_o@{\tt pop\_o} method}
 \index[BSV]{pop\_o@{\tt pop\_o}!FIFOF\_O@{\tt FIFOF\_O} method}
 
 It is convenient to define a \verb|pop_o()| function to combine the
@@ -914,7 +909,7 @@ This is then invoked with the usual syntax for invoking ActionValues:
 \label{Sec_interface_transfomers}
 
 \index[BSV]{Interface transformer functions}
-\index[BSV]{FIFOF\_O@{\tt FIFOF\_O}!interface transformer from {\tt FIFOF}}
+\index[BSV]{FIFOF_O@{\tt FIFOF\_O}!interface transformer from {\tt FIFOF}}
 
 The idea of ``viewing'' the output-side of a \verb|FIFOF| interface as
 a \verb|FIFOF_O| interface can be expressed in a {\BSV} function:
@@ -940,6 +935,8 @@ endfunction
 }
 
 % ----------------------------------------------------------------
+
+\index[BSV]{FIFOF_I@{\tt FIFOF\_I}!interface transformer from {\tt FIFOF}}
 
 \EXERCISE{Ex-07-A-Interface-Transformers}
 
@@ -1035,7 +1032,7 @@ and producing an empty interface.  In {\BSV}, Verilog and SystemVerilog
 syntax, a module's arguments are provided in {\tt \#(...)} and its
 interface follows in {\tt (...)}.
 
-\index[BSV]{rule@{\tt rule}: the fundamental behavioral construct in {\BSV}}
+\index[BSV]{rule!the fundamental behavioral construct in {\BSV}}
 
 The module contains a \emph{rule} (Chapter~\ref{ch_Rules_I}), which is
 an infinite process.  It binds {\tt x} to {\tt f.first}, the head of
@@ -1198,7 +1195,7 @@ new types \verb|GPRs_IFC #(reg_width)|, \verb|FIFOF_I #(t)| and
 
 \label{Sec_Polymorphic_Types_and_Synthesizability}
 
-\index[BSV]{synthesize@{\tt synthesize}!attribute on modules for Verilog generation}
+\index[BSV]{synthesize@{\tt synthesize}!{\tt (* synthesize *)} attribute on modules for Verilog generation}
 
 In Section~\ref{Sec_Module_Definitions} we mentioned without
 discussion that the ``{\tt (* synthesize *)}'' attribute preceding a
