@@ -222,6 +222,59 @@ endmodule
 
 % ****************************************************************
 
+\section{Drum CPU: top-level FSM}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE Drum CPU: top-level FSM}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Drum CPU: top-level FSM (1/2)}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}
+ \SHOWCODE{../Code_Extracts/Drum_FSM.tex}
+\end{minipage}
+
+\vspace{5ex}
+
+The very top-level is very simple and self-evident.
+
+\vspace{2ex}
+
+The {\tt await} statement waits until the {\tt init} method has set
+the initial PC, so that we start fetching from the correct address.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Drum CPU: top-level FSM (2/2)}
+
+\footnotesize
+
+\begin{minipage}{0.5\textwidth}
+ \SHOWCODETINY{../Code_Extracts/Drum_exec_one_instr.tex}
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+ This is practically a direct coding of the instruction-execution steps
+ in the diagram on Slide~\ref{Slide_Instr_Steps}.
+\end{minipage}
+
+
+\end{frame}
+
+% ****************************************************************
+
 \section{Drum CPU: some help functions}
 
 \begin{frame}[fragile]
@@ -297,60 +350,9 @@ This function records information for later trap-handling:
 
 % ****************************************************************
 
-\section{Drum CPU: top-level FSM}
-
-\begin{frame}[fragile]
-
-\begin{center}
-  {\LARGE Drum CPU: top-level FSM}
-\end{center}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Drum CPU: top-level FSM (1/2)}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
- \SHOWCODE{../Code_Extracts/Drum_FSM.tex}
-\end{minipage}
-
-\vspace{5ex}
-
-The very top-level is very simple and self-evident.
-
-\vspace{2ex}
-
-The {\tt await} statement waits until the {\tt init} method has set
-the initial PC, so that we start fetching from the correct address.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Drum CPU: top-level FSM (2/2)}
-
-\footnotesize
-
-\begin{minipage}{0.5\textwidth}
- \SHOWCODETINY{../Code_Extracts/Drum_exec_one_instr.tex}
-\end{minipage}
-\hm
-\begin{minipage}{0.45\textwidth}
- This is practically a direct coding of the instruction-execution steps
- in the diagram on Slide~\ref{Slide_Instr_Steps}.
-\end{minipage}
-
-
-\end{frame}
-
-% ****************************************************************
-
 \section{Drum CPU: FSM Fetch step}
+
+% ================================================================
 
 \begin{frame}[fragile]
 \frametitle{Drum CPU: FSM Fetch step}

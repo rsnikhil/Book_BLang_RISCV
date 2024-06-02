@@ -399,23 +399,23 @@ observe the effect on performance and resources, and pick an
 The Register-Read and Dispatch module contains (instantiates) the GPRs
 register file (Section~\ref{Sec_RISCV_regfile}) and the scoreboard to
 manage read-write hazards (Section~\ref{Sec_Scoreboards}).  In the
-forward flow,
+forward flow:
 
 \begin{itemize}
 
-  \item it stalls (waits) if the instruction has rs1, rs2 or rd, and
-        these are busy according to the scoreboard;
+  \item It stalls (waits) if the instruction has Rs1, Rs2 or Rd, and
+        these are busy according to the scoreboard.
 
-  \item it reads rs1 and rs2 registers for the current instruction;
+  \item It reads Rs1 and Rs2 registers for the current instruction.
 
-  \item it sets the scoreboard for the current instruction's rd to 1,
-        marking it ``busy'' (if the instruction has an rd);
+  \item It sets the scoreboard for the current instruction's Rd to 1,
+        marking it ``busy'' (if the instruction has an Rd).
 
-  \item it uses information from the Decode stage to dispatch to the
-        four Execute pipes.  We always (for every instruction) send an
-        execution tag and additional information on the direct path to
-        Retire.  Depending on the instruction, it may also send
-        information into one of the other Execute pipes:
+  \item It uses information from Decode to dispatch to the four
+        Execute pipes.  We always (for every instruction) send an
+        execution tag and additional information on the direct pipe.
+        Depending on the instruction, it may also send information
+        into one of the other Execute pipes:
 
   \begin{tightlist}
     \item Execute Control
@@ -1246,7 +1246,7 @@ RISC-V-specific discussions were completed in the chapters leading up
 to Drum, and here we have simply reused all those RISC-V-specific
 common functions.
 
-There is quite a lot scope for performance optimization here, even
+There is quite a lot of scope for performance optimization here, even
 keeping the same pipeline structure.  For example:
 
 \begin{itemize}

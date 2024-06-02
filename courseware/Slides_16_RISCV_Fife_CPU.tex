@@ -12,11 +12,11 @@
 % ================================================================
 
 \begin{frame}
- \titlepage
+\titlepage
 
- \begin{center}
-  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
- \end{center}
+\begin{center}
+ \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
+\end{center}
 
 \end{frame}
 
@@ -117,7 +117,7 @@ were unused in Drum, and are used in Fife.
 
   \vspace{10ex}
 
-  In file: {\tt Code/src\_Fife/CPU.bsv}
+  Please simultaneously view file: \hm \verb|Code/src_Fife/CPU.bsv|
 \end{center}
 
 \end{frame}
@@ -161,7 +161,7 @@ sub-modules (Drum did not have stage sub-modules).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Fife module state (sub-modules for pipeline stages)}
+\frametitle{Fife module state: sub-modules for pipeline stages}
 
 \footnotesize
 
@@ -188,7 +188,7 @@ Fife instantiates a sub-module for each of the pipeline stages
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Fife module state: sub-modules for inter-stage forward-flow connections}
+\frametitle{Fife module state: inter-stage forward-flow connections (sub-modules) }
 
 \footnotesize
 
@@ -224,7 +224,7 @@ Each connection is a FIFO
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Fife module state: sub-modules for inter-stage backward-flow connections}
+\frametitle{Fife module state: inter-stage backward-flow connections (sub-modules)}
 
 \footnotesize
 
@@ -342,7 +342,7 @@ The {\tt set\_TIME} method is for updating the {\tt time} CSR.
 
   \vspace{10ex}
 
-  In file: \verb|Code/src_Fife/S1_Fetch.bsv|
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S1_Fetch.bsv|
 \end{center}
 
 \end{frame}
@@ -362,7 +362,8 @@ Interface
 
 \vspace{5ex}
 
-The \verb|FIFO_I| from Retire carries redirection information.
+The \verb|FIFO_I| from Retire carries redirection information (update
+PC on misprediction/exception/interrupt).
 
 \end{minipage}
 
@@ -408,6 +409,11 @@ For module {\tt mkFetch} let us examine file: \verb|Code/src_Fife/S1_Fetch.bsv|
 
 \end{itemize}
 
+\vspace{4ex}
+
+{\tt rg\_oiaat} is used for ``one instruction at a time'' mode (for
+debugging), and can be ignored for now.
+
 \end{frame}
 
 % ****************************************************************
@@ -421,7 +427,7 @@ For module {\tt mkFetch} let us examine file: \verb|Code/src_Fife/S1_Fetch.bsv|
 
   \vspace{10ex}
 
-  In file: \verb|Code/src_Fife/S2_Decode.bsv|
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S2_Decode.bsv|
 \end{center}
 
 \end{frame}
@@ -454,6 +460,13 @@ For module {\tt mkDecode} code, let us examine file: \verb|Code/src_Fife/S2_Deco
 
 \vspace{4ex}
 
+ \item FIFO \verb|f_Fetch_to_Decode| is a {\tt mkSizedFIFO(4)}
+       instance, aiming to balance the Fetch-to-Decode direct path
+       length with the Fetch-to-IMem-to-Decode path length (equalize
+       the number of items that can be ``in flight'' on each path).
+
+ \vspace{5ex}
+
  \item Rule \verb|rl_Decode| is the forward-flow;
        it repeatedly invokes \verb|fn_Decode| to produce
        information for the next stage.
@@ -474,7 +487,7 @@ For module {\tt mkDecode} code, let us examine file: \verb|Code/src_Fife/S2_Deco
 
   \vspace{10ex}
 
-  In file: \verb|Code/src_Fife/S3_RR_RW.bsv|
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S3_RR_RW.bsv|
 \end{center}
 
 \end{frame}
@@ -503,139 +516,236 @@ The \verb|FIFO_I| from Retire carries information for register-write
 and release of scoreboard reservations.
 \end{minipage}
 
-\vspace{2ex}
-
-\verb|rg_oiaat| is used for ``one instruction at a time'' mode, and can be ignored for now.
-
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Register-Read and Dispatch (and Register-Write)  stage: implementation module}
+\frametitle{Reg-Read and Dispatch (and Reg-Write): GPRs}
 
 \footnotesize
 
 For module {\tt mkRR\_RW} code, let us examine file: {\tt Code/src\_Fife/S3\_RR\_RW.bsv}
 
+\begin{center}
+ \includegraphics[width=0.8\textwidth]{Fig_RISCV_Scoreboard}
+\end{center}
+
+\vspace{2ex}
+
+The GPRs (general-purpose registers) are instantiated in this module
+because we will be reading Rs1 and Rs2 here for each instruction:
+
+\vspace{2ex}
+
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+   GPRs_IFC #(XLEN)  gprs <- mkGPRs_synth;
+\end{Verbatim}
+
+\vspace{2ex}
+
+{\tt mkGPRS\_synth} is just a version of {\tt mkGPRs} instantiated
+with a specific {\tt XLEN} width, and with the {\tt (* synthesize *)}
+attribute so that it becomes a Verilog module.
+
 \end{frame}
-
-% ****************************************************************
-
-\section{Execute-Control stage}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Execute-Control stage}
+\frametitle{Reg-Read and Dispatch (and Reg-Write): Scoreboard}
 
 \footnotesize
 
-Interface: \hmmmm
-\begin{minipage}{0.725\textwidth}
-\SHOWCODE{../Code_Extracts/Fife_EX\_Control_IFC.tex}
-\end{minipage}
+\begin{center}
+ \includegraphics[width=0.8\textwidth]{Fig_RISCV_Scoreboard}
+\end{center}
+
+\vspace{2ex}
+
+The Scoreboard accompanies the GPRs.  It contains one bit per GPR,
+indicating whether it is busy (1) or not-busy (0).
+
+\vspace{2ex}
+
+\begin{Verbatim}[frame=single, label=From src\_Fife/CPU.bsv]
+typedef  Vector #(32, Bit #(1))  Scoreboard;
+
+Reg #(Scoreboard) rg_scoreboard <- mkReg (replicate (0));
+\end{Verbatim}
+
+\vspace{2ex}
+
+(Type {\tt Vector\#($n$,$t$)} represents a vector of $n$ elements, each of type $t$.)
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Reg-Read and Dispatch (forward flow)}
+
+\footnotesize
+
+Let us examine {\tt rl\_RR\_Dispatch} in file: {\tt Code/src\_Fife/S3\_RR\_RW.bsv}
+
+\vspace{2ex}
+
+\begin{itemize}
+
+  \item It stalls (waits) if the instruction has Rs1, Rs2 or Rd, and
+        these are busy according to the scoreboard.
+
+  \item Othersize
+
+    \begin{itemize}\footnotesize
+      \item It reads Rs1 and Rs2 registers for the current instruction.
+
+      \vspace{1ex}
+
+      \item It sets the scoreboard for the current instruction's Rd to
+            1, marking it ``busy'' (if the instruction has an Rd);
+
+      \vspace{1ex}
+
+      \item It uses information from Decode to dispatch to the four
+            Execute pipes.  We always (for every instruction) send an
+            execution tag and additional information on the direct
+            pipe.  Depending on the instruction, it may also send
+            information into one of the other Execute pipes: (Execute
+            Control, Execute Integer, and DMem)
+    \end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Reg-Write (backward flow)}
+
+\footnotesize
+
+Let us examine {\tt rl\_RW\_from\_Retire} in file: {\tt Code/src\_Fife/S3\_RR\_RW.bsv}
+
+\vspace{2ex}
+
+\begin{itemize}
+
+ \item We pop the message \verb|x| from the \verb|f_RW_from_Retire| FIFO.
+
+ \item We perform its specified scoreboard-release for register Rd.
+       If the Rd value is to be committed, we write it into GPR [Rd].
+
+\end{itemize}
 
 \vspace{5ex}
 
-For module {\tt mkEX\_Control} code, let us examine file: {\tt Code/src\_Fife/S4\_EX\_Control.bsv}
+The two rules \verb|rl_RR_Dispatch| and \verb|rl_RW_from_Retire| run concurrently.
+
+\vspace{2ex}
+
+If \verb|rl_RR_Dispatch| was stalled on an instruction whose Rs1 or
+Rs2 was busy, executing \verb|rl_RW_from_Retire| may ``un-stall'' it,
+if its Rd-write is to the pending register.
+
+\vspace{1ex}
+
+
+
+The explicit condition on \verb|rl_RR_Dispatch|:
+\begin{center}
+\verb|(! f_RW_from_Retire.notEmpty)|
+\end{center}
+prioritizes the forward rule lower than the backward
+rule \verb|rl_RW_from_Retire|, so that this ``un-stalling'' (if it
+happens) can happen as soon as possible.
 
 \end{frame}
 
 % ****************************************************************
 
-\section{Execute-Int stage}
-
-% ================================================================
+\section{Execute Control stage}
 
 \begin{frame}[fragile]
-\frametitle{Execute-Int stage}
 
-\footnotesize
+\begin{center}
+  {\LARGE Fife CPU Execute Control stage}
 
-Interface: \hmmmm
-\begin{minipage}{0.725\textwidth}
-\SHOWCODE{../Code_Extracts/Fife_EX\_Int_IFC.tex}
-\end{minipage}
+  \vspace{10ex}
+
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S4_EX_Control.bsv|
+\end{center}
 
 \vspace{5ex}
 
-For module {\tt mkEX\_Int} code, let us examine file: {\tt Code/src\_Fife/S4\_EX\_Int.bsv}
+This is a very simple, forward-flow-only, one-in, one-out module; it
+ just applies \verb|fn_EX_Control()| (which we have already seen in
+ Drum) to each item as it transits.
 
 \end{frame}
 
 % ****************************************************************
 
-\section{Retire}
+\section{Execute Int stage}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE Fife CPU Execute Int stage}
+
+  \vspace{10ex}
+
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S4_EX_Int.bsv|
+\end{center}
+
+\vspace{5ex}
+
+This is a very simple, forward-flow-only, one-in, one-out module; it
+ just applies \verb|fn_EX_Int()| (which we have already seen in Drum)
+ to each item as it transits.
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Retire stage}
+
+\begin{frame}[fragile]
+
+\begin{center}
+  {\LARGE Fife CPU Retire stage}
+
+  \vspace{10ex}
+
+  Please simultaneously view file: \hm \verb|Code/src_Fife/S5_Retire.bsv|
+\end{center}
+
+\end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Retire}
+\frametitle{Retire stage module interface}
 
 \footnotesize
 
-Interface: \hmmmm
 \begin{minipage}{0.725\textwidth}
 \SHOWCODESCRIPT{../Code_Extracts/Fife_Retire_IFC.tex}
 \end{minipage}
 
-\vspace{1ex}
-
-For module {\tt mkRetire} code, let us examine file: {\tt Code/src\_Fife/S4\_Retire.bsv}
-
 \end{frame}
 
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Some help-functions (2/3)}
+\frametitle{Retire stage flows}
 
 \footnotesize
-
-(Help-functions just encapsulate a few actions that are repeated in several places.)
-
-\vspace{5ex}
-
-This function increments the PC and the instruction-number, as we retire each instruction:
-
-\vspace{4ex}
-
-\begin{minipage}{0.725\textwidth}
-\SHOWCODE{../Code_Extracts/Drum_redirect.tex}
-\end{minipage}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Some help-functions (3/3)}
-
-\footnotesize
-
-(Help-functions just encapsulate a few actions that are repeated in several places.)
-
-\vspace{5ex}
-
-This function records information for later trap-handling:
-
-\vspace{4ex}
-
-\begin{minipage}{0.725\textwidth}
-\SHOWCODE{../Code_Extracts/Drum_setup_exc.tex}
-\end{minipage}
-
-\end{frame}
-
-% ****************************************************************
-
-\section{top-level FSM}
-
-\begin{frame}[fragile]
 
 \begin{center}
-  {\LARGE Fife CPU: top-level FSM}
+ \includegraphics[width=0.9\textwidth]{Fig_Retire_Layers_1_2}
 \end{center}
 
 \end{frame}
@@ -643,138 +753,34 @@ This function records information for later trap-handling:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{top-level FSM (1/2)}
+\frametitle{Retire stage module ``mode''}
 
 \footnotesize
 
-\begin{minipage}{0.725\textwidth}
- \SHOWCODE{../Code_Extracts/Drum_FSM.tex}
-\end{minipage}
+Normally, the Retire stage retires an instruction on every clock (\verb|MODE_PIPE|).
+
+\emph{Except}
+
+\begin{itemize}
+
+ \item For DMem ``Deferred'' instructions (for MMIO), \\
+       we send the DMem request, and \\
+       transition to \verb|MODE_DMEM_RSP|.
+
+       In \verb|MODE_DMEM_RSP| we collect the DMem response, \\
+       retire the instruction, \\
+       and return to \verb|MODE_PIPE|.
+
+ \item For exceptions, we transition to \verb|MODE_EXCEPTION|.
+
+       In \verb|MODE_EXCEPTION| we perform the trap actions, \\
+       and return to \verb|MODE_PIPE|.
+\end{itemize}
 
 \vspace{5ex}
 
-The very top-level is very simple and self-evident.
-
-\vspace{2ex}
-
-The {\tt await} statement waits until the {\tt init} method has set
-the initial PC, so that we start fetching from the correct address.
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{top-level FSM (2/2)}
-
-\footnotesize
-
-\begin{minipage}{0.5\textwidth}
- \SHOWCODETINY{../Code_Extracts/Drum_exec_one_instr.tex}
-\end{minipage}
-\hm
-\begin{minipage}{0.45\textwidth}
- This is practically a direct coding of the instruction-execution steps
- in the diagram on Slide~\ref{Slide_Instr_Steps}.
-\end{minipage}
-
-
-\end{frame}
-
-% ****************************************************************
-
-\section{FSM Fetch step}
-
-\begin{frame}[fragile]
-\frametitle{FSM Fetch step}
-
-\footnotesize
-
-\begin{minipage}{0.75\textwidth}
- \SHOWCODE{../Code_Extracts/Drum_Fetch.tex}
-\end{minipage}
-\hm
-\begin{minipage}{0.2\textwidth}
- Just invokes {\tt fn\_Fetch} and sends the two results into a register for Fetch and
- into a FIFO for IMem memory.
-\end{minipage}
-
-\end{frame}
-
-% ****************************************************************
-
-\section{FSM Decode step}
-
-\begin{frame}[fragile]
-\frametitle{FSM Decode step}
-
-\footnotesize
-
-\begin{minipage}{0.75\textwidth}
- \SHOWCODE{../Code_Extracts/Drum_Decode.tex}
-\end{minipage}
-\hm
-\begin{minipage}{0.2\textwidth}
- Just invokes {\tt fn\_Decode} on the inputs from Fetch and memory,
- and sends the result into a register for Register-Read-and-Dispatch.
-\end{minipage}
-
-\end{frame}
-
-% ****************************************************************
-
-\section{FSM Register-Read and Dispatch step}
-
-\begin{frame}[fragile]
-\frametitle{FSM Register-Read and Dispatch step}
-
-\footnotesize
-
-\begin{minipage}{0.75\textwidth}
- \SHOWCODE{../Code_Extracts/Drum_RRD.tex}
-\end{minipage}
-\hm
-\begin{minipage}{0.2\textwidth}
- Using input from Decode, reads two registers {\tt rs1} and {\tt rs2};
- then invokes {\tt fn\_Dispatch}, and
- and sends the result into a register for the Execute stage.
-\end{minipage}
-
-\end{frame}
-
-% ****************************************************************
-
-\section{FSM Execute and Retire step}
-
-\begin{frame}[fragile]
-
-\begin{center}
-  {\LARGE Fife CPU: FSM Execute and Retire step}
-\end{center}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{FSM Execute and Retire step flows}
-
-\begin{minipage}{0.75\textwidth}
- \includegraphics[width=\textwidth]{Fig_Retire_Layers_1}
-\end{minipage}
-\hm
-\begin{minipage}{0.2\textwidth}
-4 possible flows.
-\begin{itemize}
- \item Direct
- \item Control
- \item Int
- \item DMem
-\end{itemize}
-
-\vspace{2ex}
-
-Each ultimately resulting in up to 3 possible actions.
+\begin{minipage}{0.725\textwidth}
+\SHOWCODESCRIPT{../Code_Extracts/Fife_Retire_Module_Mode}
 \end{minipage}
 
 \end{frame}
@@ -782,56 +788,27 @@ Each ultimately resulting in up to 3 possible actions.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Updating the {\tt minstret} CSR (counting instructions retired)}
-
-\footnotesize
-
-The {\tt minstret} CSR is incremented for each instruction retired.
-
-\emph{Except:}
-
-\begin{itemize}
-
- \item An instruction that raises an exception.
-
- \item A CSRRxx instruction that writes a value into {\tt minstret}.
-
-\end{itemize}
-
-\vspace{2ex}
-
-We increment using:
-\begin{tabbing}\tt
-\hmm  csrs.ma\_incr\_instret;
-\end{tabbing}
-
-\vspace{2ex}
-
-The {\tt minstret} and {\tt mcycle} CSRs are useful in performance
-measurement (instructions/cycle).
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Execute and Retire Direct flow (1/4)}
+\frametitle{Retire stage module state: highlights}
 
 \footnotesize
 
 \begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_Retire_direct =
-   action
-      let x_direct = rg_Dispatch.to_Retire;
-      if (x_direct.exception) begin
-	 fa_setup_exception (x_direct.pc,        // epc
-			     x_direct.cause,     // cause
-			     x_direct.tval);     // tval
-	 log_Retire_Direct_exc (rg_flog, x_direct);
-      end
-      // ----------------
-      ...
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+module mkRetire (Retire_IFC);
+   ...
+   // Control-and-Status Registers (CSRs)
+   CSRs_IFC csrs <- mkCSRs;
+
+   // For managing speculation, redirection, traps, etc.
+   Reg #(Epoch) rg_epoch  <- mkReg (0);
+   ...
+   ... FIFOs for incoming and outgoing flows ...
+   ...
+   Reg #(Module_Mode) rg_mode <- mkReg (MODE_PIPE);
+
+   ...
+
+endmodule
 \end{Verbatim}
 \end{minipage}
 
@@ -840,29 +817,29 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Execute and Retire Direct flow (2/4)}
+\frametitle{Retire stage module: help-functions and useful predicates}
 
 \footnotesize
 
 \begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-      ...
-      // ----------------
-      else if (is_legal_CSRRxx (x_direct.instr)) begin
-	 match { .exc, .rd_val } <- csrs.mav_csrrxx (x_direct.instr,
-						     x_direct.rs1_val);
-	 if (exc)
-	    fa_setup_exception (x_direct.pc,                  // epc
-				cause_ILLEGAL_INSTRUCTION,    // cause
-				x_direct.instr);              // tval
-	 else begin
-	    fa_update_rd (x_direct, rd_val);
-	    fa_redirect_Fetch (x_direct.fallthru_pc);
-	 end
-	 log_Retire_CSRRxx (rg_flog, exc, x_direct);
-      end
-      // ----------------
-      ...
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+module mkRetire (Retire_IFC);
+   ...
+   function Action fa_redirect_Fetch (...);
+   ...
+   function Action fa_update_rd (...);
+   ...
+   function Action fa_retire_store_buf (...);
+   ...
+   RR_to_Retire x_rr_to_retire = f_RR_to_Retire.first;
+
+   Bool wrong_path = (x_rr_to_retire.epoch != rg_epoch);
+   Bool is_Direct  = (x_rr_to_retire.exec_tag == EXEC_TAG_DIRECT);
+   Bool is_Control = (x_rr_to_retire.exec_tag == EXEC_TAG_CONTROL);
+   Bool is_Int     = (x_rr_to_retire.exec_tag == EXEC_TAG_INT);
+   Bool is_DMem    = (x_rr_to_retire.exec_tag == EXEC_TAG_DMEM);
+   ...
+endmodule
 \end{Verbatim}
 \end{minipage}
 
@@ -871,22 +848,12 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Execute and Retire Direct flow (3/4)}
+\frametitle{Retire stage module: rule for wrong-path instructions (mispredicted)}
 
 \footnotesize
 
 \begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-      ...
-      // ----------------
-      else if (is_legal_MRET (x_direct.instr)) begin
-	 fa_redirect_Fetch (csrs.read_epc);
-	 csrs.ma_incr_instret;
-	 log_Retire_MRET (rg_flog, x_direct);
-      end
-      // ----------------
-      ...
-\end{Verbatim}
+\SHOWCODESCRIPT{../Code_Extracts/Fife_rl_wrong_path}
 \end{minipage}
 
 \end{frame}
@@ -894,170 +861,41 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Execute and Retire Direct flow (4/4)}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-      ...
-      // ----------------
-      else if (is_legal_ECALL (x_direct.instr)
-	       || is_legal_EBREAK (x_direct.instr))
-	 begin
-	    let cause = ((x_direct.instr [20] == 0)
-			 ? cause_ECALL_FROM_M
-			 : cause_BREAKPOINT);
-	    fa_setup_exception (x_direct.pc,    // epc
-				cause,
-				0);             // tval
-	    csrs.ma_incr_instret;
-	    log_Retire_ECALL_EBREAK (rg_flog, x_direct);
-	 end
-      else begin
-	 wr_log2 (rg_flog, $format ("CPU.EX.Direct: IMPOSSIBLE"));
-	 $finish (1);
-      end
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Execute and Retire Control flow}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_EX_Control =
-   action
-      let x = rg_Dispatch.to_EX_Control;
-      let y <- fn_EX_Control (x, rg_flog);
-      rg_EX_Control_to_Retire <= y;
-      ...
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single]
-   Action a_Retire_Control =
-   action
-      let x_direct  = rg_Dispatch.to_Retire;
-      let x_control = rg_EX_Control_to_Retire;
-      if (x_control.exception)
-	 fa_setup_exception (x_direct.pc,
-			     x_control.cause,
-			     x_control.tval);
-      else begin
-	 fa_update_rd (x_direct, x_control.data);
-	 fa_redirect_Fetch (x_control.next_pc);
-	 csrs.ma_incr_instret;
-      end
-      ...
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Execute and Retire Int flow}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_EX_Int =
-   action
-      let x = rg_Dispatch.to_EX;
-      let y <- fn_EX_Int (x, rg_flog);
-      rg_EX_to_Retire <= y;
-      ...
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single]
-   Action a_Retire_Int =
-   action
-      if (rg_EX_to_Retire.exception)
-	 fa_setup_exception (rg_Dispatch.to_Retire.pc,
-			     rg_EX_to_Retire.cause,
-			     rg_EX_to_Retire.tval);
-      else begin
-	 fa_update_rd (rg_Dispatch.to_Retire, rg_EX_to_Retire.data);
-	 fa_redirect_Fetch (rg_Dispatch.to_Retire.fallthru_pc);
-	 csrs.ma_incr_instret;
-      end
-      ...
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Execute and Retire DMem flow (1/2)}
-
-\footnotesize
-
-\begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_EX_DMem =
-   action
-      Mem_Req y = rg_Dispatch.to_EX_DMem;
-      f_DMem_req.enq (y);
-      ...
-   endaction;
-\end{Verbatim}
-\end{minipage}
-
-\end{frame}
-
-% ================================================================
-
-\begin{frame}[fragile]
-\frametitle{Execute and Retire DMem flow (2/2)}
+\frametitle{Retire stage module: rules for Direct path instructions (1/2)}
 
 \footnotesize
 
 \begin{minipage}{0.725\textwidth}\scriptsize
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_Retire_DMem =
-   action
-      let x_direct = rg_Dispatch.to_Retire;
-      let mem_rsp <- pop_o (to_FIFOF_O (f_DMem_rsp));
-      Bool exception = ((mem_rsp.rsp_type == MEM_RSP_ERR)
-			|| (mem_rsp.rsp_type == MEM_RSP_MISALIGNED));
-      if (exception) begin
-	 Bit #(4) cause = ((mem_rsp.rsp_type == MEM_RSP_MISALIGNED)
-			   ? (is_LOAD (x_direct.instr)
-			      ? cause_LOAD_ADDRESS_MISALIGNED
-			      : cause_STORE_AMO_ADDRESS_MISALIGNED)
-			   : (is_LOAD (x_direct.instr)
-			      ? cause_LOAD_ACCESS_FAULT
-			      : cause_STORE_AMO_ACCESS_FAULT));
-	 fa_setup_exception (x_direct.pc,                 // epc
-			     cause,
-			     truncate (mem_rsp.addr));    // tval
-      end
-      else begin
-	 fa_update_rd (x_direct, truncate (mem_rsp.data));
-	 fa_redirect_Fetch (x_direct.fallthru_pc);
-	 csrs.ma_incr_instret;
-      end
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_CSRRxx ((rg_mode == MODE_PIPE)
+			  && (! wrong_path)
+			  && is_Direct
+			  && (! x_rr_to_retire.exception)
+			  && is_legal_CSRRxx (x_rr_to_retire.instr));
       ...
-   endaction;
+      match { .exc, .rd_val } <- csrs.mav_csrrxx (...);
+      ...
+      if (! exc)
+	 ...
+      else begin
+	 ...
+	 rg_mode  <= MODE_EXCEPTION;
+      end
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\vspace{2ex}
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_MRET ((rg_mode == MODE_PIPE)
+			&& (! wrong_path)
+			&& is_Direct
+			&& (! x_rr_to_retire.exception)
+			&& is_legal_MRET (x_rr_to_retire.instr));
+      ...
+   endrule
 \end{Verbatim}
 \end{minipage}
 
@@ -1066,25 +904,154 @@ measurement (instructions/cycle).
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{action for exceptions}
+\frametitle{Retire stage module: rules for Direct path instructions (2/2)}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_ECALL_EBREAK ((rg_mode == MODE_PIPE)
+				&& (! wrong_path)
+				&& is_Direct
+				&& (! x_rr_to_retire.exception)
+				&& (is_legal_ECALL (x_rr_to_retire.instr)
+				    || is_legal_EBREAK (x_rr_to_retire.instr)));
+      ...
+      rg_mode <= MODE_EXCEPTION;
+      ...
+   endrule
+
+   rule rl_Retire_Direct_exception ((rg_mode == MODE_PIPE)
+				    && (! wrong_path)
+				    && is_Direct
+				    && x_rr_to_retire.exception);
+      ...
+      rg_mode <= MODE_EXCEPTION;
+      ...
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Retire stage module: rules for Execute Control and Int paths instructions}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_EX_Control ((rg_mode == MODE_PIPE)
+			      && (! wrong_path)
+			      && is_Control);
+      ...
+      if (! x2.exception)
+	 ...
+      else begin
+	 ...
+	 rg_mode <= MODE_EXCEPTION;
+      end
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\vspace{2ex}
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_EX_Int ((rg_mode == MODE_PIPE)
+			  && (! wrong_path)
+			  && is_Int);
+      ...
+      if (! x2.exception)
+	 ...
+      else begin
+	 ...
+	 rg_mode <= MODE_EXCEPTION;
+      end
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Retire stage module: rules for Execute DMem path instructions (1/2)}
+
+\footnotesize
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_EX_DMem ((rg_mode == MODE_PIPE)
+			   && (! wrong_path)
+			   && is_DMem
+			   && (f_DMem_S_rsp.first.rsp_type != MEM_REQ_DEFERRED));
+      ...
+      if (! exception)
+	 ...
+      else begin
+	 ...
+	 rg_mode <= MODE_EXCEPTION;
+      end
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\vspace{2ex}
+
+\begin{minipage}{0.725\textwidth}\scriptsize
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_DMem_deferred ((rg_mode == MODE_PIPE)
+				 && (! wrong_path)
+				 && is_DMem
+				 && (f_DMem_S_rsp.first.rsp_type
+				     == MEM_REQ_DEFERRED));
+      ...
+      f_DMem_req.enq (mem_req);
+      rg_mode <= MODE_DMEM_RSP;    // go to await response
+   endrule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Retire stage module: rules for Execute DMem path instructions (2/2)}
 
 \footnotesize
 
 \begin{minipage}{0.725\textwidth}
-\begin{Verbatim}[frame=single, label=From src\_Drum/CPU.bsv]
-   Action a_exception =
-   action
-      Bool is_interrupt = False;
-      Bit #(XLEN) tvec_pc <- csrs.mav_exception (rg_epc,
-						 is_interrupt,
-						 rg_cause,
-						 rg_tval);
-      rg_exception <= False;
-      fa_redirect_Fetch (tvec_pc);
+\begin{Verbatim}[frame=single, label=From Code/src\_Fife/S5\_Retire.bsv]
+   rule rl_Retire_DMem_rsp (rg_mode == MODE_DMEM_RSP);
       ...
-   endaction;
+      if (exception) begin
+	 ...
+	 rg_mode <= MODE_EXCEPTION;
+      end
+      else begin
+	 ...
+	 rg_mode <= MODE_PIPE;
+      end
+   endrule
 \end{Verbatim}
 \end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Retire stage module: rule for exception-handling}
+
+\footnotesize
+
+\SHOWCODE{../Code_Extracts/Fife_S5_exc}
 
 \end{frame}
 
@@ -1093,39 +1060,30 @@ measurement (instructions/cycle).
 \section{Final Comments}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: {\tt StmtFSM} final comments}
+\frametitle{Fife CPU: final comments}
 
 \footnotesize
 
-Fife CPU code, using {\tt StmtFSM}, looks just like a C/C++ program
-with somewhat different syntax.
-
-\vspace{2ex}
-
-So: can't we just code it in C/C++ and compile that to hardware?
-
-\vspace{2ex}
-
 \begin{itemize}
-        
- \item Difficult to compile \emph{general-purpose} C into hardware.
 
-       C has many constructs that have no obvious mapping into
-       hardware, such as pointers, the address-of operator ``\&'',
-       address arithmetic, malloc, and so on.
+ \item There is very little in this chapter that is RISC-V specific;
+       these pipeline structures are needed for a pipelined CPU for
+       any ISA. All RISC-V-specific issues are the same as in Drum.
 
-       But can’t we define a restricted subset of C suitable for
-       hardware design?
+ \PAUSE{\vspace{5ex}}
 
-       Compilation is still very difficult: no distinction between
-       variables used to hold state (registers) {\vs} variables used
-       to hold temporary intermediate values (wires); no distinction
-       between pure and side-effect constructs; ...
+ \item Much scope for performance optimization. {\Eg}
 
- \item No concurrency.  It may be possible to compile a subset of C to
-       hardware, similar to Drum.  But this is the easy case
-       (completely sequential).  Very hard to generalize to pipelines
-       and more concurrent implementations (Fife, and beyond).
+    \begin{itemize}\footnotesize
+
+      \item Faster delivery of redirection to Fetch (less wrong-path wastage)
+
+      \item Faster delivery of Rd value to Register-Read (less stalling)
+
+      \item In Retire, handle exceptions earlier except perhaps in CSRRxx case.
+    \end{itemize}
+
+    These are discussed further in Chapter 17.
 
 \end{itemize}
 
