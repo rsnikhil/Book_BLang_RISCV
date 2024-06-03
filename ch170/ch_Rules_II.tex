@@ -80,11 +80,11 @@ module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
 
    // ----------------------------------------------------------------
    // INTERFACE
-   method Action incr (rg_counter != 15);
+   method Action incr () if (rg_counter != 15);
       rg_counter <= rg_counter + 1;
    endmethod
 
-   method Action decr; (rg_counter != 0);
+   method Action decr () if (rg_counter != 0);
       rg_counter <= rg_counter - 1;
    endmethod
 

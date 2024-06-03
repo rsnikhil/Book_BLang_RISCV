@@ -11,6 +11,7 @@ SLIDES += Slides_10_RISCV_Drum_CPU.pdf
 SLIDES += Slides_13_BSV_Rules_I.pdf
 SLIDES += Slides_15_RISCV_Fife_Principles.pdf
 SLIDES += Slides_16_RISCV_Fife_CPU.pdf
+SLIDES += Slides_17_BSV_CRegs.pdf
 
 .PHONY: pdf
 pdf: $(SLIDES)

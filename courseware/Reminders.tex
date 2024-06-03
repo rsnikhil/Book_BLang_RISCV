@@ -7,28 +7,45 @@
 
 \footnotesize
 
-Please git clone or git pull: \url{https://github.com/rsnikhil/Learn_Bluespec_and_RISCV_Design}
+Please git clone: \url{https://github.com/rsnikhil/Learn_Bluespec_and_RISCV_Design} \\
+(git pull for latest version).  Repsitory structure:
 
+\vspace{1ex}
+
+\begin{minipage}{0.5\textwidth}\scriptsize
 \begin{Verbatim}[frame=single, numbers=left]
     ./Book_BLang_RISCV.pdf
       Slides/
           Slides_01_Intro.pdf
           Slides_02_ISA.pdf
           ...
-      Doc/Installing_bsc_Verilator_etc.{adoc,html}
       Exercises/
-          Ex_03_B_Top_and_DUT/
-          Ex_03_A_Hello_World/
+          Ex-03-A-Hello-World/
+          Ex-03-B-Top-and-DUT/
           ...
       Code/
-          src_Common/
+          src_Top/
           src_Drum/
           src_Fife/
-          src_Top/
+          src_Common/
           ...
+      Doc/Installing_bsc_Verilator_etc.{adoc,html}
 \end{Verbatim}
+\end{minipage}
+\hm
+\begin{minipage}{0.45\textwidth}
+\begin{itemize}
 
-\vspace{1ex}
+ \item Slides and Exercise are numbered in sync with book Chapter numbers.
+
+ \item For Exercises, please see Appendix E of the book.  Some (not
+       all) exercises have associated code in the {\tt Exercises/}
+       directory.
+
+\end{itemize}
+\end{minipage}
+
+\vspace{2ex}
 
 To compile and run the code for exercises, Drum and Fife, please make sure you have installed:
 
