@@ -23,6 +23,7 @@ FIGS += Fig_Combo_path_in_mkBypassFIFOF.png
 FIGS += Fig_Composed_FIFO_Producer_Consumer.png
 FIGS += Fig_Composed_FIFO_modularity.png
 FIGS += Fig_CPU_Simulation.png
+FIGS += Fig_Credit_Based_Flow_Control.png
 FIGS += Fig_CReg_HW.png
 FIGS += Fig_CSRRxx.png
 FIGS += Fig_FIFO.png

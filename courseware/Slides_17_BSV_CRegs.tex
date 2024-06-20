@@ -114,8 +114,14 @@
 
 \footnotesize
 
-This is an interface for an ``Up-Down'' Counter:
+Consider this scenario, where a Producer streams packets over a long
+connection to a Consumer:
 
+\begin{center}
+ \includegraphics[width=0.9\textwidth]{Fig_Credit_Based_Flow_Control}
+\end{center}
+
+\begin{minipage}{0.38\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
 interface Up_Down_Counter_IFC;
    method Action   init (Bit #(4) init_val);
@@ -124,24 +130,25 @@ interface Up_Down_Counter_IFC;
    method Action   incr;
 endinterface
 \end{Verbatim}
+\end{minipage}
+\begin{minipage}{0.6\textwidth}
 
-\vspace{2ex}
+To avoid over-running the receive buffer,   The producer:
 
-Example usage: ``Credit-based'' flow control in a network interface (NI):
 \begin{itemize}
-
- \item NI sends stream of packets to remote receiver, which can buffer up to $N$ packets.
- \item Remote receiver sends stream of packet-acknowledgements back to NI.
- \item These two streams are asynchronous and concurrent.
-
- \vspace{4ex}
-
- \item Initialize counter to $N$ (available space in remote buffer)
- \item Send packet only if counter value $> 0$ (stall otherwise)
- \item Decrement counter for each packet sent
- \item Increment counter for each packet-acknowledgment received
-
+ \item initializes the counter to the available space in the buffer;
+ \item for every packet sent, decrements the counter  ({\tt decr} method);
+ \item stalls (doesn't send) if the counter value ({\tt val} method) is zero (no space available).
 \end{itemize}
+
+As the receiver consumes packets from the buffer, it sends
+acknowledgements back to indicate the amount of space freed.
+
+\vspace{1ex}
+
+In the transmitter, acknowledgements are incremented back into the
+counter ({\tt incr} method), allowing transmission to continue.
+\end{minipage}
 
 \end{frame}
 
@@ -152,9 +159,9 @@ Example usage: ``Credit-based'' flow control in a network interface (NI):
 
 \footnotesize
 
-Here is a possible implementation of an ``Up-Down'' Counter:
+Here is a possible implementation of the ``Up-Down'' Counter:
 
-\begin{minipage}{0.55\textwidth}\scriptsize
+\begin{minipage}{0.45\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
 module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
    // STATE
@@ -182,7 +189,7 @@ endmodule
 \end{Verbatim}
 \end{minipage}
 \hm
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.5\textwidth}
 
 Analysis: Rules invoking {\tt .incr()} and {\tt .decr()} cannot execute on the same clock edge.
 
@@ -195,7 +202,7 @@ Analysis: Rules invoking {\tt .incr()} and {\tt .decr()} cannot execute on the s
 
        In either case, the latter rule observes the update from the previous rule.
 
-       \vspace{4ex}
+       \vspace{2ex}
 
  \item (B) If they executed on the same clock, neither rule sees the
        update from the other rule.  This is inconsistent with (A).
@@ -205,7 +212,7 @@ Analysis: Rules invoking {\tt .incr()} and {\tt .decr()} cannot execute on the s
 \vspace{1ex}
 
 {\scriptsize
-Consequently, this implementation cannot send a packet (decr) and
+Thus, this implementation cannot send a packet (decr) and
 register an ack (incr) in the same clock, even though the two streams
 are asynchronous and concurrent.}
 
@@ -214,7 +221,7 @@ are asynchronous and concurrent.}
 {\scriptsize
 On the average, we can only send (and register ack) on every alternate clock.}
 
-\vspace{2ex}
+\vspace{3ex}
 
 {\bf Solution:} \\
 Use a \emph{Concurrent Register} ({\tt CReg}) for {\tt rg\_counter}.
@@ -858,7 +865,7 @@ the \verb|enq| method to the \verb|first| and \verb|deq| methods.
 \subsection{Back-to-back BypassFIFO+PipelineFIFO}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO}
+\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO (1/2)}
 
 \label{slide_back_to_back_fifos}
 
@@ -910,10 +917,8 @@ endmodule
 
 % ================================================================
 
-\subsection{Back-to-back BypassFIFO and PipelineFIFO}
-
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO}
+\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO (2/2)}
 
 \label{Slide_FIFO_Composition}
 

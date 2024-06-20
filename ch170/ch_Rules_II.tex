@@ -25,18 +25,44 @@ consequences on the performance of BSV programs, depending on the
 primitive modules they use.  We illustrate this problem in
 Section~\ref{Sec_Up_Down_Counter}, and then show a general-purpose
 solution in Section~\ref{Sec_CRegs} using ``\emph{Concurrent
-Registers}'' (or \verb|CReg|s).
+Registers}'' (or CRegs).
 
-Finally, in Section~\ref{Sec_RWires} we show an older solution called
-\verb|RWire|s.  We deprecate use of \verb|RWire|s in favor of
+Finally, in Section~\ref{Sec_RWires} we mention an older solution
+called \verb|RWire|s.  We deprecate use of \verb|RWire|s in favor of
 \verb|CReg|s, but they are still supported by the compiler (Drum and
 Fife codes do not use any \verb|RWire|s).
 
 % ****************************************************************
 
-\section{Example: Counter with {\tt .incr} and {\tt .decr} methods}
+\section{A motivating example for CRegs: an up-down counter for credit-based flow-control}
 
 \label{Sec_Up_Down_Counter}
+
+Figure~\ref{Fig_Credit_Based_Flow_Control} shows a generic scheme for
+ so-called ``credit-based flow control'', which is widely used in many
+ scenarios in hardware systems for streaming data between
+ loosely-coupled agents.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Credit_Based_Flow_Control}}
+  \caption{\label{Fig_Credit_Based_Flow_Control} Credit-based flow control with an up/down counter}
+\end{figure}
+
+The transmitter streams a series of packets to a receiver over a
+loosely-coupled one-way link.  In order to avoid over-running the
+receiver's buffer, we initialize an up-down counter with the size of
+the receiver's buffer.  Think of these as ``credits'', {\ie} as long
+as the transmitter has credits available, it can send packets without
+danger of over-running the receiver's buffer.  For each packet sent,
+it decrements the counter (``remaining available credit'').  If the
+credits ever fall to zero, the transmitter must stop sending (stall)
+until the credits are replenished.
+
+The receiver consumes packets asynchronously from its buffer.  As it
+frees up space, it indicates this in ``acknowledgments'' streamed on a
+one-way link in the opposite direction to the transmitter.  At the
+transmitter, the counter is incremented according to these
+acknowledgements (``replenish credits'').  If the transmitter had been
+stalled due to lack of credits, it can now resume transmitting.
 
 Consider the following ``Up-Down Counter'' module interface:
 
@@ -59,16 +85,6 @@ in the range 0..15, and, the methods do the following:
  \item \verb|decr|  decrements the counter if it is $> 0$
  \item \verb|val|   returns the current value of the counter
 \end{tightlist}
-
-Up-down counters are often used for ``credit-based flow control''.
-For example, a networking application may send network packets and,
-concurrently, receive acknowledgments for previously sent packets, but
-the network may not accommodate more than 15 such packets.  Suppose
-the register is initialized to 15.  This represents the number of
-available ``credits'', {\ie} the number of packets that can be sent
-without acknowledgement.  We decrement it whenever a packet is sent,
-and increment it whenever an acknowlegement is received.  Thus, it
-prevents us from sending more than 15 packets without acknowlegement.
 
 Here is a proposed module to implement the interface:
 
