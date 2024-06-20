@@ -41,9 +41,9 @@
      inkscape:document-units="mm"
      showgrid="true"
      units="in"
-     inkscape:zoom="2.603162"
-     inkscape:cx="403.73975"
-     inkscape:cy="287.91907"
+     inkscape:zoom="9.0466599"
+     inkscape:cx="402.35844"
+     inkscape:cy="177.35828"
      inkscape:window-width="2560"
      inkscape:window-height="1500"
      inkscape:window-x="0"
@@ -560,6 +560,11 @@
        style="fill:none;fill-opacity:0.737255;stroke:#000000;stroke-width:0.2;stroke-dasharray:0.800002, 0.2;stroke-dashoffset:0"
        d="m 116.69838,53.142357 c -8.68584,0.221967 -9.23704,-7.683734 -20.810845,-7.546684"
        id="path19"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;fill-opacity:0.737255;stroke:#ff5555;stroke-width:0.2;stroke-dasharray:0.800002, 0.2;stroke-dashoffset:0"
+       d="m 117.0493,50.499728 c -8.83228,0.22132 -9.39277,-7.661361 -21.161701,-7.524711"
+       id="path2"
        sodipodi:nodetypes="cc" />
   </g>
 </svg>

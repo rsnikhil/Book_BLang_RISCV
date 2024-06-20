@@ -257,7 +257,7 @@ module mkCReg #(parameter Integer n,
 \vspace{5ex}
 
 It is instantiated similar to this example: \\
-(This example: register content type: \verb|Bit#(4)|; initial value: 15; 2 {\tt Reg} interfaces).
+(This example: register content type: \verb|Bit#(4)|; initial value: 15; two {\tt Reg} interfaces).
 
 \begin{Verbatim}[frame=single]
    // parameter n is 2, resetval is 15
@@ -310,21 +310,23 @@ It is instantiated similar to this example: \\
        returns the latest of:
 
        \begin{itemize}\footnotesize
-        \item the value in the register;
-        \item if {\tt x[0].\_write($v_0$)} is being invoked, the value $v_0$;
-        \item if {\tt x[1].\_write($v_1$)} is being invoked, the value $v_1$;
+        \item the value $v_{j-1}$, if {\tt x[$j-1$].\_write($v_{j-1}$)} is being invoked;
+        \item else the value $v_{j-2}$, if {\tt x[$j-2$].\_write($v_{j-2}$)} is being invoked;
         \item ...
-        \item if {\tt x[$j-1$].\_write($v_{n-1}$)} is being invoked, the value $v_{n-1}$;
+        \item else the value $v_1$, if {\tt x[1].\_write($v_1$)} is being invoked;
+        \item else the value $v_0$, if {\tt x[0].\_write($v_0$)} is being invoked;
+        \item else the value in the register.
        \end{itemize}
 
  \item The register value is updated with the latest of:
 
        \begin{itemize}\footnotesize
-        \item the current value in the register;
-        \item if {\tt x[0].\_write($v_0$)} is being invoked, the value $v_0$;
-        \item if {\tt x[1].\_write($v_1$)} is being invoked, the value $v_1$;
+        \item the value $v_{n-1}$, if {\tt x[$n-1$].\_write($v_{n-1}$)} is being invoked;
+        \item else the value $v_{n-2}$, if {\tt x[$n-2$].\_write($v_{n-2}$)} is being invoked;
         \item ...
-        \item if {\tt x[$n-1$].\_write($v_{n-1}$)} is being invoked, the value $v_{n-1}$;
+        \item else the value $v_1$, if {\tt x[1].\_write($v_1$)} is being invoked;
+        \item else the value $v_0$, if {\tt x[0].\_write($v_0$)} is being invoked;
+        \item else the current value in the register.
        \end{itemize}
 
 \end{itemize}
@@ -461,12 +463,500 @@ We can instantiate a CReg for this:
 
 \section{SpecialFIFOFs}
 
-\begin{frame}[fragile]
-\frametitle{{\BSV}: {\tt PipelineFIFOF} and {\tt BypassFIFOF}}
+\begin{frame}
 
-\label{Slide_SpecialFIFOFs}
+\begin{center}
+  {\LARGE BSV: Higher-performance FIFOs (in library {\tt SpecialFIFOs})}
+
+  \vspace{5ex}
+
+  (implemented using Concurrent Registers)
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: a FIFO implemented with ordinary registers}
 
 \footnotesize
+
+Consider the following module implementing a 1-element FIFO with a
+FIFOF interface, \\
+using ordinary registers ({\tt mkReg}, {\tt mkRegU}):
+
+\vspace{2ex}
+
+\begin{center}
+\begin{minipage}[t]{0.45\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+module mkFIFOF (FIFOF #(Bit #(32)));
+   Reg #(Bit #(32)) rg_data <- mkRegU;
+   Reg #(Bool)      rg_full <- mkReg (False);
+
+   // ----------------
+   // INTERFACE
+
+   method Bool notEmpty ();
+      return rg_full;
+   endmethod
+
+   method Bit #(32) first () if (rg_full);
+      return rg_data;
+   endmethod
+
+   method Action deq () if (rg_full);
+      rg_full <= False;
+   endmethod
+   ...
+\end{Verbatim}
+\end{minipage}
+\begin{minipage}[t]{0.45\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+   ...
+   method Bool notFull ();
+      return (! rg_full);
+   endmethod
+
+   method Action enq (Bit #(32) x) if (! rg_full);
+      rg_data <= x;
+      rg_full <= True;
+   endmethod
+
+   method Action clear;
+      rg_full <= False;
+   endmethod
+endmodule
+\end{Verbatim}
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Analysis of the performance of {\tt mkFIFOF}}
+
+\footnotesize
+
+Consider a producer rule \verb|rl_P| that invokes \verb|enq|, and a
+consumer rule \verb|rl_C| that invokes \verb|first| and \verb|deq|:
+
+\vspace{4ex}
+
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_FIFO_Producer_Consumer}
+\end{center}
+
+\vspace{4ex}
+
+These rules cannot fire at the same instant (on the same clock)
+because both of them read and write register \verb|fg_Full| (because
+both \verb|enq| and \verb|deq| read and write the register).
+
+\vspace{2ex}
+
+We can use a CReg to relax this constraint, in two different ways,
+which we call {\tt mkPipelineFIFOF} and {\tt mkBypassFIFOF},
+respectively.
+
+\end{frame}
+
+% ================================================================
+
+\subsection{PipelineFIFOs}
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: {\tt mkPipelineFIFOF}}
+
+\label{mkPipelineFIFOF}
+
+\footnotesize
+
+Instead of {\tt mkReg} for {\tt rg\_full}, we can use {\tt mkCReg}:
+
+\begin{center}
+\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+module mkFIFOF (FIFOF #(Bit #(32)));
+module mkPipelineFIFOF (FIFOF #(Bit #(32)))
+   Reg #(Bit #(t))      rg_data  <- mkRegU;
+   Array #(Reg #(Bool)) crg_full <- mkCReg (3, False);
+
+   // ----------------
+   // INTERFACE
+
+   method Bool notEmpty ();
+      return crg_full [0];
+   endmethod
+
+   method Bit #(32) first () if (crg_full [0]);
+      return rg_data;
+   endmethod
+
+   method Action deq () if (crg_full [0]);
+      crg_full [0] <= False;
+   endmethod
+   ...
+\end{Verbatim}
+\end{minipage}
+\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+   ...
+   method Bool notFull ();
+      return (! crg_full [1]);
+   endmethod
+
+   method Action enq (Bit #(32) x) if (! crg_full [1]);
+      rg_data      <= x;
+      crg_full [1] <= True;
+   endmethod
+
+   method Action clear;
+      crg_full [2] <= False;
+   endmethod
+endmodule
+\end{Verbatim}
+
+\vspace{1ex}
+
+Note that the ``dequeue'' side methods use index [0], ``enqueue'' side
+use methods index [1]; and ``clear'' uses index [2].
+
+\vspace{1ex}
+
+These choices affect the ordering semantics of the methods.
+
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Analysis of the performance of {\tt mkPipelineFIFOF}}
+
+\footnotesize
+
+\begin{minipage}{0.45\textwidth}
+  Consider again a producer rule \verb|rl_P| that invokes \verb|enq|, and a
+  consumer rule \verb|rl_C| that invokes \verb|first| and \verb|deq|:
+\end{minipage}
+\hm
+\begin{minipage}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{Fig_FIFO_Producer_Consumer}
+\end{minipage}
+
+\vspace{5ex}
+
+Because of {\tt mkPipelineFIFOF}'s CReg indexes, in the equivalent
+rule-at-a-time semantics, \verb|rl_C| fires \emph{before} \verb|rl_P|.
+Thus, even if the FIFO was full at the start of the clock, \verb|rl_P|
+can still \verb|enq| into the FIFO, \emph{provided} \verb|rl_C| is
+firing on the same clock.
+
+\vspace{1ex}
+
+Per the rule-at-a-time semantics,
+\verb|rl_C| fires first, which empties the FIFO, {\ie} \verb|rl_P|
+sees the FIFO as empty and is therefore able to \verb|enq| into it.
+
+\vspace{1ex}
+
+This is why we call it a ``PipelineFIFO'': it is an ideal candidate
+for the FIFO between stages of a pipeline, allowing the downstreanm
+stage (the consumer) and the upstream stage (the producer) to fire on
+the same clock, advancing data in a piplined manner.
+
+\vspace{2ex}
+
+Note also that another rule invoking \verb|clear|, too, can fire on
+the same clock as \verb|rl_P| and \verb|rl_C|.  Because of its CReg
+index, logically it fires ``last'', and so will leave the FIFO in a
+finally empty state.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Analysis of the hardware for {\tt mkPipelineFIFOF}}
+
+\footnotesize
+
+In the Verilog for \verb|mkPipelineFIFOF|, the READY signal
+for \verb|enq| incorporates the ENABLE signal of the \verb|deq| method
+(because if the FIFO is full from the previous clock, in this
+clock \verb|enq| can only be invoked if \verb|deq| is also being
+invoked).
+
+\vspace{2ex}
+
+Thus, there is a \emph{combinational path} backward through the FIFO
+(a path that involves only wires and gates and no state-element) from
+the \verb|deq| method to the \verb|enq| method.
+
+\vspace{2ex}
+
+\begin{center}
+  \includegraphics[width=\textwidth]{Fig_Combo_path_in_mkPipelineFIFOF}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\subsection{BypassFIFOs}
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: {\tt mkBypassFIFOF}}
+
+\label{mkBypassFIFOF}
+
+\footnotesize
+
+What happens if we exchange the [0] and [1] CReg indexes?
+
+\begin{center}
+\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+   Array #(Reg #(Bit #(32))) crg_data <- mkCRegU (2);
+   Array #(Reg #(Bool))      crg_full <- mkCReg (3, False);
+
+   // ----------------
+   // INTERFACE
+
+   method Bool notEmpty ();
+      return crg_full [1];
+   endmethod
+
+   method Bit #(32) first () if (crg_full [1]);
+      return crg_data [1];
+   endmethod
+
+   method Action deq () if (crg_full [1]);
+      crg_full [1] <= False;
+   endmethod
+   ...
+\end{Verbatim}
+\end{minipage}
+\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+   ...
+   method Bool notFull ();
+      return (! crg_full [0]);
+   endmethod
+
+   method Action enq (Bit #(32) x) if (! crg_full [0]);
+      crg_data [0] <= x;
+      crg_full [0] <= True;
+   endmethod
+
+   method Action clear;
+      crg_full [0] <= False;
+   endmethod
+endmodule
+\end{Verbatim}
+
+\vspace{1ex}
+
+Now, the ``enqueue'' side methods use index [0] and the ``dequeue''
+side methods use index [1] (``clear'' still uses index [2]).
+
+\vspace{1ex}
+
+These choices change the ordering semantics of the methods.
+
+\end{minipage}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Analysis of the performance of {\tt mkBypassFIFOF}}
+
+\footnotesize
+
+\begin{minipage}{0.45\textwidth}
+  Consider again a producer rule \verb|rl_P| that invokes \verb|enq|, and a
+  consumer rule \verb|rl_C| that invokes \verb|first| and \verb|deq|:
+\end{minipage}
+\hm
+\begin{minipage}{0.5\textwidth}
+  \includegraphics[width=\textwidth]{Fig_FIFO_Producer_Consumer}
+\end{minipage}
+
+\vspace{5ex}
+
+Because of {\tt mkBypassFIFOF}'s CReg indexes, in the equivalent
+rule-at-a-time semantics, \verb|rl_C| fires \emph{after} \verb|rl_P|.
+Thus, even if the FIFO was empty at the start of the clock, \verb|rl_C|
+can still \verb|deq| from the FIFO, \emph{provided} \verb|rl_P| is
+firing on the same clock.
+
+\vspace{1ex}
+
+Per the rule-at-a-time semantics, \verb|rl_P| fires first, which fills
+the empty FIFO, {\ie} \verb|rl_C| sees the FIFO as full and is
+therefore able to \verb|deq| from it.
+
+\vspace{1ex}
+
+This is why we call it a ``BypassFIFO''.  When used in a pipeline, the
+enqueued value can be ``bypassed'' straight through the FIFO to the
+consumer on the same clock.
+
+\vspace{2ex}
+
+As with {\tt mkPipelineFIFOF}, another rule invoking \verb|clear|,
+too, can fire on the same clock as \verb|rl_P| and \verb|rl_C|.
+Because of its CReg index, logically it fires ``last'', and so will
+leave the FIFO in a finally empty state.
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Analysis of the hardware for {\tt mkBypassFIFOF}}
+
+\footnotesize
+
+In the Verilog for \verb|mkBypassFIFOF|, the READY signal
+for \verb|first| and \verb|deq| incorporates the ENABLE signal of
+the \verb|enq| method (because if the FIFO is empty from the previous
+clock, in this clock \verb|first| and \verb|deq| can only be invoked
+if \verb|enq| is also being invoked).
+
+\vspace{2ex}
+
+Similarly, for the data to be bypassed through, there has to be a
+combinational path from the \verb|enq| argument to the \verb|first|
+result.
+
+\vspace{2ex}
+
+Thus, there are \emph{combinational paths} forward through the FIFO
+(paths that involve only wires and gates and no state-element) from
+the \verb|enq| method to the \verb|first| and \verb|deq| methods.
+
+\vspace{2ex}
+
+\begin{center}
+  \includegraphics[width=\textwidth]{Fig_Combo_path_in_mkBypassFIFOF}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\subsection{Back-to-back BypassFIFO+PipelineFIFO}
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO}
+
+\label{slide_back_to_back_fifos}
+
+\footnotesize
+
+\begin{minipage}{0.5\textwidth}
+An interesting component is a back-to-back composition of the two
+high-performance FIFOs we have discussed.
+
+\vspace{2ex}
+
+Consider this code fragment, illustrated below:
+
+\vspace{5ex}
+
+\begin{center}
+  \includegraphics[width=\textwidth]{Fig_Composed_FIFO_Producer_Consumer}
+\end{center}
+
+
+\end{minipage}
+\hm
+\begin{minipage}{0.47\textwidth}\scriptsize
+\begin{Verbatim}[frame=single]
+module mk... (...);
+   FIFOF #(Bit #(32)) f_bypass   <- mkBypassFIFOF;
+   FIFOF #(Bit #(32)) f_pipeline <- mkPipelineFIFOF;
+
+   // Producer rule (into f_bypass's enq side)
+   rule rl_P;
+      ... f_bypass.enq (x);
+   endrule
+
+   // Connect f_bypass's first/deq side
+   // to f_pipeline's enq side
+   mkConnection (to_FIFO_O (f_bypass),
+                 to_FIFO_I (f_pipeline));
+
+   // Consumer rule (from f_pipeline's first/deq side)
+   rule rl_C;
+      let y = f_pipeline.first;
+      f_pipeline.deq;
+   endrule
+endmodule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\subsection{Back-to-back BypassFIFO and PipelineFIFO}
+
+\begin{frame}[fragile]
+\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO}
+
+\label{Slide_FIFO_Composition}
+
+\footnotesize
+
+This has some pleasant properties:
+
+\vspace{1ex}
+
+\begin{itemize}
+
+ \item Despite their being two FIFOs, it takes only one tick to
+        traverse them (because of the nature of BypassFIFOs).
+
+ \PAUSE{\vspace{1ex}}
+
+ \item There are no ordering constraints across the composed FIFOs,
+       {\ie} the FIFOs do not induce any ordering constraints between
+       the producer rule \verb|rl_P| and the consumer rule \verb|rl_C|
+       (they are ``conflict free'').  They can fire in the same clock
+       and can go in either logical order.
+
+ \PAUSE{\vspace{1ex}}
+
+ \item There are no combinational paths through the pair of FIFOs!
+       One can verify this by studying the Verilog.  The \emph{bsc}
+       compiler also helpfully reports the absence of combinational
+       paths.
+
+\end{itemize}
+
+\PAUSE{\vspace{5ex}}
+
+\begin{minipage}{0.37\textwidth}
+This makes it attractive for connecting stages in a pipeline, enabling
+a \emph{modular} separation of stages, where each stage can be
+independently verified and compiled to Verilog. We use this technique
+everywhere in Fife.
+\end{minipage}
+\hfill
+\begin{minipage}{0.6\textwidth}
+  \includegraphics[width=\textwidth]{Fig_Composed_FIFO_modularity}
+\end{minipage}
 
 \end{frame}
 
@@ -485,6 +975,12 @@ We can instantiate a CReg for this:
        concurrently in the same clock where previously they had to run
        in separate clocks.
 
+       \vspace{1ex}
+
+       Effectively, CRegs allow us safely to \emph{fuse} the actions
+       in two different rules into a single composite action (whenever
+       the rule conditions allow)
+
  \item It plays a central rule in fine-tuning {\BSV} designs for
        optimal performance, without changing the functional semantics
        (rule-at-a-time).
@@ -496,7 +992,7 @@ We can instantiate a CReg for this:
 
          \item Isolation of stages (no combinational paths) while
                preserving pipeline speed (as discussed in
-               Slide~\ref{Slide_SpecialFIFOFs}...).
+               Slide~\ref{Slide_FIFO_Composition}).
 
          \item Faster PC redirection after a misprediction
          \item Faster resolution of register dependencies in the scoreboard
@@ -509,11 +1005,11 @@ We can instantiate a CReg for this:
 \PAUSE{\vspace*{5ex}}
 
  \emph{Caveat: Before CRegs were available in {\BSV}, designs used a
-       facility called ``RWires'' to achieve the same optimizations.
-       RWires are still availble in BSV (see library documentation),
-       but we recommend using CRegs instead of RWires in new designs.
-       RWire semantics are dodgy, tying functional semantics into
-       clocked semantics.}
+       facility called ``RWires'' for the same fusion optimizations.
+       RWires are still available in BSV (see library documentation),
+       but we recommend using CRegs in new designs.  RWires muddy the
+       otherwise clear separation of functional semantics (logical)
+       and clocked semantics (implementation).}
 
 \end{frame}
 

@@ -172,21 +172,23 @@ register interfaces is:
        returns the latest of:
 
        \begin{tightlist}
-        \item the value in the register;
-        \item if {\tt x[0].\_write($v_0$)} is being invoked, the value $v_0$;
-        \item if {\tt x[1].\_write($v_1$)} is being invoked, the value $v_1$;
+        \item the value $v_{j-1}$, if {\tt x[$j-1$].\_write($v_{j-1}$)} is being invoked;
+        \item else the value $v_{j-2}$, if {\tt x[$j-2$].\_write($v_{j-2}$)} is being invoked;
         \item ...
-        \item if {\tt x[$j-1$].\_write($v_{n-1}$)} is being invoked, the value $v_{n-1}$;
+        \item else the value $v_1$, if {\tt x[1].\_write($v_1$)} is being invoked;
+        \item else the value $v_0$, if {\tt x[0].\_write($v_0$)} is being invoked;
+        \item else the value in the register.
        \end{tightlist}
 
  \item The register value is updated with the latest of:
 
        \begin{tightlist}
-        \item the current value in the register;
-        \item if {\tt x[0].\_write($v_0$)} is being invoked, the value $v_0$;
-        \item if {\tt x[1].\_write($v_1$)} is being invoked, the value $v_1$;
+        \item the value $v_{n-1}$, if {\tt x[$n-1$].\_write($v_{n-1}$)} is being invoked;
+        \item else the value $v_{n-2}$, if {\tt x[$n-2$].\_write($v_{n-2}$)} is being invoked;
         \item ...
-        \item if {\tt x[$n-1$].\_write($v_{n-1}$)} is being invoked, the value $v_{n-1}$;
+        \item else the value $v_1$, if {\tt x[1].\_write($v_1$)} is being invoked;
+        \item else the value $v_0$, if {\tt x[0].\_write($v_0$)} is being invoked;
+        \item else the current value in the register.
        \end{tightlist}
 \end{itemize}
 
@@ -430,19 +432,19 @@ firing on the same clock.  Per the rule-at-a-time semantics,
 \verb|rl_C| fires first, which empties the FIFO, {\ie} \verb|rl_P|
 sees the FIFO as empty and is therefore able to \verb|enq| into it.
 
-As a separate observation, we can see that another rule invoking
-\verb|clear|, too, can fire on the same clock as \verb|rl_P| and
-\verb|rl_C| and, because of its index, logically fires ``last'', and
-so will leave the FIFO in a finally empty state.
+Note also that another rule invoking \verb|clear|, too, can fire on
+the same clock as \verb|rl_P| and \verb|rl_C| and, because of its
+index, logically fires ``last'', and so will leave the FIFO in a
+finally empty state.
 
 If we examine the Verilog generated for \verb|mkPipelineFIFOF|, we
 will see that the READY signal for \verb|enq| incorporates the ENABLE
-signal of the \verb|deq| method (because, if the FIFO is full at the
+signal of the \verb|deq| method (because if the FIFO is full from the
 previous clock, in this clock \verb|enq| can only be invoked if
 \verb|deq| is also being invoked).  Thus, there is a
-\emph{combinational path} backward through the FIFO (a path that only
-involves wires and gates and no state-element) from the \verb|deq|
-method to the \verb|enq| method.  This is illustrated in
+\emph{combinational path} backward through the FIFO (a path that
+involves only wires and gates and no state-element) from the
+\verb|deq| method to the \verb|enq| method.  This is illustrated in
 Figure~\ref{Fig_Combo_path_in_mkPipelineFIFOF}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Combo_path_in_mkPipelineFIFOF}}
@@ -609,12 +611,11 @@ This composition has some pleasant properties:
 
 \end{itemize}
 
-These properties make it very attractive to use this composition to
-connect stages in a pipeline, enabling a \emph{modular} separation of
-stages.  We can place \verb|mkBypassFIFOF| in the module for the
-upstream stage, place \verb|mkPipelineFIFOF| in the module for the
-downstream stage, and connect them in the parent module with
-\verb|mkConnection|.
+These properties make it attractive to use this composition to connect
+stages in a pipeline, enabling a \emph{modular} separation of stages.
+We can place \verb|mkBypassFIFOF| in the module for the upstream
+stage, place \verb|mkPipelineFIFOF| in the module for the downstream
+stage, and connect them in the parent module with \verb|mkConnection|.
 This is illustrated in Figure~\ref{Fig_Composed_FIFO_modularity}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Composed_FIFO_modularity}}
