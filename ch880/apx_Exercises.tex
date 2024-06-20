@@ -1317,6 +1317,79 @@ consequences of a wrong order?
 \end{itemize}
 
 % ****************************************************************
+
+\hdivider
+
+\section*{Chapter 17: {\BSV}: Rules and Methods II: Improved performance with CRegs (Concurrent Registers)}
+
+% ================================================================
+
+\subsection*{Ex-17-A: {\tt mkPipelineFIFOF}}
+\label{Ex-17-A-PipelineFIFOs}
+
+(Please refer Section~\ref{Sec_mkPipelineFIFOF}.)
+
+The example code in the text for {\tt mkPipelineFIFOF} had a
+particular choice of indexes for the dequeue-side methods, the
+enqueue-side methods and for the clear method, respectively,
+corresponding to the first row of the table below:
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+    0  &  1  &  2 \\
+\hline
+  {\tt notEmpty}, {\tt first}, {\tt deq}  &
+  {\tt notFull}, {\tt enq} &
+  {\tt clear} \\
+\hline
+  {\tt notEmpty}, {\tt first}, {\tt deq} &
+  {\tt clear} &
+  {\tt notFull}, {\tt enq} \\
+\hline
+  {\tt clear} &
+  {\tt notEmpty}, {\tt first}, {\tt deq} &
+  {\tt notFull}, {\tt enq} \\
+\hline
+\end{tabular}
+\end{center}
+
+What changes in the behavioral semantics (ordering) of the FIFO if we
+choose the indexes in the second or third row of the table instead
+(moving the {\tt clear} method between the dequeue and enqueue sides,
+or ahead of both of them?  \emph{Hint:} think about simultaneous
+invocation of {\tt clear} with either an {\tt enq}, or a {\tt deq}, or
+both.
+
+% ================================================================
+
+\subsection*{Ex-17-B: Composition of {\tt mkBypassFIFOF} and {\tt mkPipelineFIFOF}}
+\label{Ex-17-B-Pipeline-FIFO-Composition}
+
+(Please refer Section~\ref{Sec_mkBypassFIFOF_mkPipelineFIFOF}.)
+
+What happens if we reverse the composition---use
+\verb|mkPipelineFIFOF| upstream and \verb|mkBypassFIFOF| downstream?
+
+\begin{itemize}
+
+ \item How many ticks will it take for a datum to traverse the pair?
+
+ \item Will \verb|rl_P| and \verb|rl_C| still be conflict-free (and
+       therefore can fire in either logical order)?
+
+ \item Are there any combinational paths through the pair?
+
+ \item Consider combinational paths in rule \verb|rl_P| ending at the
+       \verb|enq| method of the first FIFO, and combinational paths in
+       rule \verb|rl_C| starting at the \verb|first| method of the
+       second FIFO.  What is the difference between these when we
+       compose \verb|mkBypassFIFOF| $\longrightarrow$ \verb|mkPipelineFIFOF|
+       {\vs} \verb|mkPipelineFIFOF| $\longrightarrow$ \verb|mkBypassFIFOF|?
+
+\end{itemize}
+
+% ****************************************************************
 % Use this only if this chapter/appendix has an odd number of pages
 
 \input{blankpage}

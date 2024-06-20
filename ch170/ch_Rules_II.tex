@@ -396,7 +396,9 @@ Let us use a CReg to relax this constraint, in two different ways.
 
 % ================================================================
 
-\subsection{{\tt PipelineFIFOF}}
+\subsection{{\tt mkPipelineFIFOF}}
+
+\label{Sec_mkPipelineFIFOF}
 
 {\footnotesize
 \begin{Verbatim}[frame=single, numbers=left]
@@ -475,9 +477,15 @@ to fire on the same clock, advancing data in a piplined manner.  It is
 so useful that it is available in the \emph{bsc} library in the
 \verb|SpecialFIFOs| package.
 
+% ----------------------------------------------------------------
+
+\EXERCISE{Ex-17-A-PipelineFIFOs}
+
 % ================================================================
 
-\subsection{{\tt BypassFIFOF}}
+\subsection{{\tt mkBypassFIFOF}}
+
+\label{Sec_mkBypassFIFOF}
 
 In this version, we change the CReg indexes used by the methods.
 
@@ -646,31 +654,9 @@ each in \verb|mkBypassFIFOF| and \verb|mkPipelineFIFOF|.  In many
 applications, this does not matter much, {\ie} the overall state size
 is dominated by other components, and this addition is in the noise.
 
-% ----------------
-\Exercise
+% ----------------------------------------------------------------
 
-What happens if we reverse the composition---use
-\verb|mkPipelineFIFOF| upstream and \verb|mkBypassFIFOF| downstream?
-
-\begin{itemize}
-
- \item How many ticks will it take for a datum to traverse the pair?
-
- \item Will \verb|rl_P| and \verb|rl_C| still be conflict-free (and
-       therefore can fire in either logical order)?
-
- \item Are there any combinational paths through the pair?
-
- \item Consider combinational paths in rule \verb|rl_P| ending at the
-       \verb|enq| method of the first FIFO, and combinational paths in
-       rule \verb|rl_C| starting at the \verb|first| method of the
-       second FIFO.  What is the difference between these when we
-       compose \verb|mkBypassFIFOF| $\longrightarrow$ \verb|mkPipelineFIFOF|
-       {\vs} \verb|mkPipelineFIFOF| $\longrightarrow$ \verb|mkBypassFIFOF|?
-
-\end{itemize}
-
-\Endexercise
+\EXERCISE{Ex-17-B-Pipeline-FIFO-Composition}
 
 % ****************************************************************
 
