@@ -2,9 +2,9 @@
 
 % ****************************************************************
 
-\chapter{BSV: Verifying BSV designs}
+\chapter{{\BSV}: Verifying {\BSV} designs}
 
-\markboth{Ch \arabic{chapter}: BSV: Verification}{\copyrightnotice}
+\markboth{Ch \arabic{chapter}: {\BSV}: Verification}{\copyrightnotice}
 
 \setcounter{page}{1}
 % \renewcommand{\thepage}{\arabic{page}}
@@ -16,25 +16,25 @@
 
 \section{Introduction}
 
-In this chapter we describe general techniques used to verify BSV
+In this chapter we describe general techniques used to verify {\BSV}
 designs of any kind.  The next chapter focuses on techniques for
 verification of CPU implementations.
 
 % ****************************************************************
 
-\section{BSV: Testbenches and DUTs}
+\section{Testbenches and DUTs}
 
 \index[BSV]{Testbench}
 \index[BSV]{DUT}
 
-To debug a BSV design, we typically set up a system similar to that
+To debug a {\BSV} design, we typically set up a system similar to that
 shown in Figure~\ref{Fig_Testbench_DUT}.
 \begin{figure}[htbp]
   \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Testbench_DUT}}
   \caption{\label{Fig_Testbench_DUT}
            A testbench connected to a DUT}
 \end{figure}
-The BSV design that is being tested is usually called the ``Design
+The {\BSV} design that is being tested is usually called the ``Design
 Under Test'', or DUT for short.  The surrounding and/or adjacent
 modules are called the ``Testbench'' (or ``Test Harness'' or ``Test
 Environment'').
@@ -63,7 +63,7 @@ print outputs to the screen (during simulation), which can be visually
 examined for correctness or recorded for offline manual or automated
 checking.
 
-BSV designers typically write their testbenches in BSV.  If the
+{\BSV} designers typically write their testbenches in {\BSV}.  If the
 testbench is only used in simulation (not in actual hardware, FPGA or
 ASIC) then it can read and write files.  It can also import C code
 (see Appendix~\ref{Sec_Importing_C}) to reuse existing C algorithms
@@ -74,29 +74,29 @@ In the SystemVerilog community there is a mature standard methodology
 for testbenches called UVM (Unversal Verification Methodology) which
 exploits the ``object-orientd programming'' aspects of SystemVerilog
 for reusability (see Glossary~\ref{apx_Glossary} for some more
-detail).  BSV designs can also use UVM testbenches.  The whole of
+detail).  {\BSV} designs can also use UVM testbenches.  The whole of
 Figure~\ref{Fig_Testbench_DUT} can be in Verilog/SystemVerilog, with
-the DUT using the Verilog produced from a BSV design using the
+the DUT using the Verilog produced from a {\BSV} design using the
 \emph{bsc} compiler.
 
 % ****************************************************************
 
-\section{BSV: ``{\tt printf}''-style Debugging}
+\section{{\bf printf}-style Debugging}
 
 \label{Sec_display_and_fmt}
 
-\index[BSV]{printf@{\tt printf}-style debugging}
+\index[BSV]{printf@{\bf printf}-style debugging}
 
-A popular style of debugging BSV designs is the same as in debugging
+A popular style of debugging {\BSV} designs is the same as in debugging
 software in any programming language: insert ``print'' statements in
-the BSV code at various places to print out values of interest during
+the {\BSV} code at various places to print out values of interest during
 simulation.  We examine these outputs to identify suspicious values
 and then perhaps insert and remove print statements to zero-in on the
-exact place in the BSV code where something wrong was computed.
+exact place in the {\BSV} code where something wrong was computed.
 
-BSV, like Verilog and SystemVerilog, has the following built-in
-functions to write to files during simulation, analogous to ``{\tt
-printf}'' in C. All of them have {\tt Action} type, and so they can
+{\BSV}, like Verilog and SystemVerilog, has the following built-in
+functions to write to files during simulation, analogous to {\tt
+printf} in C. All of them have {\tt Action} type, and so they can
 occur in any Action context: bodies of rules, bodies of Action and
 ActionValue methods, bodies of Action and ActionValue functions.
 
@@ -130,12 +130,17 @@ directives for the arguments that follow (\verb|%d| for signed
 integers, \verb|%b| for binary numbers, \verb|%h| for hexadecimal
 numbers, {\etc}).
 
-These BSV statements for printing only exist in simulation code.  They
+These {\BSV} statements for printing only exist in simulation code.  They
 are omitted completely by synthesis tools that target actual hardware
 (ASIC or FPGA).\footnote{This is not because of any fundamental
 synthesizability difficulty, it is only because there is no standard
 concept of ``file'' or ``output stream'' in hardware designs, not even
 a serial port.}
+
+In {\BSV}, additionally, you can interleave format strings and arguments, like this:
+
+\hmmmm
+\$display  ({\it format-string}, {\it arg}, ..., {\it format-string}, {\it arg}, ... )
 
 % ================================================================
 
@@ -145,7 +150,7 @@ a serial port.}
 \index[BSV]{fshow@{\tt fshow}!Standard overloaded function producing {\tt Fmt}
 objects for various types}
 
-In any enum or struct type declaration in BSV, one can attach a
+In any enum or struct type declaration in {\BSV}, one can attach a
 ``\verb|deriving(FShow)|'' clause to request the \emph{bsc} compiler
 to define an ``\verb|fshow|'' function for the type, with some default
 formatting.  For example, the Drum/Fife code has such a clause in the
@@ -158,7 +163,7 @@ type is also allowed as an argument to \verb|$display| (and its
 variants):  Example:
 
 {\footnotesize
-\begin{Verbatim}[frame=single, numbers=left]
+\begin{Verbatim}[frame=single]
    Decode_to_RR y = ...
    Fmt          f = fshow (y);
    $display (      "Decode result is ", f);
@@ -175,11 +180,11 @@ variants):  Example:
 \index[BSV]{Fmt@{\tt Fmt}!formatted object}
 \index[BSV]{Formatted output using {\tt Fmt} objects}
 
-BSV's formatting facilities are actually more powerful than
+{\BSV}'s formatting facilities are actually more powerful than
 \verb|printf| in C/C++ or \verb|$display| in Verilog/SystemVerilog.
 
-The result-type of \verb|fshow()| is a standard type in BSV called
-\verb|Fmt|, and this is also an acceptable argument in BSV's
+The result-type of \verb|fshow()| is a standard type in {\BSV} called
+\verb|Fmt|, and this is also an acceptable argument in {\BSV}'s
 \verb|$display| functions (as demonstrated above in the last section).
 
 We can create new \verb|Fmt| objects using the built-in pure function
@@ -220,11 +225,11 @@ keeping the \verb|$display| statement short and sweet.
 
 % ****************************************************************
 
-\section{BSV: Dynamic assertions}
+\section{Dynamic assertions}
 
 \index[BSV]{assertions for debugging}
 
-The BSV libraries offer a package:
+The {\BSV} libraries offer a package:
 
 {\tt
 \begin{tabbing}
@@ -236,7 +241,7 @@ which contains the following function:
 
 {\tt
 \begin{tabbing}
-\hmmm function Action dynamicAssert(Bool b, String s);
+\hmmm function Action dynamicAssert (Bool b, String s);
 \end{tabbing}
 }
 
@@ -270,7 +275,7 @@ simulation code.  Thus, one should not hesitate to use them liberally.
 
 % ****************************************************************
 
-\section{BSV: Waveform-style debugging}
+\section{Waveform-style debugging}
 
 \index[BSV]{VCD waveform dumping}
 \index[BSV]{Waveform dumping (VCDs)}
@@ -298,7 +303,7 @@ When simulating in Bluesim interactively, the commands:
        \> {\tt sim vcd off}      \> disables  writing out VCDs
 \end{tabbing}
 
-VCD dumping can also be controlled from within a BSV program, using
+VCD dumping can also be controlled from within a {\BSV} program, using
 these three Actions:
 
 \begin{tabbing}
@@ -306,5 +311,34 @@ these three Actions:
        \> {\tt \$dumpoff}       \> Stops  writing out VCDs \\
        \> {\tt \$dumpon}        \> Resumes writing out VCDs
 \end{tabbing}
+
+% ****************************************************************
+
+\section{Summary}
+
+Verification in {\BSV} is, in principle, the same as in Verilog or
+SystemVerilog: The DUT is instantiated along with a Testbench that
+provides stimulus and consumes the output for checking and analysis.
+
+There are many good textbooks available on verification, covering
+topics such as ``code coverage'' (how much of the DUT has been
+tested), constrained-random stimulus generation, so-called
+``\emph{fuzzing}'', creation of so-called ``Verification IP''
+(reusable library components for testbenches), {\etc}
+
+The Testbench can be written in {\BSV}, but it can also be written in
+Verilog or SystemVerilog.  If written in {\BSV}, the testbench is
+synthesizable, and can be executed along with the DUT on FPGAs, which
+is usually many orders of magnitude faster than simulation.  If
+written in Verilog or SystemVerilog, the testbench may or may not be
+synthesizable.  If not synthesizable, it can only be run in
+simulation.
+
+
+For {\bf printf}-style debugging, {\BSV} enhances traditional {\tt
+\$display()} with a powerful facility of ``formatted strings''
+(expressions of type {\tt Fmt}).
+
+{\BSV} also offers dynamic assertions and VCD waveform dumping.
 
 % ****************************************************************

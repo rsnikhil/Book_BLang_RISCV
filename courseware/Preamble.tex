@@ -61,7 +61,7 @@
 \newcommand{\vs}{\emph{vs.}}
 
 % ----------------
-% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION (N 'em' spaces)
 
 \newcommand{\hm}{\hspace*{1em}}
 \newcommand{\hmm}{\hspace*{2em}}
@@ -69,7 +69,7 @@
 \newcommand{\hmmmm}{\hspace*{4em}}
 
 % ----------------
-% Convenient widths
+% Convenient widths (less than text width by N 'em' spaces)
 
 \newlength{\hlessmm}
 \setlength{\hlessmm}{\textwidth}
@@ -82,6 +82,14 @@
 \newlength{\hlessmmmm}
 \setlength{\hlessmmmm}{\textwidth}
 \addtolength{\hlessmmmm}{-4em}
+
+% ----------------
+% EMPTY LINES of various heights  (N 'ex' heights)
+
+\newcommand{\vx}{\vspace*{1ex}}
+\newcommand{\vxx}{\vspace*{2ex}}
+\newcommand{\vxxx}{\cspace*{3ex}}
+\newcommand{\vxxxx}{\vspace*{4ex}}
 
 % ----------------
 % Inputting verbatim code fragments, with various font sizes
@@ -113,9 +121,9 @@
 % ================================================================
 % Title page
 
-\title[Learn CPU design \& BSV]{Learn RISC-V CPU Implementation and BSV}
+\title[Learn CPU design \& {\BSV}]{Learn RISC-V CPU Implementation and {\BSV}}
 
-\subtitle{(BSV: a High-Level Hardware Design Language)}
+\subtitle{({\BSV}: a High-Level Hardware Design Language)}
 
 \author[{\copyright} R.S.Nikhil]{Rishiyur S.~Nikhil}
 % \institute{Bluespec, Inc.}

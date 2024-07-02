@@ -8,6 +8,7 @@ SLIDES += Slides_07_BSV_Modules_Interfaces.pdf
 SLIDES += Slides_08_RISCV_GPRs_CSRs.pdf
 SLIDES += Slides_09_BSV_StmtFSM.pdf
 SLIDES += Slides_10_RISCV_Drum_CPU.pdf
+SLIDES += Slides_11_BSV_Verification.pdf
 SLIDES += Slides_13_BSV_Rules_I.pdf
 SLIDES += Slides_15_RISCV_Fife_Principles.pdf
 SLIDES += Slides_16_RISCV_Fife_CPU.pdf

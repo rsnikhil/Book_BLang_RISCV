@@ -485,7 +485,7 @@ We can instantiate a CReg for this:
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: a FIFO implemented with ordinary registers}
+\frametitle{A FIFO implemented with ordinary registers}
 
 \footnotesize
 
@@ -544,7 +544,7 @@ endmodule
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Analysis of the performance of {\tt mkFIFOF}}
+\frametitle{Analysis of the performance of {\tt mkFIFOF}}
 
 \footnotesize
 
@@ -576,7 +576,7 @@ respectively.
 \subsection{PipelineFIFOs}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: {\tt mkPipelineFIFOF}}
+\frametitle{{\tt mkPipelineFIFOF}}
 
 \label{mkPipelineFIFOF}
 
@@ -644,7 +644,7 @@ These choices affect the ordering semantics of the methods.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Analysis of the performance of {\tt mkPipelineFIFOF}}
+\frametitle{Analysis of the performance of {\tt mkPipelineFIFOF}}
 
 \footnotesize
 
@@ -690,7 +690,7 @@ finally empty state.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Analysis of the hardware for {\tt mkPipelineFIFOF}}
+\frametitle{Analysis of the hardware for {\tt mkPipelineFIFOF}}
 
 \footnotesize
 
@@ -719,7 +719,7 @@ the \verb|deq| method to the \verb|enq| method.
 \subsection{BypassFIFOs}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: {\tt mkBypassFIFOF}}
+\frametitle{{\tt mkBypassFIFOF}}
 
 \label{mkBypassFIFOF}
 
@@ -785,7 +785,7 @@ These choices change the ordering semantics of the methods.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Analysis of the performance of {\tt mkBypassFIFOF}}
+\frametitle{Analysis of the performance of {\tt mkBypassFIFOF}}
 
 \footnotesize
 
@@ -830,7 +830,7 @@ leave the FIFO in a finally empty state.
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Analysis of the hardware for {\tt mkBypassFIFOF}}
+\frametitle{Analysis of the hardware for {\tt mkBypassFIFOF}}
 
 \footnotesize
 
@@ -862,10 +862,68 @@ the \verb|enq| method to the \verb|first| and \verb|deq| methods.
 
 % ================================================================
 
+\begin{frame}
+
+\frametitle{Summary of {\tt mkFIFOF}, {\tt mkPipelineFIFOF} and {\tt mkBypassFIFOF}}
+
+\footnotesize
+
+\begin{center}
+    \begin{tabular}{|l|c|c|c|}
+      \hline
+          &
+          {\tt mkFIFOF} &
+          {\tt mkPipelineFIFOF} &
+          {\tt mkBypassFIFOF} \\
+      \hline
+      \hline
+        1-tick traversal       &   Yes   &  Yes  &  Yes  \\
+      \hline
+        \# of buffer registers &    2    &   1   &   1   \\
+      \hline
+        Scheduling constraints &
+        None &
+        {\tt deq} before {\tt enq} &
+        {\tt enq} before {\tt deq} \\
+      \hline
+        Through combinational circuits &
+        None &
+        {\tt deq} $\rightarrow$ {\tt enq} &
+        {\tt enq} $\rightarrow$ {\tt deq} \\
+      \hline
+        Separate compilation of stages &
+        No &
+        No &
+        No \\
+      \hline
+    \end{tabular}
+\end{center}
+
+\vx
+
+In the next section we'll discuss an alternative: back-to-back
+composition of {\tt mkBypassFIFOF} and {\tt mkPipelineFIFOF}
+
+\end{frame}
+
+% ****************************************************************
+
+\section{Connecting Pipeline Stages}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE BSV: Connecting pipeline stages}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
 \subsection{Back-to-back BypassFIFO+PipelineFIFO}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO (1/2)}
+\frametitle{Back-to-back composition of BypassFIFO and PipelineFIFO (1/2)}
 
 \label{slide_back_to_back_fifos}
 
@@ -918,7 +976,7 @@ endmodule
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: Back-to-back composition of BypassFIFO and PipelineFIFO (2/2)}
+\frametitle{Back-to-back composition of BypassFIFO and PipelineFIFO (2/2)}
 
 \label{Slide_FIFO_Composition}
 
@@ -930,10 +988,10 @@ This has some pleasant properties:
 
 \begin{itemize}
 
- \item Despite their being two FIFOs, it takes only one tick to
+ \item Despite there being two FIFOs, it takes only one tick to
         traverse them (because of the nature of BypassFIFOs).
 
- \PAUSE{\vspace{1ex}}
+ \PAUSE{\vx}
 
  \item There are no ordering constraints across the composed FIFOs,
        {\ie} the FIFOs do not induce any ordering constraints between
@@ -941,16 +999,26 @@ This has some pleasant properties:
        (they are ``conflict free'').  They can fire in the same clock
        and can go in either logical order.
 
- \PAUSE{\vspace{1ex}}
+ \PAUSE{\vx}
 
  \item There are no combinational paths through the pair of FIFOs!
        One can verify this by studying the Verilog.  The \emph{bsc}
        compiler also helpfully reports the absence of combinational
        paths.
 
+ \PAUSE{\vx}
+
+ \item Enables easier separate compilation (into Verilog) of stage
+       modules: place one of the two component FIFOs in each stage
+       module, and use {\tt mkConnection} in the parent module.
+
+       \vx
+
+       (Separate compilation is possible with the other FIFOs, but is messier.)
+
 \end{itemize}
 
-\PAUSE{\vspace{5ex}}
+\PAUSE{\vxxxx}
 
 \begin{minipage}{0.37\textwidth}
 This makes it attractive for connecting stages in a pipeline, enabling
@@ -965,12 +1033,57 @@ everywhere in Fife.
 
 \end{frame}
 
+% ================================================================
+
+\begin{frame}
+
+\frametitle{Summary of {\tt mkPipelineFIFOF} and {\tt mkBypassFIFOF} and their composition}
+
+\footnotesize
+
+\begin{center}
+    \begin{tabular}{|l|c|c|c|c|}
+      \hline
+          &
+          {\tt mkFIFOF} &
+          {\tt mkPipelineFIFOF} &
+          {\tt mkBypassFIFOF} &
+          Composition \\
+      \hline
+      \hline
+        1-tick traversal       &   Yes   &  Yes  &  Yes  & Yes \\
+      \hline
+        \# of buffer registers &    2    &   1   &   1   &  2 \\
+      \hline
+        Scheduling constraints &
+        None &
+        {\tt deq} before {\tt enq} &
+        {\tt enq} before {\tt deq} &
+        None \\
+      \hline
+        Through combinational circuits &
+        None &
+        {\tt deq} $\rightarrow$ {\tt enq} &
+        {\tt enq} $\rightarrow$ {\tt deq} &
+        None  \\
+      \hline
+        Separate compilation of stages &
+        No &
+        No &
+        No &
+        Yes  \\
+      \hline
+    \end{tabular}
+\end{center}
+
+\end{frame}
+
 % ****************************************************************
 
 \section{Final Comments}
 
 \begin{frame}[fragile]
-\frametitle{{\BSV}: final comments on CRegs}
+\frametitle{Final comments on CRegs}
 
 \footnotesize
 

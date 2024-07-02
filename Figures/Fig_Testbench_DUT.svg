@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.5938317"
-     inkscape:cx="377.04836"
-     inkscape:cy="359.31398"
-     inkscape:window-width="2560"
-     inkscape:window-height="1499"
-     inkscape:window-x="659"
-     inkscape:window-y="25"
+     inkscape:cx="413.67372"
+     inkscape:cy="367.21735"
+     inkscape:window-width="2144"
+     inkscape:window-height="1498"
+     inkscape:window-x="413"
+     inkscape:window-y="61"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -604,11 +604,11 @@
        y="71.666641"
        id="text153107" />
     <rect
-       style="fill:none;stroke:#1a1a1a;stroke-width:0.0999991"
+       style="fill:none;stroke:#1a1a1a;stroke-width:0.0999992"
        id="rect1"
-       width="190.52734"
+       width="98.518997"
        height="56.776371"
-       x="10.648202"
+       x="62.262642"
        y="49.734676" />
     <text
        xml:space="preserve"
@@ -834,39 +834,39 @@
          r="0.82013094" />
     </g>
     <path
-       style="fill:#fff6d5;stroke:#d42aff;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
+       style="fill:#d40000;stroke:#d40000;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
        d="M 95.580391,76.074001 H 121.00146"
        id="path10" />
     <path
-       style="fill:#fff6d5;stroke:#d42aff;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
+       style="fill:#d40000;stroke:#d40000;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
        d="M 95.580391,78.719831 H 121.00146"
        id="path12" />
     <path
-       style="fill:#fff6d5;stroke:#d42aff;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
+       style="fill:#d40000;stroke:#d40000;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
        d="M 95.580391,87.186508 H 121.00146"
        id="path14" />
     <path
-       style="fill:#fff6d5;stroke:#d42aff;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
+       style="fill:#d40000;stroke:#d40000;stroke-width:0.2;stroke-dasharray:none;marker-start:url(#ConcaveTriangle)"
        d="M 95.580391,89.832338 H 121.00146"
        id="path15" />
     <text
        xml:space="preserve"
-       style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;display:inline;fill:#d42aff;fill-opacity:1;stroke-width:0.264583"
+       style="font-size:2.11667px;line-height:1.25;font-family:monospace;-inkscape-font-specification:monospace;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;display:inline;fill:#d40000;fill-opacity:1;stroke-width:0.264583"
        x="107.72678"
        y="80.738998"
        id="text15"><tspan
          sodipodi:role="line"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d42aff;fill-opacity:1;stroke-width:0.264583"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d40000;fill-opacity:1;stroke-width:0.264583"
          x="107.72678"
          y="80.738998"
          id="tspan17">method invocations</tspan><tspan
          sodipodi:role="line"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d42aff;fill-opacity:1;stroke-width:0.264583"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d40000;fill-opacity:1;stroke-width:0.264583"
          x="107.72678"
          y="83.406586"
          id="tspan18">for stimulus</tspan><tspan
          sodipodi:role="line"
-         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d42aff;fill-opacity:1;stroke-width:0.264583"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:center;text-anchor:middle;fill:#d40000;fill-opacity:1;stroke-width:0.264583"
          x="107.72678"
          y="86.074165"
          id="tspan19">and results</tspan></text>
