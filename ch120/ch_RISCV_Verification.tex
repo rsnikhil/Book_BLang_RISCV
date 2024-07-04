@@ -18,7 +18,7 @@
 
 \label{Sec_RISCV_verification_intro}
 
-The last chapter described general techniques used to verify BSV
+The last chapter described general techniques used to verify {\BSV}
 designs of any kind.  This chapter focuses on techniques for
 verification of CPU implementations.
 
@@ -27,7 +27,7 @@ implementation or a software simulator) is hard because, as discussed
 in Section~\ref{Sec_Interpreters}, it is not just a program, but is
 itself an \emph{interpreter} of programs.  Thus we are confronted with
 two levels, not one.  The first-level program (P1) is the CPU
-implementation (the BSV program), which we are simulating or running
+implementation (the {\BSV} program), which we are simulating or running
 in hardware.  P1, in turn, is interpreting the RISC-V program (P2)
 that was loaded into the RISC-V CPU's memory. When we observe an error
 in P2's outputs or behavior, it could be a bug in P2 (the RISC-V
@@ -37,6 +37,12 @@ In other words, when we have an interpreter of programs, we
 conceptually have an exponentially larger space of things to test
 (test cases).  Every RISC-V program P2 is potentially a test case for
 our implementation P1, along with every potential input to each P2!
+This is illustrated in Figure~\ref{Fig_CPU_Verif_Complexity}.
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_CPU_Verif_Complexity}}
+  \caption{\label{Fig_CPU_Verif_Complexity}
+           Complexity of CPU verification}
+\end{figure}
 
 In addition to this large space of potential tests, the duration of a
 test can be very long.  A bug may exhibit itself only inside an
@@ -97,7 +103,9 @@ such as:
 \begin{itemize}
  \item What is a correct execution when executing a RISC-V program P2?
 
- \item What is the correct state of the registers and memory before and after instruction $n$?
+ \item What is the correct architectural state (registers, CSRs, memory) before
+     and after each instruction I$_j$?
+
 \end{itemize}
 
 We can compare our hardware implementation against this reference to
@@ -139,7 +147,7 @@ a software programming language (for example, Spike is written in
 C++).  In this case they only run as software on a standard computer.
 
 Golden reference models can also be written in a high-level hardware
-design language, such as BSV.  For example, we can think of Drum in
+design language, such as {\BSV}.  For example, we can think of Drum in
 this way.  Because it is a simple FSM, it is extremely simple and
 clear.  The advantage of a hardware golden reference model is that it
 can be synthesized into hardware and plugged into any system
@@ -209,8 +217,7 @@ produced signatures should match the official signature for that test
 published by RVI (the official signatures, in turn, are produced by
 RVI by running on a trusted simulator such as Spike or Sail).
 
-This is an ongoing project (and always looking for volunteers!). Some
-relevant links:
+This is an ongoing project. Some relevant links:
 
 \begin{tabbing}
 \hmm \= \url{https://wiki.riscv.org/pages/viewpage.action?pageId=49872986} \\
@@ -221,7 +228,7 @@ relevant links:
 Another test suite, called ``riscv-dv'', was developed initially at
 Google; subsequent stewardship was taken over by the ChipsAlliance
 non-profit group.  These tests generate ``random'' RISC-V programs
-(constrained by a certain ISA subset), run the program on a candidate
+(constrained to a certain ISA subset), run the program on a candidate
 implementation which should generate a trace, and compare against a
 trace from a trusted functional simulator:
 
@@ -229,11 +236,23 @@ trace from a trusted functional simulator:
 \hmm \= \url{https://github.com/chipsalliance/riscv-dv}
 \end{tabbing}
 
+In addition, most organizations maintain their own collection of test
+programs and ``regression suites'' (programs that previously surfaced
+a bug in some implementation, which are continuously re-run to ensure
+that the bug has not resurfaced due to more recent changes).
+
 % ================================================================
 
-\subsection{What does ``verified'' mean? Levels of assurance; coverage}
+\subsection{What does ``verified'' mean? Levels of assurance and coverage}
 
 \index[RV]{Formal verification}
+\index[BSV]{Formal verification}
+
+\begin{figure}[htbp]
+  \centerline{\includegraphics[width=0.8\textwidth,angle=0]{Figures/Fig_Levels_of_Assurance}}
+  \caption{\label{Fig_Levels_of_Assurance}
+           Levels of Assurance}
+\end{figure}
 
 In the software community, the term ``verified program'' has
 historically meant ``formally verified program'', {\ie} that we have a
@@ -264,6 +283,8 @@ meant ``extensive testing with a large suite of test programs'', not
 formal verification.  One can think of the term ``level of assurance''
 as a point on scale ranging from ``no assurance'' (untested, unproved)
 to ``full assurance'' (formally proved correct).
+Figure~\ref{Fig_Levels_of_Assurance} illustrates the relationship of
+formal and traditional hardware verification.
 
 As we increase the number and variety of test programs that we run
 (the test suite), we may increase the level of assurance that we have
@@ -280,11 +301,16 @@ The term ``coverage'' is a kind of measure of level of assurance.  It
 can be used both in a functional way (``How much of the space of
 possible inputs has been tested?'') or in a more
 implementation-specific way (``What fraction of the lines of code in
-the BSV/Veriog/SystemVerilog source have we exercised with our
-tests?'').
+the {\BSV}/Veri\-log/System\-Veri\-log source have we exercised with
+our tests?'').
 
-Here is a sequence of testing regimes with increasing levels of
-assurance of the correctness of our CPU implementation:
+% ================================================================
+
+\subsection{Testing regimes}
+
+Here is a sequence of testing regimes with increasing simulation times
+but also increasing levels of assurance of the correctness of our CPU
+implementation:
 
 \begin{itemize}
  \item Run all the standard ``ISA tests'' mentioned in Section~\ref{Sec_test_suites}.
@@ -304,6 +330,8 @@ assurance of the correctness of our CPU implementation:
        and networking).
 
 \end{itemize}
+
+The latter items are often executed on FPGA because simulation speed may be too slow.
 
 % ****************************************************************
 
@@ -367,7 +395,7 @@ device models, returning IMem and DMem responses.
 We do not intend to describe \verb|mkMems_Devices| in any more detail
 here, since it is outside the main focus of this book, the Drum and
 Fife CPUs.  Section~\ref{Sec_Importing_C} has details on how to import
-C code into BSV.  The interested student is welcome to peruse the code
+C code into {\BSV}.  The interested student is welcome to peruse the code
 in the \verb|src_Top/| directory.
 
 % ****************************************************************
@@ -384,9 +412,9 @@ repeatable across RISC-V implementations.  We can exploit this
 property in a setup called \emph{symmetric tandem verification},
 illustrated in Figure~\ref{Fig_tandem_verification}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_tandem_verification}}
+  \centerline{\includegraphics[width=0.6\textwidth,angle=0]{Figures/Fig_tandem_verification}}
   \caption{\label{Fig_tandem_verification}
-                  Tandem verification}
+                  Symmetric Tandem Verification}
 \end{figure}
 
 We load the same ELF RISC-V binary file into the memories of a
@@ -422,7 +450,7 @@ The trusted simulator and the DUT setup the should be configured
        that an illegal or misaligned memory access in one has the same
        response in the other.
 
- \item They do not need to have the same \emph{temporaral} behavior.
+ \item They do not need to have the same \emph{temporal} behavior.
        For example, memory access latency in one need not match memory
        latency in the other, and the ``time'' taken to execute any
        particular instruction in one need not match the ``time'' taken
@@ -574,7 +602,8 @@ of tandem verifaction, and if we can configure the trusted simulator
 to work in ``tandem verification mode''.  This is illustrated in
 Figure~\ref{Fig_tandem_verification_II}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_tandem_verification_II}}
+  \centerline{\includegraphics[width=0.7\textwidth,angle=0]
+                              {Figures/Fig_tandem_verification_II}}
   \caption{\label{Fig_tandem_verification_II}
            Asymmetric tandem verification: dealing with ``minor'' differences,
            interrupts (asynchronous events), devices, {\etc}}
@@ -640,7 +669,7 @@ to a host machine then, once again, the trace can be compared with
 that of a trusted simulator.
 
 The trusted model can itself be written in a synthesizable hardware
-description language like BSV.  In fact, the Drum CPU could be a
+description language like {\BSV}.  In fact, the Drum CPU could be a
 candidate, because it is an extremely simple implementation, not
 designed for speed, and so possibly trustworthy.  In this case, the
 entire setup in Figure~\ref{Fig_tandem_verification_II} could be in
