@@ -282,8 +282,8 @@ deployment choice based on actual product priorities.
 
 Each of these opportunties is a potential project for the reader of
 this book, starting with the existing Drum or Fife code, for more
-practice with RISC-V and BSV.  Almost all of them them require no new
-BSV concepts beyond what has already been covered.
+practice with RISC-V and {\BSV}.  Almost all of them them require no new
+{\BSV} concepts beyond what has already been covered.
 
 % ================================================================
 
@@ -393,8 +393,8 @@ combinational delay).  Fusion has merely utilized some timing
 
 \subsection{Drum and Fife: Fusing some Retire actions}
 
-In both Drum and Fife, exception handling is done by itself in a
-separate rule.  In Drum, it is the last, separate action in the FSM,
+In both Drum and Fife, exception handling is done in one place, by
+itself.  In Drum, it is the last, separate action in the FSM,
 \verb|a_exception|, in module \verb|mkCPU| in \verb|src_Drum/CPU.bsv|.
 In Fife, it is in rule \verb|rl_exception| in module module
 \verb|mkRetire| in \verb|src_Fife/S5_Retire.bsv|.
@@ -505,7 +505,7 @@ number of bits in \verb|rg_Dispatch| could be reduced to:
      \>      \>       \> Number of bits in {\tt to\_EX\_DMem} )
 \end{tabbing}
 
-BSV has a convenient type-notation to express this ``overlaying of
+{\BSV} has a convenient type-notation to express this ``overlaying of
 alternatives''.  In this case, it would look like this:
 
 {\footnotesize
@@ -528,6 +528,10 @@ deriving (Bits, FShow);
 The new nested \verb|exec_tag| field combines the previous ``enum''
 type and the 3 struct fields into a single ``union'' indicating the
 alternatives for each tag.
+
+However, note that this sharing requires a MUX on the input to the
+register which routes the different possible substructs into the
+shared bits.  This could add significant combinational circuit cost.
 
 % ================================================================
 
@@ -984,6 +988,22 @@ Caution: we now have combinational paths (through the CRegs) from
 
 % ----------------------------------------------------------------
 
+\subsubsection{Save a tick for register update by eliminating backward FIFO}
+
+Currently, the register update from Retire back to
+Register-Read-and-Dispatch spends a tick in a FIFO (see FIFOs
+\verb|f_RW_from_Retire| in Retire and in Register-Read-and-Dispatch
+stages).
+
+We can eliminate this tick by having Retire directly write into
+registers \verb|rg_scoreboard| and \verb|gprs|.
+
+Caution: we have reduced the isolation of the two stages Retire and
+Register-Read-and-Dispatch, resulting in longer combinational paths,
+with a potential negative impact on clock speed.
+
+% ----------------------------------------------------------------
+
 \subsubsection{Fife: Dispatching multiple instructions that write to the same Rd}
 
 Suppose we have two instructions, I1 followed by I2, that both write
@@ -1006,22 +1026,6 @@ is 3.  If the reservation bits value is $< 3$, we increment them and
 allow I2 to proceed, {\ie} we have eliminated a stalling cycle.  When
 I1 and I2 retire, we decrement the reservation bits.  For I3, we stall
 until the reservation bits value is non-zero.
-
-% ----------------------------------------------------------------
-
-\subsubsection{Save a tick for register update by eliminating backward FIFO}
-
-Currently, the register update from Retire back to
-Register-Read-and-Dispatch spends a tick in a FIFO (see FIFOs
-\verb|f_RW_from_Retire| in Retire and in Register-Read-and-Dispatch
-stages).
-
-We can eliminate this tick by having Retire directly write into
-registers \verb|rg_scoreboard| and \verb|gprs|.
-
-Caution: we have reduced the isolation of the two stages Retire and
-Register-Read-and-Dispatch, resulting in longer combinational paths,
-with a potential negative impact on clock speed.
 
 % ================================================================
 

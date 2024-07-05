@@ -46,6 +46,7 @@ FIGS += Fig_Mem_Hierarchy.png
 FIGS += Fig_Retire_Layers_1.png
 FIGS += Fig_Retire_Layers_1_2.png
 FIGS += Fig_RISCV_Epochs.png
+FIGS += Fig_RISCV_Fuse_Decode_RR.png
 FIGS += Fig_RISCV_Retire_Ordering.png
 FIGS += Fig_RISCV_Scoreboard.png
 FIGS += Fig_RISCV_Store_Buffer.png
