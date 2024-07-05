@@ -42,7 +42,7 @@ Drum FSM actions:
 \SHOWCODE{Code_Extracts/Drum_Rules_Labels.tex}
 
 Then, we instantiate a register \verb|rg_action| to hold the label of
-the next action to be performed, initialzed to \verb|A_FETCH|.  We
+the next action to be performed, initialized to \verb|A_FETCH|.  We
 manually transform each FSM action into a rule.  Each rule's explicit
 condition checks \verb|rg_action|, and the rule-body updates
 \verb|rg_action| to enable the next action.  After the final rule to

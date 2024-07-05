@@ -1,0 +1,152 @@
+% Slides accompanying "Learn RISC-V CPU Implementation and BSV" book
+% Copyright (c) 2024 Rishiyur S. Nikhil, All Rights Reserved
+
+\input{Preamble.tex}
+
+\date{L14: RISC-V: The Drum CPU, using Rules}
+
+% ****************************************************************
+
+\begin{document}
+
+% ================================================================
+
+\begin{frame}
+ \titlepage
+
+ \begin{center}
+  \includegraphics[height=1cm]{Bluespec_Logo_2022-10}
+ \end{center}
+
+\end{frame}
+
+% ================================================================
+
+\input{Reminders.tex}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Flow of information between stages in Drum and Fife}
+
+\footnotesize
+
+\begin{center}
+ \includegraphics[height=0.6\textheight]{Fig_Instr_Exec_w_structs}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}
+\frametitle{Table of Contents}
+
+\tableofcontents
+
+\end{frame}
+
+% ****************************************************************
+
+\section{The Drum CPU, using Rules}
+
+\begin{frame}
+
+\begin{center}
+  {\LARGE RISC-V: The Drum CPU, using Rules instead of {\tt StmtFSM}}
+\end{center}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{The Drum CPU, using Rules instead of {\tt StmtFSM}}
+
+\footnotesize
+
+This is a short chapter demonstrating a manual translation of the Drum
+CPU module from one using {\tt StmtFSM} to one using Rules instead.
+
+\vxx
+
+This reinforces our claim that {\tt StmtFSM} does not add any new
+semantics to {\BSV}; it is simply a higher-level notation that can be
+used fruitfully in certain circumstances (``structured processes'').
+
+\vxx
+
+Please examine the source files in {\tt src\_Drum/} directory:
+
+\begin{center}
+\mbox{{\tt CPU.bsv} \hmm {\tt Drum\_FSM.bsv} \hmm {\tt Drum\_Rules.bsv}}
+\end{center}
+
+{\tt CPU.bsv} is the common file; it ``includes'' either {\tt
+Drum\_FSM.bsv} ({\tt StmtFSM} version) or {\tt Drum\_Rules.bsv} (Rules
+version).
+
+By examining the latter two files side by side, we can observe the
+equivalence.  Briefly:
+
+\begin{itemize}
+
+  \item We define an ``{\tt enum}'' type that gives a symbolic name to
+      each action-step in the FSM, and introduce a ``sequencer''
+      register to hold a value of this type.
+
+  \item We convert each action in the FSM to a rule
+
+      \begin{itemize}\footnotesize
+
+        \item whose rule-condition allows it to execute only when the
+            sequencer says it is its turn to execute, and
+
+        \item whose rule-body ``increments'' the sequencer to the next FSM step.
+      \end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Advantages of the Rules version}
+
+\footnotesize
+
+{\tt StmtFSM} only permits \emph{structured} process composition,
+{\ie} properly nested sequencing, if-then-else, while-loops.
+
+\vxxxx
+
+The Rules version makes it easy to depart from such properly nested
+structure and ``short-circuit'' certain flows for better performance.
+
+\vxx
+
+For example:
+\begin{itemize}
+
+  \item If we detect an exception in rule {\tt rl\_Decode} (and,
+      indeed, in any of the other rules), we can immediatelly handle
+      the exception and ``jump'' back to the Fetch step, thereby
+      saving several cycles.
+
+  \item In {\tt rl\_EX\_Control} and {\tt rl\_EX\_Int}, if there is no
+      exception, we can immmediately perform any register write and
+      ``jump'' back to the Fetch rule.
+
+\end{itemize}
+
+\end{frame}
+
+% ****************************************************************
+
+\input{Postamble.tex}
+
+% ****************************************************************
+
+\end{document}
+% ****************************************************************
