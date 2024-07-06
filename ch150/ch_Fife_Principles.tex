@@ -25,7 +25,7 @@ Figure~\ref{Fig_Instr_Exec_w_FIFOs} annotates the abstract execution
 algorithm in Figure~\ref{Fig_Instr_Exec} with some specifics for the
 pipelined implementation in Fife.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Instr_Exec_w_FIFOs}}
+  \centerline{\includegraphics[width=6in]{Fig_Instr_Exec_w_FIFOs}}
   \caption{\label{Fig_Instr_Exec_w_FIFOs}Pipelined interpretation of RISC-V instructions (Fig.~\ref{Fig_Instr_Exec} with some annotations)}
 \end{figure}
 Unlike Drum, where each yellow box was one step in a sequential
@@ -35,7 +35,7 @@ diagram (one for each yellow box), all running \emph{concurrently}.
 Each black arrow in the diagram represents a flow of \emph{messages}
 sent from one stage to another.  These messages are sent via FIFO
 buffers (depicted by
-\raisebox{-0.2ex}{\includegraphics[width=0.2in,angle=0]{Figures/Fig_FIFO}}
+\raisebox{-0.2ex}{\includegraphics[width=0.2in]{Fig_FIFO}}
 annotations in the figure).
 
 Each stage is an infinite loop, consuming incoming messages and
@@ -163,7 +163,7 @@ current PC.
 Clearly, we need to identify and flush wrong-path instructions from
 the pipeline.  Figure~\ref{Fig_RISCV_Epochs} shows the general scheme.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Epochs}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_RISCV_Epochs}}
   \caption{\label{Fig_RISCV_Epochs}
            Using epochs to identify and discard mispredicted instructions}
 \end{figure}
@@ -283,7 +283,7 @@ precisely the purpose of the \verb|scoreboard| shown in
 Figure~\ref{Fig_Instr_Exec_w_FIFOs}.  The general scheme is shown in
 Figure~\ref{Fig_RISCV_Scoreboard}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Scoreboard}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_RISCV_Scoreboard}}
   \caption{\label{Fig_RISCV_Scoreboard}
            Using a scoreboard to manage register read/write hazards}
 \end{figure}
@@ -460,7 +460,7 @@ pipes from later instructions.
 Consider the Execute Memory Ops stage in
 Figure~\ref{Fig_RISCV_Store_Buffer},
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=\textwidth]{Figures/Fig_RISCV_Store_Buffer}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_RISCV_Store_Buffer}}
   \caption{\label{Fig_RISCV_Store_Buffer}
            Speculative and non-speculative DMem access, with a Store Buffer}
 \end{figure}
@@ -565,7 +565,7 @@ Figure~\ref{Fig_Fife_Retire} summarizes the actions to be taken by
 Fife's Retire stage.
 
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Retire_Layers_1_2}}
+  \centerline{\includegraphics[width=6in,angle=0]{Fig_Retire_Layers_1_2}}
   \caption{\label{Fig_Fife_Retire}Retire actions in Fife}
 \end{figure}
 

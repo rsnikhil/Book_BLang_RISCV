@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.7037482"
-     inkscape:cx="400.1852"
+     inkscape:cx="399.44548"
      inkscape:cy="271.10513"
      inkscape:window-width="2560"
      inkscape:window-height="1499"
      inkscape:window-x="0"
-     inkscape:window-y="61"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -529,11 +529,11 @@
        y="71.666641"
        id="text153107" />
     <rect
-       style="fill:none;stroke:#1a1a1a;stroke-width:0.0999993"
+       style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none"
        id="rect1"
-       width="190.52734"
+       width="79.458542"
        height="47.405399"
-       x="10.648202"
+       x="77.778778"
        y="32.645248" />
     <rect
        style="fill:#e9afaf;stroke:#000000;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"

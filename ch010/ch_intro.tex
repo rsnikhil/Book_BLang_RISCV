@@ -21,7 +21,7 @@
 
 This book has two complementary goals, illustrated in Figure~\ref{Fig_Goals}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Goals}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_Goals}}
   \caption{\label{Fig_Goals}Goals for this book}
 \end{figure}
 
@@ -86,7 +86,7 @@ Figure~\ref{Fig_Topics} shows the broad range of topics that CPU
 designer needs to know.  In this book we will touch on all the red
 topics.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Topics}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_Topics}}
   \caption{\label{Fig_Topics}Topics covered in this book (in red text in red box)}
 \end{figure}
 
@@ -182,7 +182,7 @@ discussing ASIC flows in this book.
 Figure~\ref{Fig_Chapter_Roadmap} shows a roadmap of the chapters in
 the book, and the interplay of {\BSV} and RISC-V topics.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Chapter_Roadmap}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_Chapter_Roadmap}}
   \caption{\label{Fig_Chapter_Roadmap}Chapter roadmap}
 \end{figure}
 
@@ -301,7 +301,7 @@ Drum and Fife are illustrated in
 Figure~\ref{Fig_Two_Microarchitectures}.  Each instruction is taken it
 through the stages shown.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Two_Microarchitectures}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_Two_Microarchitectures}}
   \caption{\label{Fig_Two_Microarchitectures}Two CPU implementations (microarchitectures)}
 \end{figure}
 
@@ -455,7 +455,7 @@ sometimes called a ``square'' wave).  This is illustrated in
 Figure~\ref{Fig_Clock_1}.
 
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Clock}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_Clock}}
   \caption{\label{Fig_Clock_1}A clock signal}
 \end{figure}
 
@@ -502,7 +502,7 @@ Digital circuits are composed of state elements and
 inputs of state elements, as illustrated in
 Figure~\ref{Fig_BSV_Digital_Circuits}.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Digital_Circuits}}
+  \centerline{\includegraphics[width=\textwidth]{Fig_BSV_Digital_Circuits}}
   \caption{\label{Fig_BSV_Digital_Circuits}
            Digital circuits consist of state elements interconnected
 	   with acyclic combinational circuits}
@@ -615,7 +615,7 @@ and memory.
 Figure~\ref{Fig_Mem_Hierarchy} illustrates a typical memory hierarchy
 in a modern computer system.
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_Mem_Hierarchy}}
+  \centerline{\includegraphics[width=0.5\textwidth]{Fig_Mem_Hierarchy}}
   \caption{\label{Fig_Mem_Hierarchy}
            A typical memory hierarchy in a computer system}
 \end{figure}
@@ -714,8 +714,8 @@ memory accesses are \emph{split-phase} transactions---a request action
 followed an unpredictable number of ticks later by a response action.
 This is illustrated in Figure~\ref{Fig_BSV_Split_Phase_Mem}.
 \begin{figure}[htbp]
-\centerline{\includegraphics[width=6in,angle=0]{Figures/Fig_BSV_Split_Phase_Mem}}
-\caption{\label{Fig_BSV_Split_Phase_Mem} Split-phase memory access}
+  \centerline{\includegraphics[width=0.3\textwidth]{Fig_BSV_Split_Phase_Mem}}
+  \caption{\label{Fig_BSV_Split_Phase_Mem} Split-phase memory access}
 \end{figure}
 During the interval between request and response, the CPU need not be
 idle; it can execute other instructions, prepare the next memory

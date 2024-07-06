@@ -42,8 +42,8 @@
      showgrid="true"
      units="in"
      inkscape:zoom="3.9487493"
-     inkscape:cx="399.36696"
-     inkscape:cy="345.29921"
+     inkscape:cx="404.81172"
+     inkscape:cy="345.55245"
      inkscape:window-width="3552"
      inkscape:window-height="1968"
      inkscape:window-x="10"
@@ -525,7 +525,7 @@
        y="71.666641"
        id="text153107" />
     <rect
-       style="fill:none;stroke:#1a1a1a;stroke-width:0.0999995"
+       style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none"
        id="rect1"
        width="190.52734"
        height="70.353142"

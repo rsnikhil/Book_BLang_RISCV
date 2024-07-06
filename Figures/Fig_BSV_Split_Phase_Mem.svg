@@ -43,7 +43,7 @@
      units="in"
      inkscape:zoom="3.9487493"
      inkscape:cx="394.80855"
-     inkscape:cy="294.14377"
+     inkscape:cy="294.39701"
      inkscape:window-width="3552"
      inkscape:window-height="1968"
      inkscape:window-x="10"
@@ -547,11 +547,11 @@
        y="71.666641"
        id="text153107" />
     <rect
-       style="fill:none;stroke:#1a1a1a;stroke-width:0.1"
+       style="fill:none;stroke:#1a1a1a;stroke-width:0.2;stroke-dasharray:none"
        id="rect1"
-       width="190.52734"
+       width="49.55022"
        height="30.284546"
-       x="10.648202"
+       x="80.064697"
        y="31.007219" />
     <text
        xml:space="preserve"
