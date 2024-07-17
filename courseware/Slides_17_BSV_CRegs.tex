@@ -50,25 +50,42 @@
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Tighter Rule Scheduling: Motivation}
+\frametitle{Tighter Rule Scheduling: An Analogy}
 
-\footnotesize
+\scriptsize
 
-\begin{tabular}{ | c | p{0.55\textwidth} | p{0.35\textwidth} | }
+\begin{tabular}{ | l | p{0.35\textwidth} | p{0.4\textwidth} | }
  \hline
-   \hm & {\BSV} & \scriptsize \emph{Analogy: RISC-V ISA} \\
+   \hm & RISC-V ISA & {\BSV} \\
  \hline
  \hline
-     (A)
+     (A)  Spec semantics
+
+   & \emph{RISC-V ISA semantics are abstract: one instruction at a time}
 
    & Rule semantics are abstract: one rule at a time
 
-   & \scriptsize \emph{RISC-V ISA semantics are abstract: one instruction at a time}
+ \\
 
-   \\
+   &
+
+   \emph{Specifically: register and memory updates in one instruction are
+   visible to the subsequent and later instructions.}
+
+   &
+
+   \emph{Specifically: effects of {\tt Action/ActionValue}s in one rule are
+   visible to the subsequent and later rules.}
+
+ \\
 
  \hline
-     (B)
+     (B) Implementation
+
+   & RISC-V instructions can be executed in pipelines, in parallel
+     (superscalar), out-of-order, ...  The implementation must ensure
+     that the \emph{order} in which they read and write registers and
+     memory is consistent with (A).
 
    & When the {\bsc} compiler maps a set of rules to execute
      simultaneously (in the same clock), all their methods occur at
@@ -81,25 +98,31 @@
      {\bsc} must ensure that the \emph{ordering} of methods in (B) is
      consistent with (A).
 
-     \vspace{1ex}
+ \\
 
-     In particular, {\bsc} may introduce (combinational) control
-     circuits to \emph{stall} a rule to avoid violating (A).
-
-   & \scriptsize
-
-     \emph{RISC-V instructions can be executed in pipelines, in parallel
-     (superscalar), out-of-order, ...  The implementation must ensure
-     that the \emph{order} in which they retire, and the \emph{order} in
-     which they read and write registers and memory, is consistent
-     with (A).
-
-     \vspace{1ex}
+     &
 
      In particular, an instruction may be \emph{stalled} to avoid
-     violating (A).}
+     violating (A) (with scoreboards, bypassing, forwarding, ...).
 
-   \\
+     &
+
+     In particular, {\bsc} may \emph{stall} a rule to avoid violating
+     (A) (with a combinational control circuit).
+
+ \\
+ \hline
+
+     &
+
+     \emph{Fused} instructions ({\eg} Fused Multiply-Add) can avoid this stall.
+
+     &
+
+     \emph{Fused} registers (``Concurrent Registers'') can avoid this stall.
+
+ \\
+
  \hline
 \end{tabular}
 
@@ -247,7 +270,9 @@ Use a \emph{Concurrent Register} ({\tt CReg}) for {\tt rg\_counter}.
 \subsection{CRegs}
 
 \begin{frame}[fragile]
-\frametitle{CRegs}
+\frametitle{Concurrent Registers (CRegs)}
+
+\label{slide_cregs_BSV}
 
 \footnotesize
 
@@ -261,40 +286,22 @@ module mkCReg #(parameter Integer n,
               (Reg#(a_type) ifc[])
 \end{Verbatim}
 
-\vspace{5ex}
+\vspace{2ex}
 
 It is instantiated similar to this example: \\
-(This example: register content type: \verb|Bit#(4)|; initial value: 15; two {\tt Reg} interfaces).
+(This example: register content type: \verb|Bit#(4)|; initial value: 15; three {\tt Reg} interfaces).
 
 \begin{Verbatim}[frame=single]
-   // parameter n is 2, resetval is 15
-   Array #(Reg #(Bit #(4))) crg_counter <- mkCReg (2, 15);
+   // parameter n is 3, resetval is 15
+   Array #(Reg #(Bit #(4))) crg_counter <- mkCReg (3, 15);
 \end{Verbatim}
 
-\end{frame}
+\vspace{2ex}
 
-% ================================================================
-
-\subsection{Hardware intuition}
-
-\begin{frame}[fragile]
-\frametitle{Hardware intuition for a CReg}
-
-\label{slide_hw_intuition}
-
-\footnotesize
-
-\begin{center}
- \includegraphics[width=\textwidth]{Fig_CReg_HW}
-
- \vspace{1ex}
-
- This has an array of $n$ {\tt Reg} interfaces, indexed from 0 to $n$-1.
-
- \vspace{1ex}
-
- The $j$'th interface has {\tt [$j$].\_read()} and {\tt [$j$].\_write()} methods.
-\end{center}
+Compare {\tt mkReg} and {\tt mkCReg}: \hmm
+\begin{minipage}{0.5\textwidth}
+ \includegraphics[width=\textwidth]{Fig_CReg_BSV}
+\end{minipage}
 
 \end{frame}
 
@@ -341,11 +348,40 @@ It is instantiated similar to this example: \\
 \hm
 \begin{minipage}{0.35\textwidth}
 
-This ordering corresponds exactly to the left-to-right and
-top-to-bottom ordering of the methods in the hardware-intuition
-diagram (Slide~\ref{slide_hw_intuition}).
+This ordering corresponds exactly the left-to-right ordering of {\tt
+Reg\#(t)} interfaces in (Slide~\ref{slide_cregs_BSV}),
+
+\vxx
+
+and to the left-to-right and top-to-bottom ordering of the methods in
+the hardware-intuition diagram (Slide~\ref{slide_hw_intuition}).
 
 \end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\subsection{Hardware intuition}
+
+\begin{frame}[fragile]
+\frametitle{Hardware intuition for a CReg}
+
+\label{slide_hw_intuition}
+
+\footnotesize
+
+\begin{center}
+ \includegraphics[width=\textwidth]{Fig_CReg_HW}
+
+ \vspace{1ex}
+
+ This has an array of $n$ {\tt Reg} interfaces, indexed from 0 to $n$-1.
+
+ \vspace{1ex}
+
+ The $j$'th interface has {\tt [$j$].\_read()} and {\tt [$j$].\_write()} methods.
+\end{center}
 
 \end{frame}
 
@@ -358,9 +394,10 @@ diagram (Slide~\ref{slide_hw_intuition}).
 
 \footnotesize
 
-\begin{minipage}{0.5\textwidth}\scriptsize
+\begin{minipage}[t]{0.5\textwidth}\scriptsize
+Using {\tt mkCReg}:
 \begin{Verbatim}[frame=single]
-module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
+module mkUp_Down_Counter_II (Up_Down_Counter_IFC);
    // STATE
    Array #(Reg #(Bit #(4))) crg_counter <- mkCReg (3,15);
 
@@ -371,24 +408,60 @@ module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
    endmethod
 
    method Bit #(4) val;
-      return rg_counter [0];
+      return crg_counter [1];
    endmethod
 
-   method Action decr if (rg_counter != 0);
-      rg_counter [1] <= rg_counter [1] - 1;
+   method Action decr if (crg_counter [1] != 0);
+      crg_counter [1] <= crg_counter [1] - 1;
    endmethod
 
-   method Action incr if (rg_counter != 15);
-      rg_counter [0] <= rg_counter [0] + 1;
+   method Action incr if (crg_counter [0] != 15);
+      crg_counter [0] <= crg_counter [0] + 1;
    endmethod
 endmodule
 \end{Verbatim}
 \end{minipage}
 \hm
-\begin{minipage}{0.45\textwidth}
- Some questions to ponder:
+\begin{minipage}[t]{0.45\textwidth}\scriptsize
+Using {\tt mkReg}:
+\begin{Verbatim}[frame=single]
+module mkUp_Down_Counter_I (Up_Down_Counter_IFC);
+   // STATE
+   Reg #(Bit #(4)) rg_counter <- mkReg (15);
 
- \begin{itemize}
+   // --------------------------------
+   // INTERFACE
+   method Action init (Bit #(4) init_val);
+      rg_counter <= init_val;
+   endmethod
+
+   method Bit #(4) val;
+      return rg_counter;
+   endmethod
+
+   method Action decr () if (rg_counter != 0);
+      rg_counter <= rg_counter - 1;
+   endmethod
+
+   method Action incr () if (rg_counter != 15);
+      rg_counter <= rg_counter + 1;
+   endmethod
+endmodule
+\end{Verbatim}
+\end{minipage}
+
+\end{frame}
+
+% ================================================================
+
+\begin{frame}[fragile]
+\frametitle{Up-down counter with a CReg}
+
+\footnotesize
+
+Some questions to ponder:
+
+\begin{itemize}
 
   \item What does method {\tt val} return? \\
         \hm The original value in the register? \\
@@ -402,21 +475,20 @@ endmodule
         Note: {\tt incr} saturates at 15, and {\tt decr} saturates at
         0, so the order matters!
 
- \end{itemize}
+\end{itemize}
 
- \vspace{2ex}
+\vspace{2ex}
 
- \emph{Hint:} The answers are in the choice of {\tt CReg} indexes in each method.
-\end{minipage}
+\emph{Hint:} The answers are in the choice of {\tt CReg} indexes in each method.
 
 \end{frame}
 
 % ================================================================
 
-\subsection{Example: CSR {\tt mcycle} in RISC-V}
+\subsection{Example use of a CReg: CSR {\tt mcycle} in RISC-V}
 
 \begin{frame}[fragile]
-\frametitle{Example: CSR {\tt mcycle} in RISC-V}
+\frametitle{Example use of a CReg: CSR {\tt mcycle} in RISC-V}
 
 \footnotesize
 
@@ -498,7 +570,7 @@ using ordinary registers ({\tt mkReg}, {\tt mkRegU}):
 \begin{center}
 \begin{minipage}[t]{0.45\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
-module mkFIFOF (FIFOF #(Bit #(32)));
+module mkFIFOF_I (FIFOF #(Bit #(32)));
    Reg #(Bit #(32)) rg_data <- mkRegU;
    Reg #(Bool)      rg_full <- mkReg (False);
 
@@ -544,7 +616,7 @@ endmodule
 % ================================================================
 
 \begin{frame}[fragile]
-\frametitle{Analysis of the performance of {\tt mkFIFOF}}
+\frametitle{Analysis of the performance of {\tt mkFIFOF\_I}}
 
 \footnotesize
 
@@ -560,7 +632,7 @@ consumer rule \verb|rl_C| that invokes \verb|first| and \verb|deq|:
 \vspace{4ex}
 
 These rules cannot fire at the same instant (on the same clock)
-because both of them read and write register \verb|fg_Full| (because
+because both of them read and write register \verb|rg_Full| (because
 both \verb|enq| and \verb|deq| read and write the register).
 
 \vspace{2ex}
@@ -587,7 +659,6 @@ Instead of {\tt mkReg} for {\tt rg\_full}, we can use {\tt mkCReg}:
 \begin{center}
 \begin{minipage}[t]{0.485\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
-module mkFIFOF (FIFOF #(Bit #(32)));
 module mkPipelineFIFOF (FIFOF #(Bit #(32)))
    Reg #(Bit #(t))      rg_data  <- mkRegU;
    Array #(Reg #(Bool)) crg_full <- mkCReg (3, False);
@@ -728,10 +799,12 @@ the \verb|deq| method to the \verb|enq| method.
 What happens if we exchange the [0] and [1] CReg indexes?
 
 \begin{center}
-\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\begin{minipage}[t]{0.49\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
+module mkBypassFIFOF (FIFOF #(Bit #(32)))
    Array #(Reg #(Bit #(32))) crg_data <- mkCRegU (2);
-   Array #(Reg #(Bool))      crg_full <- mkCReg (3, False);
+   Array #(Reg #(Bool))      crg_full <- mkCReg (3,
+                                                 False);
 
    // ----------------
    // INTERFACE
@@ -750,7 +823,8 @@ What happens if we exchange the [0] and [1] CReg indexes?
    ...
 \end{Verbatim}
 \end{minipage}
-\begin{minipage}[t]{0.485\textwidth}\scriptsize
+\hfill
+\begin{minipage}[t]{0.48\textwidth}\scriptsize
 \begin{Verbatim}[frame=single]
    ...
    method Bool notFull ();
@@ -817,6 +891,8 @@ therefore able to \verb|deq| from it.
 This is why we call it a ``BypassFIFO''.  When used in a pipeline, the
 enqueued value can be ``bypassed'' straight through the FIFO to the
 consumer on the same clock.
+
+\hmm \emph{Note:} So, a {\tt CReg} is needed for the data as well.
 
 \vspace{2ex}
 

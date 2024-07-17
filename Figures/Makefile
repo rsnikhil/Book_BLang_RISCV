@@ -26,6 +26,7 @@ FIGS += Fig_CPU_Simulation.png
 FIGS += Fig_CPU_Verif_Complexity.png
 FIGS += Fig_Credit_Based_Flow_Control.png
 FIGS += Fig_CReg_HW.png
+FIGS += Fig_CReg_BSV.png
 FIGS += Fig_CSRRxx.png
 FIGS += Fig_FIFO.png
 FIGS += Fig_FIFO_Producer_Consumer.png

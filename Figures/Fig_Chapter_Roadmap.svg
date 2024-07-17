@@ -42,12 +42,12 @@
      showgrid="true"
      units="in"
      inkscape:zoom="2.1485637"
-     inkscape:cx="397.24212"
+     inkscape:cx="397.47483"
      inkscape:cy="323.93734"
      inkscape:window-width="2240"
      inkscape:window-height="1499"
-     inkscape:window-x="193"
-     inkscape:window-y="33"
+     inkscape:window-x="4"
+     inkscape:window-y="25"
      inkscape:window-maximized="0"
      inkscape:current-layer="layer1"
      inkscape:snap-global="false"
@@ -861,12 +861,12 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;line-height:1;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="63.565254"
          y="88.523293"
-         id="tspan130">sequences, conditionals,</tspan><tspan
+         id="tspan131">testbench and DUT, $display/$format,</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11667px;line-height:1;font-family:sans-serif;-inkscape-font-specification:sans-serif;text-align:start;text-anchor:start;stroke-width:0.264583"
          x="63.565254"
          y="90.661713"
-         id="tspan131">while-loops</tspan></text>
+         id="tspan7">assertions, waveforms</tspan></text>
     <path
        style="fill:#d40000;fill-rule:evenodd;stroke:#000000;stroke-width:0.2;marker-end:url(#marker2957)"
        d="M 92.742663,97.147768 H 121.12696"
