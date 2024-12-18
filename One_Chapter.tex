@@ -1,0 +1,261 @@
+% -*- mode: fundamental -*-
+
+% Book to reach BSV using Fife and Drum RISC-V CPUs as working example.
+% Rishiyur Nikhil
+% Begun: December 2023 ... 2024
+
+\documentclass[11pt]{book}
+
+% ================================================================
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{latexsym}
+\usepackage{makeidx}
+\usepackage{alltt}
+\usepackage{verbatim}
+\usepackage{fancyvrb}
+% \usepackage{moreverb}
+\usepackage{index}
+\usepackage{ae}
+\usepackage{aecompl}
+
+  \usepackage[pdftex,colorlinks=true,bookmarksopen, pdfstartview=FitH,
+              linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+  \pdfcompresslevel=9
+  \usepackage[pdftex]{graphicx}
+
+% ================================================================
+% Table of contents packages etc.
+
+% For additional short table of contents:
+%     https://www.ctan.org/tex-archive/macros/latex/contrib/shorttoc/
+\usepackage[tight]{shorttoc}
+
+% for \begin/end{space} around short toc
+% \usepackage{setspace}
+
+% For changing spacing between entries in toc
+\usepackage{tocloft}
+\renewcommand{\cftbeforechapskip}{0pt}
+
+% ================================================================
+
+% HORIZONTAL MARGINS
+% Left margin, odd pages: 1.25 inch (0.25 + 1)
+\setlength{\oddsidemargin}{0.25in}
+% Left margin, even pages: 1.25 inch (0 + 1)
+\setlength{\evensidemargin}{0.25in}
+% Text width 6 inch (so other margin is 1.25 inch).
+\setlength{\textwidth}{6in}
+% ----------------
+% VERTICAL MARGINS
+% Top margin 0.5 inch (-0.5 + 1)
+\setlength{\topmargin}{-0.5in}
+% Head height 0.25 inch (where page headers go)
+\setlength{\headheight}{0.25in}
+% Head separation 0.25 inch (between header and top line of text)
+\setlength{\headsep}{0.25in}
+% Text height 9 inch (so bottom margin 1 in)
+\setlength{\textheight}{9in}
+% ----------------
+% PARAGRAPH INDENTATION
+\setlength{\parindent}{0in}
+% SPACE BETWEEN PARAGRAPHS
+\setlength{\parskip}{\medskipamount}
+% ----------------
+% STRUTS
+% HORIZONTAL STRUT.  One argument (width).
+\newcommand{\hstrut}[1]{\hspace*{#1}}
+% VERTICAL STRUT. Two arguments (offset from baseline, height).
+\newcommand{\vstrut}[2]{\rule[#1]{0in}{#2}}
+% ----------------
+% HORIZONTAL LINE ACROSS PAGE:
+\newcommand{\hdivider}{\noindent\mbox{}\hrulefill\mbox{}} 
+% ----------------
+% EMPTY BOXES OF VARIOUS WIDTHS, FOR INDENTATION
+\newcommand{\hm}{\hspace*{1em}}
+\newcommand{\hmm}{\hspace*{2em}}
+\newcommand{\hmmm}{\hspace*{3em}}
+\newcommand{\hmmmm}{\hspace*{4em}}
+% ----------------
+% VARIOUS CONVENIENT WIDTHS RELATIVE TO THE TEXT WIDTH, FOR BOXES.
+\newlength{\hlessmm}
+\setlength{\hlessmm}{\textwidth}
+\addtolength{\hlessmm}{-2em}
+
+\newlength{\hlessmmmm}
+\setlength{\hlessmmmm}{\textwidth}
+\addtolength{\hlessmmmm}{-4em}
+% ----------------
+% ``TIGHTLIST'' ENVIRONMENT (no para space betwee items, small indent)
+\newenvironment{tightlist}%
+{\begin{list}{$\bullet$}{%
+    \setlength{\topsep}{0in}
+    \setlength{\partopsep}{0in}
+    \setlength{\itemsep}{0in}
+    \setlength{\parsep}{0in}
+    \setlength{\leftmargin}{1.5em}
+    \setlength{\rightmargin}{0in}
+    \setlength{\itemindent}{0in}
+}
+}%
+{\end{list}
+}
+% ----------------
+% ITALICISE WORDS
+\newcommand{\ie}{\emph{i.e.,}}
+\newcommand{\eg}{\emph{e.g.,}}
+\newcommand{\Eg}{\emph{E.g.,}}
+\newcommand{\etc}{\emph{etc.}}
+\newcommand{\via}{\emph{via}}
+\newcommand{\vs}{\emph{vs.}}
+% ----------------
+% Require numbering for subsubsections, and show them in table of contents
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+% ----------------
+% EXERCISES
+\newcounter{exercise}[chapter]
+
+\newcommand{\Beginexercise}{\begin{center} \hdivider \\ {\bf Exercises}\end{center}}
+
+% \newcommand{\Exercise}{$\bullet$ {\bf Exercise}:}
+\newcommand{\Exercise}{\addtocounter{exercise}{1}{\bf Exercise \arabic{chapter}.\arabic{exercise}:}}
+
+\newcommand{\Endexercise}{\hfill {\normalsize$\Box$} \\ \hdivider}
+% \newcommand{\Endexercise}{\makebox[2in]{\hrulefill} \bigskip}
+
+\newcommand{\ApExercise}%
+    {\addtocounter{exercise}{1}{\bf Exercise \Alph{chapter}.\arabic{exercise}:}}
+
+\newcounter{tmpcounter}
+% ----------------
+% CODE FONT (e.g. {\cf x := 0}).
+\newcommand{\cf}{\footnotesize\tt}
+% ----------------
+% The bsc compiler and BSV language
+\newcommand{\bsc}{\emph{bsc}}
+\newcommand{\BSV}{\bf{BSV}}
+% ----------------
+% The GNU tools and other tools
+\newcommand{\gcc}{\emph{gcc}}
+\newcommand{\objdump}{\emph{objdump}}
+\newcommand{\gdb}{\emph{gdb}}
+\newcommand{\verilator}{\emph{Verilator}}
+% ----------------
+% KEYWORDS
+\newcommand{\kw}[1]{{\bf #1}}
+% ----------------
+% Inputting verbatim code fragments
+\newcommand{\SHOWCODE}[1]{{\footnotesize\input{#1}}}
+
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+% HERE BEGINS THE DOCUMENT
+
+\newcommand{\copyrightnotice}{\copyright 2023-2024 R.S.Nikhil}
+
+% ================================================================
+% Subsets of chapters
+
+% \includeonly{ch000_front/front}
+% \includeonly{ch010_intro/ch_intro}
+% \includeonly{ch020_ISA/ch_ISA}
+% \includeonly{ch030_RISV_Design_Space/ch_RISCV_Design_Space}
+% \includeonly{ch040_Combo_Circuits/ch_Combo_Circuits}
+% \includeonly{ch050_FSM_Fetch/ch_FSM_Fetch}
+
+% \includeonly{ch800_apx_resources/apx_resources}
+% \includeonly{ch850_apx_Why_BSV/apx_Why_BSV}
+% \includeonly{ch860_apx_Glossary/apx_Glossary}
+
+% \includeonly{ch900_back/back}
+
+% \includeonly{ch000_front/front,ch050_FSM_Fetch/ch_FSM_Fetch,ch900_back/back}
+
+\includeonly{ch880/apx_Exercises}
+
+% ================================================================
+% Setup for two indexes
+% See: https://texfaq.org/FAQ-multind
+
+\makeindex
+\newindex{BSV}{bdx}{bnd}{Index of BSV topics}
+\newindex{RV}{rdx}{rnd}{Index of RISC-V topics}
+
+% ================================================================
+
+\begin{document}
+
+% ----------------------------------------------------------------
+\include{ch000_front/front}
+% ----------------------------------------------------------------
+
+\pagestyle{myheadings}
+
+\markboth{Ch \arabic{chapter}: Warmup: Hello World!}
+         {\copyrightnotice}
+
+% ----------------------------------------------------------------
+\include{ch010/ch_intro}
+% ----------------------------------------------------------------
+\include{ch020/ch_ISA}
+% ----------------------------------------------------------------
+\include{ch030/ch_Top_Packages}
+% ----------------------------------------------------------------
+\include{ch040/ch_Combo_Circuits}
+% ----------------------------------------------------------------
+\include{ch050/ch_struct_mem_req_rsp}
+% ----------------------------------------------------------------
+\include{ch060/ch_Core_Functions}
+% ----------------------------------------------------------------
+\include{ch070/ch_Modules_Interfaces}
+% ----------------------------------------------------------------
+\include{ch080/ch_GPRs_CSRs}
+% ----------------------------------------------------------------
+\include{ch090/ch_FSMs}
+% ----------------------------------------------------------------
+\include{ch100/ch_Drum_CPU}
+% ----------------------------------------------------------------
+\include{ch110/ch_BSV_Verification}
+% ----------------------------------------------------------------
+\include{ch120/ch_RISCV_Verification}
+% ----------------------------------------------------------------
+\include{ch130/ch_Rules_I}
+% ----------------------------------------------------------------
+\include{ch140/ch_Drum_Rules}
+% ----------------------------------------------------------------
+\include{ch150/ch_Fife_Principles}
+% ----------------------------------------------------------------
+\include{ch160/ch_Fife_Code}
+% ----------------------------------------------------------------
+\include{ch170/ch_Rules_II}
+% ----------------------------------------------------------------
+\include{ch180/ch_Optimization}
+% ----------------------------------------------------------------
+\include{ch190/ch_BSV_Further_Study}
+% ----------------------------------------------------------------
+\include{ch200/ch_RISCV_Further_Study}
+% ----------------------------------------------------------------
+
+% ****************************************************************
+
+\appendix
+
+% ----------------------------------------------------------------
+\include{ch800_apx_resources/apx_resources}
+% ----------------------------------------------------------------
+\include{ch850_apx_Why_BSV/apx_Why_BSV}
+% ----------------------------------------------------------------
+\include{ch860_apx_Glossary/apx_Glossary}
+% ----------------------------------------------------------------
+\include{ch870/apx_BSV_importing_C}
+% ----------------------------------------------------------------
+\include{ch880/apx_Exercises}
+% ----------------------------------------------------------------
+
+\include{ch900_back/back}
+
+% ----------------------------------------------------------------
+
+\end{document}

@@ -77,7 +77,7 @@ png: $(FIGS)
 	inkscape --export-filename=$@  --export-area-drawing  -d 300 -y 0.0 $<
 
 # ----------------------------------------------------------------
-# Extracted layered SVG into multiple PNGs
+# Extract layers of SVG into multiple PNGs
 
 LAYER_1 = 'select-all:layers; object-set-attribute:style, display:none; select-clear; select-by-id:layer1; object-set-attribute:style, display:inline'
 
