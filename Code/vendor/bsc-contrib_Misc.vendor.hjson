@@ -1,0 +1,28 @@
+{
+  // Name of the vendored-in project
+  name: "bsc-contrib_Misc",
+
+  // Target directory: typically equal to the name
+  // All imported code is copied into this directory
+  target_dir: "bsc-contrib_Misc",
+
+  // Git upstream source code repository
+  upstream: {
+    // Upstream Git repository URL. HTTPS URLs are preferred.
+    url: "https://github.com/B-Lang-org/bsc-contrib",
+    // Upstream revision or branch. Can be a commit hash or a branch name.
+    rev: "main",
+  },
+
+  // Optional: Pick specific files or subdirectories from upstream and
+  // specify where to put them.
+  mapping: [
+    {from: 'Libraries/Misc/Cur_Cycle.bsv',     to: 'Cur_Cycle.bsv'},
+    {from: 'Libraries/Misc/GetPut_Aux.bsv',    to: 'GetPut_Aux.bsv'},
+    {from: 'Libraries/Misc/Semi_FIFOF.bsv',    to: 'Semi_FIFOF.bsv'},
+    {from: 'Libraries/Misc/EdgeFIFOFs.bsv',    to: 'EdgeFIFOFs.bsv'},
+
+    // Now from AMBA_Fabrics; needed only for Catamaran builds
+    // {from: 'Libraries/Misc/ByteLane.bsv',      to: 'ByteLane.bsv'},
+  ]
+}

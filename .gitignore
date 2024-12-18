@@ -1,4 +1,20 @@
 *~
+.*~
+verilog
+exe_*
+log*
+Verilator_Make
+*.csv
+*.lock.hjson
+build_*
+C_for_bsim
+Elf_to_Memhex32.exe
+README.html
+Doc/Build_and_Run_Guide.html
+Code/vendor/bsc-contrib_Misc
+Code/vendor/EDB
+traces
+*.o
 *.pdf
 *.aux
 *.bbl
@@ -11,5 +27,4 @@
 *.lof
 *.lot
 tmp*
-README.html
 Book/Code_Extracts/*.tex
