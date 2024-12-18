@@ -12,4 +12,4 @@
 *.lot
 tmp*
 README.html
-Code_Extracts/*.tex
+Book/Code_Extracts/*.tex

@@ -51,8 +51,12 @@ SOURCES = \
 		ch860_apx_Glossary/apx_Glossary.tex \
 		ch870/apx_BSV_importing_C.tex \
 		ch880/apx_Exercises.tex \
-		ch900_back/back.tex \
-		testpage.tex
+		ch900_back/back.tex
+
+# Intended for all the LaTeX intermediate files,
+# but seems to get confused by \include
+tmp_latex:
+	mkdir -p tmp_latex
 
 .PHONY: p i p pp pip figs bib extract
 
@@ -84,10 +88,16 @@ pip: $(SOURCES)  tmp_latex
 bib: tmp_latex
 	bibtex  $(TOPFILE)
 
+# ================================================================
+
 # One Chapter:
 .PHONY: o
 o: $(SOURCES)
+	mkdir -p tmp_latex
 	pdflatex  One_Chapter.tex
+
+# ================================================================
+# Create png figs from svg; extract code excerpts
 
 .PHONY: figs
 figs:
@@ -96,9 +106,6 @@ figs:
 .PHONY: extract
 extract:
 	./Code_Extracts/Extract_latex_from_BSV.py  $(CODE_DIR)  Code_Extracts
-
-tmp_latex:
-	mkdir -p tmp_latex
 
 # ================================================================
 

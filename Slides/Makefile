@@ -1,3 +1,12 @@
+.PHONY: help
+help:
+	@echo "Available targets:"
+	@echo "    pdf             Make PDF for all slides from *.tex (LaTeX)"
+	@echo "    <foo>.pdf       Make PDF for one slide deck from <foo>.tex (LaTeX)"
+	@echo ""
+	@echo "    clean           Remove emacs backups and minor intermediates"
+	@echo "    full_clean      + remove LaTeX intermediate files backups and pdf"
+
 SLIDES += Slides_01_Intro.pdf
 SLIDES += Slides_02_ISA.pdf
 SLIDES += Slides_03_BSV_Program_Structure.pdf

@@ -1,14 +1,10 @@
-This is a non-public repository for development of content that
-eventually goes into this public repository:
+This repository is intended for the author's PRIVATE development of the book:
+
+    Learn RISC-V CPU Implementation and BSV
+
+and associated materials.  The final, "published" version of all these
+materials are in a different repository:
 
     https://github.com/rsnikhil/Learn_Bluespec_and_RISCV_Design
 
-Content here includes
-
-* Book: "Learn RISC-V CPU Implementation and BSV" by Rishiyur S. Nikhil
-* Accompanying lecture slides and exercises
-
-The Fife and Drum source codes used in the book have a separate
-development repo:
-
-    https://github.com/bluespec/Fife
+Content here includes the book, accompanying code, exercises, and lecture slides.
